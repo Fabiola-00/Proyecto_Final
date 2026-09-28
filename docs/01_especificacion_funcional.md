@@ -1,6 +1,6 @@
 # 01. Especificación funcional
 
-**Estado:** propuesta para revisión; no constituye política institucional aprobada.
+**Estado:** especificación de producto. En Fase 2 quedaron implementados el esquema base, login/sesión y comprobación de roles; los demás flujos de esta especificación son objetivos pendientes. No constituye política institucional aprobada.
 
 ## Propósito y alcance
 

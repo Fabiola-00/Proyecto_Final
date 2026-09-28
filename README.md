@@ -1,10 +1,10 @@
-# SICOPE
+# SICOSE
 
-Prototipo académico para seguimiento y evaluación de voluntarios de rescate y emergencias. El repositorio contiene la especificación inicial y ahora incorpora el esqueleto Flask/SQLite de la Fase 1; autenticación, evaluaciones y dashboards siguen fuera de alcance.
+Sistema de Control y Evaluación de Personal. Prototipo académico para seguimiento de voluntarios de rescate y emergencias.
 
 ## Estado
 
-Fase 1 — base local ejecutable y estructura inicial. Aún no es una aplicación lista para producción.
+Fase 2 — modelo de datos inicial y autenticación por sesión implementados. La aplicación sigue siendo un prototipo local, no un sistema listo para producción.
 
 ## Documentación
 
@@ -28,8 +28,12 @@ py -3 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 Copy-Item .env.example .env
-flask --app sicope init-db
-flask --app sicope run --debug
+notepad .env
+flask --app sicose init-db
+flask --app sicose seed-admin
+flask --app sicose run --debug
 ```
 
-Abre `http://127.0.0.1:5000/`. Los pasos completos y ejecución de pruebas están en [docs/07_inicio_desarrollo.md](docs/07_inicio_desarrollo.md).
+Antes de ejecutar los comandos Flask, completa en `.env` un secreto aleatorio `SICOSE_SECRET_KEY` y una contraseña local de desarrollo para `SICOSE_ADMIN_PASSWORD` (mínimo 12 caracteres). El usuario demo es `admin.demo`; el seed no imprime ni sobrescribe contraseñas.
+
+Abre `http://127.0.0.1:5000/login`. La guía completa, pruebas y límites de esta fase están en [docs/07_inicio_desarrollo.md](docs/07_inicio_desarrollo.md).

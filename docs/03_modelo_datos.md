@@ -1,32 +1,36 @@
-# 03. Modelo de datos inicial
+# 03. Modelo de datos
 
-Modelo lógico propuesto para SQLite. Claves foráneas habilitadas; IDs internos no secuenciales públicos recomendables (UUID) o ids con controles contra enumeración. Fechas almacenadas UTC en ISO-8601. Cada entidad incluirá `creado_en` y, cuando aplique, `actualizado_en`.
+## Esquema implementado
 
-## Entidades
+SQLite usa `PRAGMA foreign_keys = ON`. El esquema `sicose/schema.sql` es aditivo e idempotente (`CREATE TABLE IF NOT EXISTS`) y actualiza `app_meta.schema_version` a 2. La base local de Fase 1 contenía solo esa metadata; se preservó y amplió. No se eliminan tablas/filas durante `init-db`. Fechas técnicas se expresan en UTC; claves numéricas son internas.
 
-- **usuario** (`id`, `nombre`, `apellido`, `correo` único normalizado, `password_hash`, `rol`, `estado`, `creado_en`, `ultimo_acceso`): rol administrador/instructor/voluntario y estado pendiente/activo/inactivo/rechazado.
-- **solicitud_registro** (`id`, datos mínimos, `correo`, `estado`, `codigo_invitacion_id` nullable, `revisado_por`, `revisado_en`): no equivale a cuenta habilitada.
-- **invitacion** (`id`, `codigo_hash`, `rol_objetivo`, `creada_por`, `expira_en`, `usada_en`, `estado`): no persistir el código secreto en claro.
-- **perfil_voluntario** (`usuario_id` PK/FK, `instructor_id`, `experiencia_operaciones`, `antiguedad_desde`, `estado_servicio`). Inactividad lógica conserva relaciones/historial.
-- **curso_voluntario** (`id`, `voluntario_id`, `nombre`, `entidad`, `fecha`, `observacion`).
-- **registro_asistencia** (`id`, `voluntario_id`, `fecha`, `estado`, `actividad_id`, `registrado_por`). Política de corrección/auditoría por decidir.
-- **periodo** (`id`, `nombre`, `fecha_inicio`, `fecha_fin`, `estado`, `creado_por`).
-- **version_ponderacion** (`id`, `periodo_id`, `version`, `estado`, `aprobado_por`, `aprobado_en`, `vigente_desde`), única por período y versión.
-- **peso_evaluacion** (`version_id`, `tipo_evaluacion_id`, `peso`): único por tipo/versión; suma validada en servicio/transacción = 1.0 antes de activar.
-- **tipo_evaluacion** (`id`, `codigo`, `nombre`, `categoria`, `origen_nota`, `instrumento_id` nullable, `activo`): 3 psicométricas, física, académica, criterio instructor.
-- **instrumento** (`id`, `nombre`, `version`, `idioma`, `fuente_url`, `licencia`, `estado_aprobacion`, `regla_puntuacion_referencia`, `responsable_revision`): solo candidatos documentales; no cargar reactivos hasta autorización.
-- **asignacion_evaluacion** (`id`, `voluntario_id`, `periodo_id`, `tipo_evaluacion_id`, `estado`, `habilitada_por`, `fecha_habilitacion`): estado no_habilitada/habilitada/en_progreso/completada.
-- **intento** (`id`, `asignacion_id`, `numero`, `estado`, `iniciado_en`, `enviado_en`, `puntuacion_bruta`, `nota_0_100`, `calculo_version`): único por asignación y número. No actualizar un intento enviado al reiniciar.
-- **calificacion** (`id`, `asignacion_id`, `nota_0_100`, `observacion`, `registrada_por`, `registrada_en`, `corregida_de_id` nullable): historial de correcciones append-only; aplicar una única calificación vigente sin borrar anteriores.
-- **auditoria** (`id`, `actor_id`, `accion`, `entidad`, `entidad_id`, `fecha`, `metadatos_minimos`, `resultado`): acceso restringido y sin secretos.
-- **solicitud_analisis_ia** (futuro; `id`, `voluntario_id`, `periodo_id`, `solicitada_por`, `estado`, `modelo_version`, `salida`, `revision_profesional`, marcas de tiempo): no crear hasta política/modelo aprobados.
+| Tabla | Uso y restricciones principales |
+|---|---|
+| `roles` | Catálogo restringido a ADMINISTRADOR, INSTRUCTOR y VOLUNTARIO; seed repetible. |
+| `usuarios` | `username` único sin distinguir mayúsculas; `password_hash` obligatorio; FK restrictiva a rol; estado PENDIENTE/ACTIVO/INACTIVO/RECHAZADO; timestamps y último acceso. |
+| `instructores` | Perfil 1:1 con usuario, FK restrictiva. |
+| `voluntarios` | Perfil 1:1 con usuario; instructor asignado opcional referenciado a perfil de instructor. |
+| `periodos` | Nombre único, rango de fechas validado y estados BORRADOR/ACTIVO/CERRADO. |
+| `instrumentos` | Metadatos y aprobación PENDIENTE por defecto; no contiene ítems y ninguno está habilitado. |
+| `evaluaciones` | Catálogo inactivo por defecto, categoría/origen restringidos y enlace opcional al instrumento. Sin ejecución funcional en esta fase. |
+| `asignaciones_evaluacion` | Relaciona voluntario, período y evaluación; única por combinación; estado inicial NO_HABILITADA. |
+| `versiones_ponderacion` | Versiones únicas por período y estado; no se publican ni calculan automáticamente en esta fase. |
+| `pesos_evaluacion` | Relación N:M versión/evaluación, PK compuesta, peso entre 0 y 1; suma de 100% pendiente de validación transaccional antes de publicar. |
+| `intentos` | FK a asignación, número único positivo por asignación; score opcional restringido a 0–100. Sin endpoint de pruebas. |
+| `respuestas` | FK restrictiva a intento y referencia única por intento; tabla vacía y sin reactivos ni lógica psicométrica. |
+| `calificaciones` | FK a asignación y usuario que registra; nota 0–100; correcciones enlazables sin sobrescribir la fila previa. Sin operación de calificación aún. |
+| `capacitaciones` | Historial de cursos asociado a voluntario. |
+| `asistencias` | Registro por voluntario/fecha/actividad con estado limitado y autor. |
+| `auditoria` | Actor nullable (fallos de usuario desconocido), acción, resultado, IP y fecha. No guarda contraseñas, hashes ni username fallido. |
 
-## Relaciones e invariantes
+## Relaciones
 
-Usuario voluntario 1:1 perfil; instructor se relaciona con voluntarios asignados; período 1:N versiones; versión N:M tipos mediante pesos; asignación une persona, período y tipo; asignación 1:N intentos y calificaciones históricas. No hay borrado en cascada para historial de evaluación. FKs `RESTRICT` o `SET NULL` con política explícita; desactivación lógica para usuarios.
+`usuarios` N:1 `roles`; los perfiles `instructores` y `voluntarios` tienen FK 1:1 a `usuarios`. Un voluntario puede referir su instructor. `periodos` 1:N versiones de peso; `versiones_ponderacion` N:M `evaluaciones`; asignación conecta voluntario/período/evaluación; una asignación agrupa intentos, respuestas y calificaciones; voluntarios agrupan capacitación y asistencia. Auditoría refiere al actor cuando existe. Las restricciones de borrado conservan historial con `RESTRICT` o `SET NULL`, nunca cascada para resultados.
 
-Integridad: nota dentro de 0–100; peso dentro de 0–1; estados restringidos; invitación de un solo uso; intento número único; correo normalizado único; suma de pesos validada atómicamente antes de publicar versión. El promedio requiere política para faltantes, intentos válidos y redondeo, pendiente de decisión institucional.
+## Autenticación y roles
 
-## Sensibilidad y retención
+La cuenta guarda el nombre de rol por FK y un hash generado por Werkzeug (scrypt predeterminado de la versión instalada), nunca la contraseña original. Solo estado ACTIVO puede completar login; cuentas pendientes/inactivas no obtienen sesión. El seed inserta únicamente ADMINISTRADOR y no modifica una cuenta existente. No se crean cuentas de instructor o voluntario demo automáticamente.
 
-Respuestas psicométricas son datos de acceso restringido y pueden no ser necesarias tras el cálculo; definir retención, exportación, corrección y eliminación/anónimo conforme a política y normativa aplicable antes de datos reales. Las recomendaciones de IA no se almacenarán porque no hay modelo implementado.
+## Decisiones y límites
+
+IDs numéricos son internos y no autorizan por sí mismos acceso a un recurso. Campos de respuestas son sensibles; aún no se almacenan. Los instrumentos permanecen pendientes y sin reactivos. El modelo de tablas futuras no significa que APIs o cálculos estén implementados. Reglas de retención, privacidad, faltantes, pesos y publicación necesitan aprobación institucional antes de operar evaluaciones.

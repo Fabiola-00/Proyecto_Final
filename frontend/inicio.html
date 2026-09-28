@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Sistema de Control y Evaluación de Personal">
+  <title>SICOSE | Inicio</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body>
+  <main class="contenedor">
+    <p class="marca">SICOSE</p>
+    <h1>Sesión iniciada</h1>
+    <p>Hola, {{ usuario.nombre }}. Tu cuenta tiene el rol {{ usuario.rol }}.</p>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button id="logout-button" type="button">Cerrar sesión</button>
+    <p id="auth-message" class="mensaje" role="status" aria-live="polite"></p>
+  </main>
+</body>
+</html>
