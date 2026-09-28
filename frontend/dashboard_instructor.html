@@ -1,0 +1,12 @@
+{% extends "_dashboard_base.html" %}
+
+{% block contenido %}
+<section class="seccion-panel" aria-labelledby="equipo-titulo">
+  <div class="titulo-seccion"><div><p class="sobrelinea">TU EQUIPO</p><h2 id="equipo-titulo">Seguimiento asignado</h2></div><span class="estado-fase">Vista inicial</span></div>
+  <div class="tarjeta-amplia">
+    <div class="icono-amplio" aria-hidden="true">◎</div>
+    <div><h3>Tu espacio de seguimiento</h3><p>Las cifras superiores corresponden únicamente a voluntarios y evaluaciones asignados a tu cuenta. La gestión de asignaciones y el registro de notas se habilitarán en fases posteriores.</p></div>
+  </div>
+</section>
+<aside class="nota-informativa"><span class="nota-icono" aria-hidden="true">i</span><p><strong>Acceso por asignación.</strong> Este panel no muestra información de voluntarios vinculados a otros instructores.</p></aside>
+{% endblock %}

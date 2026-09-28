@@ -1,0 +1,13 @@
+{% extends "_dashboard_base.html" %}
+
+{% block contenido %}
+<section class="seccion-panel" aria-labelledby="gestion-titulo">
+  <div class="titulo-seccion"><div><p class="sobrelinea">GESTIÓN GENERAL</p><h2 id="gestion-titulo">Administración del sistema</h2></div><span class="estado-fase">Vista inicial</span></div>
+  <div class="rejilla-modulos">
+    <article class="tarjeta-modulo"><span class="modulo-icono violeta" aria-hidden="true">♙</span><div><h3>Usuarios y roles</h3><p>La gestión de cuentas estará disponible en una fase posterior.</p></div><span class="modulo-estado">Próximamente</span></article>
+    <article class="tarjeta-modulo"><span class="modulo-icono naranja" aria-hidden="true">▦</span><div><h3>Períodos y ponderaciones</h3><p>Los indicadores muestran el estado actual de la base de datos.</p></div><span class="modulo-estado">Próximamente</span></article>
+    <article class="tarjeta-modulo"><span class="modulo-icono azul" aria-hidden="true">▤</span><div><h3>Evaluaciones y reportes</h3><p>Los módulos de evaluación y exportación todavía no están activos.</p></div><span class="modulo-estado">Próximamente</span></article>
+  </div>
+</section>
+<aside class="nota-informativa"><span class="nota-icono" aria-hidden="true">i</span><p><strong>Datos actuales.</strong> Los contadores reflejan únicamente perfiles, cuentas y períodos registrados. SICOSE no genera datos de demostración automáticamente.</p></aside>
+{% endblock %}

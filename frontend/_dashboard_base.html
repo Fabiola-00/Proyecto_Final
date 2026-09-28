@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Sistema de Control y Evaluación de Personal">
+  <title>{{ titulo_pagina }} | SICOSE</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body class="pagina-panel">
+  <div class="app-shell">
+    <aside class="barra-lateral" id="barra-lateral" aria-label="Navegación principal">
+      <a class="marca-panel" href="/" aria-label="SICOSE, ir al inicio">
+        <span class="marca-simbolo" aria-hidden="true">S</span>
+        <span><strong>SICOSE</strong><small>Control y Evaluación</small></span>
+      </a>
+
+      <div class="separador-lateral"></div>
+      <p class="etiqueta-nav">ESPACIO DE TRABAJO</p>
+      <nav class="navegacion">
+        <a class="enlace-nav{% if nav_activo == 'inicio' %} activo{% endif %}" href="/"{% if nav_activo == 'inicio' %} aria-current="page"{% endif %}>
+          <span class="nav-icono" aria-hidden="true">⌂</span><span>Inicio</span>
+        </a>
+        {% if current_user.rol == 'ADMINISTRADOR' %}
+          <p class="etiqueta-nav grupo-nav">ADMINISTRACIÓN</p>
+          <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">♙</span><span>Usuarios</span><small>Próximamente</small></span>
+          <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">▦</span><span>Períodos</span><small>Próximamente</small></span>
+          <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">◷</span><span>Configuración</span><small>Próximamente</small></span>
+        {% elif current_user.rol == 'INSTRUCTOR' %}
+          <p class="etiqueta-nav grupo-nav">SEGUIMIENTO</p>
+          <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">♙</span><span>Mis voluntarios</span><small>Próximamente</small></span>
+          <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">✓</span><span>Evaluaciones</span><small>Próximamente</small></span>
+        {% else %}
+          <p class="etiqueta-nav grupo-nav">MI INFORMACIÓN</p>
+          <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">✓</span><span>Mis evaluaciones</span><small>Próximamente</small></span>
+          <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">▤</span><span>Capacitaciones</span><small>Próximamente</small></span>
+        {% endif %}
+      </nav>
+
+      <div class="lateral-inferior">
+        <div class="periodo-resumen"><span class="punto-estado" aria-hidden="true"></span><span><small>PERÍODO ACTUAL</small><strong>{{ periodo_actual }}</strong></span></div>
+        <div class="usuario-lateral">
+          <span class="avatar" aria-hidden="true">{{ current_user.nombre[:1]|upper }}</span>
+          <span class="usuario-datos"><strong>{{ current_user.nombre }}</strong><small>{{ current_user.rol|capitalize }}</small></span>
+        </div>
+        <input class="token-csrf" type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="boton-salir" id="logout-button" type="button"><span aria-hidden="true">↪</span> Cerrar sesión</button>
+      </div>
+    </aside>
+
+    <div class="fondo-movil" id="fondo-movil" hidden></div>
+    <main class="contenido-principal">
+      <header class="barra-superior">
+        <button class="boton-menu" id="boton-menu" type="button" aria-label="Abrir menú de navegación" aria-controls="barra-lateral" aria-expanded="false">☰</button>
+        <div class="miga"><span>SICOSE</span><span aria-hidden="true">/</span><strong>{{ titulo_pagina }}</strong></div>
+        <span class="rol-chip">{{ current_user.rol|capitalize }}</span>
+      </header>
+      <div class="contenido-pagina">
+        <div class="encabezado-pagina">
+          <div><p class="sobrelinea">PANEL DE CONTROL</p><h1>{{ titulo_pagina }}</h1><p class="descripcion-pagina">{{ descripcion }}</p></div>
+          <div class="periodo-chip"><span class="punto-estado" aria-hidden="true"></span>{{ periodo_actual }}</div>
+        </div>
+
+        <section class="indicadores" aria-label="Indicadores">
+          {% for indicador in indicadores %}
+            <article class="tarjeta-indicador">
+              <div class="indicador-cabecera"><span>{{ indicador.etiqueta }}</span><span class="indicador-marca" aria-hidden="true">{{ loop.index }}</span></div>
+              <strong class="indicador-valor">{{ indicador.valor }}</strong>
+              <span class="indicador-detalle">{{ indicador.detalle }}</span>
+            </article>
+          {% endfor %}
+        </section>
+
+        {% block contenido %}{% endblock %}
+        <p class="mensaje" id="auth-message" role="status" aria-live="polite"></p>
+        <footer class="pie-pagina">SICOSE <span aria-hidden="true">·</span> Sistema de Control y Evaluación de Personal</footer>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

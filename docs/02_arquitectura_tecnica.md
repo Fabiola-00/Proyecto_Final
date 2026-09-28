@@ -10,7 +10,8 @@ Aplicación Flask monolítica modular: frontend HTML/CSS/JavaScript nativo en `f
 - `sicose.permissions`: decorador backend `role_required`.
 - `sicose.db`: SQLite, esquema aditivo, seed de roles/administrador y auditoría de auth.
 - `sicose.models`: objeto de sesión con proyección pública sin hash.
-- `frontend/`: plantilla de login, página mínima autenticada y JS para solicitudes JSON.
+- `sicose.dashboard`: tres rutas HTML protegidas, cada una por rol; consultas agregadas filtran asignaciones según instructor/voluntario autenticado.
+- `frontend/`: login, plantilla común de dashboards, vistas iniciales por rol, CSS responsivo y JS nativo para navegación móvil/sesión.
 - Evaluaciones, reportes e IA: solo tablas preparatorias o documentación; sin lógica de producto.
 
 Separar rutas, servicios, persistencia y validadores. Las reglas de autorización residen en servidor y se aplican antes de consultar/devolver el recurso. API responde errores JSON con código HTTP apropiado sin filtrar trazas o información sensible.
@@ -32,7 +33,7 @@ Separar rutas, servicios, persistencia y validadores. Las reglas de autorizació
 
 ## API y rutas presentes
 
-`GET /login`; `POST /api/auth/login`; `POST /api/auth/logout`; `GET /api/auth/me`; `GET /api/admin/estado` (endpoint mínimo para demostrar autorización de rol, no dashboard). Gestión de usuarios, registro/invitaciones y demás rutas funcionales todavía no están implementadas.
+`GET /login`; `POST /api/auth/login`; `POST /api/auth/logout`; `GET /api/auth/me`; `GET /panel/administrador`; `GET /panel/instructor`; `GET /panel/voluntario`; `GET /api/admin/estado` (endpoint mínimo para demostrar autorización). La raíz `/` redirige al panel del rol autenticado. Gestión de usuarios, registro/invitaciones y acciones de los módulos siguen sin implementar.
 
 ## Dependencias y ejecución
 

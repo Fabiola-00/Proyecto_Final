@@ -1,6 +1,6 @@
 # Inicio de desarrollo en Windows
 
-Guía para ejecutar localmente la base de Fase 2. Requiere Python 3.10 o posterior y PowerShell. Flask usa su servidor de desarrollo, por lo que se limita a la máquina local; no desplegarlo en producción.
+Guía para ejecutar localmente la base de Fase 3. Requiere Python 3.10 o posterior y PowerShell. Flask usa su servidor de desarrollo, por lo que se limita a la máquina local; no desplegarlo en producción.
 
 ## 1. Abrir el proyecto y crear entorno virtual
 
@@ -66,8 +66,8 @@ Las pruebas usan el cliente de Flask y una base SQLite en memoria; no requieren 
 ## Estructura inicial
 
 ```text
-sicose/                 fábrica Flask, auth, permisos, conexión SQLite y esquema
-frontend/               login, página mínima, CSS y JavaScript nativo
+sicose/                 fábrica Flask, auth, permisos, dashboards, SQLite y esquema
+frontend/               login, base compartida, tres paneles iniciales, CSS y JS
 tests/                  pruebas HTTP de autenticación, autorización y datos
 instance/               base local ignorada por Git
 docs/07_inicio_desarrollo.md  instrucciones para Windows
@@ -75,6 +75,6 @@ docs/07_inicio_desarrollo.md  instrucciones para Windows
 
 ## Alcance y seguridad
 
-La sesión dura ocho horas; cookies `HttpOnly`, `SameSite=Lax` y `Secure` configurable para HTTPS. Los endpoints JSON distinguen 401 y 403. Login y logout validan CSRF. Solo `/api/admin/estado` demuestra ahora una ruta limitada al administrador; no es un dashboard ni existe aún API de gestión de usuarios. La limitación de intentos de login y despliegue con servidor WSGI/HTTPS están pendientes.
+La sesión dura ocho horas; cookies `HttpOnly`, `SameSite=Lax` y `Secure` configurable para HTTPS. Los endpoints JSON distinguen 401 y 403. Login y logout validan CSRF. Hay vistas iniciales protegidas por rol; los enlaces de gestión aparecen deshabilitados hasta que sus módulos se implementen. `/api/admin/estado` es solo una ruta breve de comprobación de autorización. La limitación de intentos de login y el despliegue con servidor WSGI/HTTPS están pendientes.
 
 El servidor incorporado de Flask es exclusivamente para desarrollo local; antes de un despliegue será necesario definir servidor WSGI, HTTPS, secretos y demás requisitos operativos.

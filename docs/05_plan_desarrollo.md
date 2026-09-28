@@ -1,17 +1,18 @@
 # 05. Plan de desarrollo
 
-**Punto de control actual: Fase 2 implementada; pendiente de revisión del solicitante.** Cada fase inicia con alcance/archivos; al terminar se realizan verificaciones apropiadas y se reporta su alcance.
+**Punto de control actual: Fase 3 implementada; pendiente de revisión del solicitante.** Cada fase inicia con alcance/archivos; al terminar se realizan verificaciones apropiadas y se reporta su alcance.
 
 | Fase | Objetivo | Entregables tentativos | Condición para avanzar |
 |---|---|---|---|
 | 0. Especificación | Alinear alcance, seguridad, modelo y candidatos psicométricos | README, AGENTS.md y seis documentos en `docs/` | Aprobación del solicitante y resolución de decisiones críticas |
 | 1A. Base ejecutable | Estructura Python/Flask, configuración local, SQLite y frontend base | Fábrica Flask, endpoint de salud, comando inicial y prueba básica | Completada |
-| 2. Modelo y autenticación | Tablas base, roles, login/logout, autorización, seed admin y auditoría auth | Esquema SQLite ampliado, login con CSRF, APIs auth, seed idempotente y pruebas | Implementada en esta entrega; gestión de usuarios y aprobación de altas siguen pendientes |
-| 3. Gestión | Períodos, usuarios, instructores, asignaciones y perfiles | CRUD permitido y bajas lógicas | Verificar autorización, validación e historial |
-| 4. Evaluaciones no psicométricas | Calificación física, académica y criterio con historial | Formularios, intentos/registro, avance | Definir faltantes, correcciones y escalas institucionales |
-| 5. Instrumentos aprobados | Habilitar solo instrumentos con autorización, versión/idioma y revisión profesional | Pruebas autoadministradas y puntuación documentada | Aprobación de derechos, contenido, validación local y privacidad |
-| 6. Reportes | PDF individuales/consolidados y Excel con permisos | Exportación auditada y filtros | Confirmar campos, destinatarios, retención y reglas de promedio |
-| 7. Integración IA opcional | Conectar modelo entrenado/validado y flujo de revisión bajo solicitud | Adaptador, versión de modelo, salida revisable | Dataset/model card, validación, revisión ética/profesional y autorización |
+| 2. Modelo y autenticación | Tablas base, roles, login/logout, autorización, seed admin y auditoría auth | Esquema SQLite ampliado, login con CSRF, APIs auth, seed idempotente y pruebas | Completada; gestión de usuarios y aprobación de altas siguen pendientes |
+| 3. Diseño visual y dashboards | Plantilla compartida, navegación, indicadores y páginas iniciales por rol | Dashboard inicial protegido para administrador, instructor y voluntario | Implementada en esta entrega; los contadores usan datos existentes |
+| 4. Gestión | Períodos, usuarios, instructores, asignaciones y perfiles | CRUD permitido y bajas lógicas | Verificar autorización, validación e historial |
+| 5. Evaluaciones no psicométricas | Calificación física, académica y criterio con historial | Formularios, intentos/registro, avance | Definir faltantes, correcciones y escalas institucionales |
+| 6. Instrumentos aprobados | Habilitar solo instrumentos con autorización, versión/idioma y revisión profesional | Pruebas autoadministradas y puntuación documentada | Aprobación de derechos, contenido, validación local y privacidad |
+| 7. Reportes | PDF individuales/consolidados y Excel con permisos | Exportación auditada y filtros | Confirmar campos, destinatarios, retención y reglas de promedio |
+| 8. Integración IA opcional | Conectar modelo entrenado/validado y flujo de revisión bajo solicitud | Adaptador, versión de modelo, salida revisable | Dataset/model card, validación, revisión ética/profesional y autorización |
 
 ## Riesgos principales
 

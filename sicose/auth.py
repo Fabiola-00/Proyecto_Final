@@ -13,7 +13,9 @@ auth_bp = Blueprint("auth", __name__)
 @auth_bp.get("/login")
 def login_page():
     if current_user.is_authenticated:
-        return render_template("inicio.html", usuario=current_user)
+        from flask import redirect, url_for
+
+        return redirect(url_for("inicio"))
     return render_template("login.html")
 
 

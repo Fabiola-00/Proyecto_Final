@@ -23,6 +23,12 @@ Interfaz en español, clara, sobria y adaptable. Como inspiración funcional gen
 - Tablas con búsqueda, filtros, paginación y vistas compactas para móvil.
 - Estados vacíos, error, carga, no autorizado y confirmación de acción con mensajes directos.
 
+## Implementación de Fase 3
+
+Se implementó una plantilla compartida con barra lateral por rol, encabezado, período actual, identidad de cuenta, estado activo de navegación y salida de sesión. Hay una página inicial para cada rol. Las tarjetas usan cifras leídas de SQLite: administrador ve perfiles activos, cuentas pendientes y períodos; instructor ve únicamente voluntarios asignados y sus asignaciones incompletas; voluntario ve sus propias asignaciones y capacitaciones. Cuando no hay datos, la cifra mostrada es cero. Las funciones aún no disponibles aparecen identificadas como próximas, sin enlaces falsos ni acciones simuladas.
+
+La barra lateral se convierte en menú móvil con control accesible por teclado. En escritorio permanece visible. Se conservan los colores institucionales y los estados usan texto además de color.
+
 ## Responsividad e interacción
 
 En pantalla pequeña, barra lateral pasa a menú accesible; tablas se convierten en tarjetas o permiten desplazamiento horizontal señalizado; campos y botones ocupan ancho cómodo. No comunicar estados únicamente con color. Etiquetar campos, asociar errores con controles, permitir navegación por teclado y respetar `prefers-reduced-motion`.

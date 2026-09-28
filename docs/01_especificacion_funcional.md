@@ -1,6 +1,6 @@
 # 01. Especificación funcional
 
-**Estado:** especificación de producto. En Fase 2 quedaron implementados el esquema base, login/sesión y comprobación de roles; los demás flujos de esta especificación son objetivos pendientes. No constituye política institucional aprobada.
+**Estado:** especificación de producto. En Fase 2 quedaron implementados el esquema base, login/sesión y comprobación de roles; en Fase 3 se agregaron las vistas iniciales por rol con indicadores consultados desde la base existente. Los demás flujos son objetivos pendientes. No constituye política institucional aprobada.
 
 ## Propósito y alcance
 

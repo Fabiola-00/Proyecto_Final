@@ -4,7 +4,8 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-from flask import Flask, jsonify, redirect, request, url_for
+from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 from flask_wtf.csrf import CSRFError
 
 from .extensions import csrf, login_manager
@@ -52,10 +53,11 @@ def create_app(test_config=None):
 
     from . import db
     from .auth import auth_bp
-    from .permissions import role_required
+    from .dashboard import dashboard_bp
 
     db.init_app(app)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(dashboard_bp)
 
     @login_manager.user_loader
     def cargar_usuario(user_id):
@@ -73,15 +75,21 @@ def create_app(test_config=None):
 
     @app.errorhandler(403)
     def acceso_denegado(_error):
-        return jsonify(error="No tienes permiso para esta operación.", codigo="sin_permiso"), 403
+        if request.path.startswith("/api/"):
+            return jsonify(error="No tienes permiso para esta operación.", codigo="sin_permiso"), 403
+        return render_template("error.html", codigo=403, mensaje="No tienes permiso para ver esta página."), 403
 
     @app.get("/")
+    @login_required
     def inicio():
-        return redirect(url_for("auth.login_page"))
-
-    @app.get("/api/admin/estado")
-    @role_required("ADMINISTRADOR")
-    def estado_admin():
-        return jsonify(estado="autorizado")
+        paneles = {
+            "ADMINISTRADOR": "dashboard.administrador",
+            "INSTRUCTOR": "dashboard.instructor",
+            "VOLUNTARIO": "dashboard.voluntario",
+        }
+        endpoint = paneles.get(current_user.rol)
+        if endpoint is None:
+            return jsonify(error="Rol sin panel asignado.", codigo="rol_no_configurado"), 403
+        return redirect(url_for(endpoint))
 
     return app

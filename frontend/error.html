@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ codigo }} | SICOSE</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+</head>
+<body>
+  <main class="contenedor error-pagina">
+    <p class="marca">SICOSE</p>
+    <p class="sobrelinea">ERROR {{ codigo }}</p>
+    <h1>Acceso no disponible</h1>
+    <p>{{ mensaje }}</p>
+    <a class="boton-enlace" href="/">Volver a mi inicio</a>
+  </main>
+</body>
+</html>

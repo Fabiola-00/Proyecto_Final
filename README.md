@@ -4,7 +4,7 @@ Sistema de Control y Evaluación de Personal. Prototipo académico para seguimie
 
 ## Estado
 
-Fase 2 — modelo de datos inicial y autenticación por sesión implementados. La aplicación sigue siendo un prototipo local, no un sistema listo para producción.
+Fase 3 — dashboards iniciales para administrador, instructor y voluntario, con navegación compartida e indicadores consultados desde SQLite. La aplicación sigue siendo un prototipo local, no un sistema listo para producción.
 
 ## Documentación
 
@@ -36,4 +36,4 @@ flask --app sicose run --debug
 
 Antes de ejecutar los comandos Flask, completa en `.env` un secreto aleatorio `SICOSE_SECRET_KEY` y una contraseña local de desarrollo para `SICOSE_ADMIN_PASSWORD` (mínimo 12 caracteres). El usuario demo es `admin.demo`; el seed no imprime ni sobrescribe contraseñas.
 
-Abre `http://127.0.0.1:5000/login`. La guía completa, pruebas y límites de esta fase están en [docs/07_inicio_desarrollo.md](docs/07_inicio_desarrollo.md).
+Abre `http://127.0.0.1:5000/login`. Tras iniciar sesión, cada rol llega a su vista inicial. La guía completa, pruebas y límites están en [docs/07_inicio_desarrollo.md](docs/07_inicio_desarrollo.md).

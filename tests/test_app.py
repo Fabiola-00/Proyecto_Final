@@ -56,7 +56,7 @@ class AplicacionTestCase(unittest.TestCase):
         )
 
     def _csrf_token(self):
-        pagina = self.cliente.get("/login")
+        pagina = self.cliente.get("/", follow_redirects=True)
         coincidencia = re.search(rb'name="csrf_token" value="([^"]+)"', pagina.data)
         self.assertIsNotNone(coincidencia, "El formulario debe emitir token CSRF")
         return coincidencia.group(1).decode("ascii")
@@ -109,6 +109,36 @@ class AplicacionTestCase(unittest.TestCase):
     def test_voluntario_no_accede_a_ruta_admin(self):
         self.assertEqual(self._login("voluntario.demo", "Clave voluntario 123!").status_code, 200)
         self.assertEqual(self.cliente.get("/api/admin/estado").status_code, 403)
+
+    def test_inicio_admin_muestra_dashboard_y_metricas(self):
+        self.assertEqual(self._login().status_code, 200)
+        respuesta = self.cliente.get("/", follow_redirects=True)
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertIn(b"Panel de administraci\xc3\xb3n", respuesta.data)
+        self.assertIn(b"Voluntarios activos", respuesta.data)
+        self.assertIn(b"SICOSE", respuesta.data)
+
+    def test_inicio_instructor_muestra_solo_su_panel(self):
+        self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
+        respuesta = self.cliente.get("/", follow_redirects=True)
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertIn(b"Panel del instructor", respuesta.data)
+        self.assertIn(b"Seguimiento asignado", respuesta.data)
+        self.assertNotIn(b"Panel de administraci\xc3\xb3n", respuesta.data)
+
+    def test_inicio_voluntario_muestra_solo_su_panel(self):
+        self.assertEqual(self._login("voluntario.demo", "Clave voluntario 123!").status_code, 200)
+        respuesta = self.cliente.get("/", follow_redirects=True)
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertIn(b"Mi seguimiento", respuesta.data)
+        self.assertIn(b"Privacidad personal", respuesta.data)
+        self.assertNotIn(b"Panel del instructor", respuesta.data)
+
+    def test_ruta_panel_de_otro_rol_retorna_403(self):
+        self.assertEqual(self._login("voluntario.demo", "Clave voluntario 123!").status_code, 200)
+        respuesta = self.cliente.get("/panel/administrador")
+        self.assertEqual(respuesta.status_code, 403)
+        self.assertIn(b"Acceso no disponible", respuesta.data)
 
     def test_logout_y_rechazo_posterior(self):
         self.assertEqual(self._login().status_code, 200)
