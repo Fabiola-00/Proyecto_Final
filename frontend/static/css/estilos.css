@@ -282,9 +282,36 @@ a.enlace-nav:hover { color: var(--brand); background: var(--surface-brand); }
 a.modulo-estado { color: var(--brand); font-weight: 700; text-decoration: none; }
 a.modulo-estado:hover { text-decoration: underline; }
 .tarjeta-amplia { display: flex; align-items: flex-start; gap: 1rem; padding: 1.3rem; border: 1px solid var(--border); border-radius: .9rem; background: var(--surface); box-shadow: 0 .3rem 1.2rem rgb(28 35 65 / 3%); }
-.bloque-alta-manual { margin-bottom: 1.3rem; }
-.alta-manual-contenido { min-width: 0; flex: 1 1 auto; }
+.bloque-alta-manual { margin-bottom: 1.3rem; overflow: hidden; border: 1px solid var(--border); border-radius: .9rem; background: var(--surface); box-shadow: 0 .3rem 1.2rem rgb(28 35 65 / 3%); }
+.alta-manual-resumen { display: flex; min-height: 4.5rem; align-items: center; gap: .9rem; padding: .8rem 1rem; color: var(--text-strong); cursor: pointer; list-style: none; }
+.alta-manual-resumen::-webkit-details-marker { display: none; }
+.alta-manual-resumen:hover { background: var(--surface-soft); }
+.alta-manual-resumen > span:last-child { display: grid; gap: .22rem; }
+.alta-manual-resumen strong { font-size: .86rem; }
+.alta-manual-resumen small { color: var(--muted); font-size: .72rem; }
+.alta-manual-mas { display: grid; width: 2.35rem; height: 2.35rem; flex: 0 0 auto; place-items: center; border-radius: .7rem; color: #fff; background: var(--brand-fill); font-size: 1.45rem; line-height: 1; transition: transform .18s ease; }
+.bloque-alta-manual[open] .alta-manual-mas { transform: rotate(45deg); }
+.alta-manual-contenido { min-width: 0; margin: 0; border: 0; border-top: 1px solid var(--border); border-radius: 0; box-shadow: none; }
+.alta-manual-contenido > div { width: 100%; }
+.codigo-generado { display: flex; min-height: 2.55rem; align-items: center; padding: .55rem .65rem; border: 1px dashed var(--border-strong); border-radius: .5rem; color: var(--brand); background: var(--surface-soft); font: 700 .82rem/1.2 ui-monospace, Consolas, monospace; }
 .alta-manual-contenido .formulario-inline { margin-top: .8rem; }
+.tabla-contenedor { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: .9rem; background: var(--surface); box-shadow: 0 .3rem 1.2rem rgb(28 35 65 / 3%); }
+.tabla-registros { width: 100%; min-width: 68rem; border-collapse: collapse; text-align: left; }
+.tabla-registros th, .tabla-registros td { padding: .8rem .85rem; border-bottom: 1px solid var(--border); color: var(--text); font-size: .73rem; vertical-align: top; }
+.tabla-registros th { color: var(--muted); background: var(--surface-soft); font-size: .66rem; font-weight: 700; letter-spacing: .035em; }
+.tabla-registros tbody tr:last-child td { border-bottom: 0; }
+.tabla-registros tbody tr:hover { background: var(--surface-soft); }
+.tabla-registros .celda-perfil { display: flex; min-width: 13rem; align-items: center; gap: .6rem; }
+.tabla-registros .celda-perfil .foto-perfil, .tabla-registros .celda-perfil .avatar { width: 2.4rem; height: 2.4rem; flex: 0 0 auto; margin: 0; }
+.tabla-registros .celda-perfil strong { color: var(--text-strong); }
+.tabla-registros .estado-tabla { display: inline-flex; padding: .28rem .48rem; border-radius: 99px; color: var(--muted); background: var(--surface-soft); font-size: .64rem; font-weight: 700; }
+.tabla-registros .estado-activo { color: var(--success); background: var(--success-soft); }
+.tabla-registros .estado-inactivo, .tabla-registros .estado-rechazado { color: var(--danger); background: var(--danger-soft); }
+.tabla-registros .estado-pendiente { color: var(--warning); background: var(--warning-soft); }
+.tabla-registros .acciones-tabla { min-width: 13rem; }
+.tabla-registros .acciones-tabla > * { margin: 0 0 .55rem; }
+.tabla-registros .acciones-tabla button { min-height: 2.25rem; font-size: .7rem; }
+.tabla-registros .tabla-vacia { padding: 1.5rem; color: var(--muted); text-align: center; }
 .tarjeta-amplia h3 { margin-top: .1rem; font-size: .88rem; }
 .tarjeta-amplia p { max-width: 55rem; font-size: .77rem; }
 .icono-amplio { display: grid; width: 2.55rem; height: 2.55rem; flex: 0 0 auto; place-items: center; border-radius: .75rem; color: var(--brand); background: var(--surface-brand); font-size: 1.3rem; }
@@ -366,7 +393,7 @@ a.modulo-estado:hover { text-decoration: underline; }
   .rejilla-modulos { grid-template-columns: 1fr; }
   .tarjeta-modulo-amplia { grid-template-columns: auto 1fr; }
   .titulo-accion { align-items: flex-start; flex-direction: column; }
-  .bloque-alta-manual { padding: 1rem; }
+  .alta-manual-resumen { padding: .7rem; }
 }
 @media (max-width: 390px) {
   .indicadores { grid-template-columns: 1fr; }

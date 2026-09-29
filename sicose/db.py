@@ -107,12 +107,20 @@ def inicializar_base_datos():
         conexion.execute("ALTER TABLE usuarios ADD COLUMN password_version INTEGER NOT NULL DEFAULT 1")
     if "foto_perfil" not in columnas:
         conexion.execute("ALTER TABLE usuarios ADD COLUMN foto_perfil TEXT")
+    columnas_voluntarios = {fila["name"] for fila in conexion.execute("PRAGMA table_info(voluntarios)")}
+    for campo in ("nombres", "apellido_paterno", "apellido_materno", "fecha_nacimiento", "codigo_instructor"):
+        if campo not in columnas_voluntarios:
+            conexion.execute(f"ALTER TABLE voluntarios ADD COLUMN {campo} TEXT")
+    conexion.execute(
+        """CREATE UNIQUE INDEX IF NOT EXISTS idx_voluntarios_codigo_instructor
+           ON voluntarios(codigo_instructor) WHERE codigo_instructor IS NOT NULL"""
+    )
     conexion.executemany(
         "INSERT OR IGNORE INTO roles (nombre) VALUES (?)",
         ((rol,) for rol in ROLES),
     )
     conexion.execute(
-        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '5')
+        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '6')
            ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor"""
     )
     conexion.commit()

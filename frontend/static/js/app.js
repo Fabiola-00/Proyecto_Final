@@ -86,6 +86,30 @@ function elemento(etiqueta, texto, clase) {
   return nodo;
 }
 
+function inicialCodigo(valor) {
+  const primera = String(valor || "").trim().normalize("NFKD").replace(/[\u0300-\u036f]/g, "")[0] || "";
+  return /^[A-Za-z]$/.test(primera) ? primera.toUpperCase() : "";
+}
+
+function configurarVistaPreviaCodigo(formulario) {
+  if (!formulario) return;
+  const actualizar = () => {
+    const { nombres, apellido_paterno: paterno, apellido_materno: materno, fecha_nacimiento: fecha } = formulario.elements;
+    const iniciales = [inicialCodigo(nombres?.value), inicialCodigo(paterno?.value), inicialCodigo(materno?.value)];
+    const salida = formulario.querySelector("[data-codigo-instructor]");
+    if (!salida) return;
+    const partesFecha = fecha?.value?.split("-");
+    salida.textContent = iniciales.every(Boolean) && partesFecha?.length === 3
+      ? `${iniciales.join("")}-${partesFecha[2]}${partesFecha[1]}${partesFecha[0].slice(-2)}`
+      : "Completa nombres y fecha de nacimiento";
+  };
+  ["nombres", "apellido_paterno", "apellido_materno", "fecha_nacimiento"].forEach((campo) => {
+    formulario.elements[campo]?.addEventListener("input", actualizar);
+    formulario.elements[campo]?.addEventListener("change", actualizar);
+  });
+  actualizar();
+}
+
 function cerrarMenu() {
   appShell?.classList.remove("menu-abierto");
   menuButton?.setAttribute("aria-expanded", "false");
@@ -153,6 +177,7 @@ if (logoutButton) {
 }
 
 if (registrationForm) {
+  configurarVistaPreviaCodigo(registrationForm);
   const token = registrationForm.dataset.token;
   if (token) {
     apiJson(`/api/registro/invitaciones/${encodeURIComponent(token)}`)
@@ -167,13 +192,14 @@ if (registrationForm) {
   }
   registrationForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (!registrationForm.reportValidity()) return;
     const data = new FormData(registrationForm);
     data.delete("csrf_token");
     try {
       const endpoint = token ? `/api/registro/invitaciones/${encodeURIComponent(token)}` : "/api/registro/solicitudes";
-      await apiJson(endpoint, { method: "POST", body: data });
+      const resultado = await apiJson(endpoint, { method: "POST", body: data });
       registrationForm.reset();
-      authMessage.textContent = "Solicitud recibida. La cuenta estará disponible después de la aprobación administrativa.";
+      authMessage.textContent = `Solicitud recibida. Código de Instructor: ${resultado.codigo_instructor}. La cuenta estará disponible después de la aprobación administrativa.`;
     } catch (error) { authMessage.textContent = error.message; }
   });
 }
@@ -204,30 +230,42 @@ if (volunteerList) {
   const solicitudesLista = document.querySelector("#solicitudes-lista");
   const altaManualForm = document.querySelector("#instructor-voluntario-form");
   const altaManualMensaje = document.querySelector("#instructor-voluntario-form-mensaje");
+  configurarVistaPreviaCodigo(altaManualForm);
   let instructoresActivos = [];
   const esAdministrador = document.body.dataset.rol === "ADMINISTRADOR";
 
   async function cargarVoluntarios() {
     volunteerList.replaceChildren();
     const { voluntarios } = await apiJson("/api/instructores-voluntarios");
-    if (!voluntarios.length) volunteerList.append(elemento("p", "No hay Instructores Voluntarios registrados.", "nota-informativa"));
+    if (!voluntarios.length) {
+      const fila = elemento("tr");
+      const celda = elemento("td", "No hay Instructores Voluntarios registrados.", "tabla-vacia");
+      celda.colSpan = 8; fila.append(celda); volunteerList.append(fila);
+    }
     voluntarios.forEach((voluntario) => {
-      const card = elemento("article", undefined, "tarjeta-modulo");
-      const contenido = elemento("div");
+      const fila = elemento("tr");
+      const perfil = elemento("td", undefined, "celda-perfil");
       if (voluntario.tiene_foto) {
-        const foto = elemento("img"); foto.src = `/api/usuarios/${voluntario.id}/foto`; foto.alt = `Foto de ${voluntario.nombre}`; foto.className = "foto-perfil"; contenido.append(foto);
-      }
-      contenido.append(elemento("h3", voluntario.nombre), elemento("p", `${voluntario.username} · ${voluntario.correo || "Sin correo"} · ${voluntario.estado}`));
-      if (voluntario.experiencia_operaciones) contenido.append(elemento("p", voluntario.experiencia_operaciones));
-      card.append(contenido);
+        const foto = elemento("img"); foto.src = `/api/usuarios/${voluntario.id}/foto`; foto.alt = `Foto de ${voluntario.nombre}`; foto.className = "foto-perfil"; perfil.append(foto);
+      } else perfil.append(elemento("span", voluntario.nombre.slice(0, 1).toUpperCase(), "avatar avatar-perfil"));
+      perfil.append(elemento("strong", voluntario.nombre));
+      const usuario = elemento("td", voluntario.username);
+      const correo = elemento("td", voluntario.correo || "Sin correo");
+      const estado = elemento("td");
+      estado.append(elemento("span", voluntario.estado, `estado-tabla estado-${voluntario.estado.toLowerCase()}`));
+      const experiencia = elemento("td", voluntario.experiencia_operaciones || "—");
+      const acciones = elemento("td", undefined, "acciones-tabla");
+      const fechaNacimiento = voluntario.fecha_nacimiento ? voluntario.fecha_nacimiento.split("-").reverse().join("/") : "Pendiente de actualizar";
+      fila.append(perfil, elemento("td", voluntario.codigo_instructor || "Pendiente"), elemento("td", fechaNacimiento), usuario, correo, estado, experiencia, acciones);
       if (voluntario.estado === "ACTIVO" || esAdministrador) {
         const edit = elemento("details", undefined, "edicion-voluntario");
         edit.append(elemento("summary", "Editar perfil"));
         const form = elemento("form", undefined, "formulario-inline");
-        const fields = [["nombre", "Nombre", voluntario.nombre], ["correo", "Correo", voluntario.correo || ""], ["experiencia_operaciones", "Experiencia", voluntario.experiencia_operaciones || ""], ["antiguedad_desde", "Antigüedad desde", voluntario.antiguedad_desde || ""]];
+        const fields = [["nombres", "Nombres", voluntario.nombres || ""], ["apellido_paterno", "Apellido paterno", voluntario.apellido_paterno || ""], ["apellido_materno", "Apellido materno", voluntario.apellido_materno || ""], ["fecha_nacimiento", "Fecha de nacimiento", voluntario.fecha_nacimiento || ""], ["correo", "Correo", voluntario.correo || ""], ["experiencia_operaciones", "Experiencia", voluntario.experiencia_operaciones || ""], ["antiguedad_desde", "Antigüedad desde", voluntario.antiguedad_desde || ""]];
         fields.forEach(([name, label, value]) => {
           const input = elemento("input"); input.name = name; input.value = value;
-          if (name === "antiguedad_desde") input.type = "date";
+          if (name === "antiguedad_desde" || name === "fecha_nacimiento") input.type = "date";
+          if (["nombres", "apellido_paterno", "apellido_materno", "fecha_nacimiento"].includes(name)) input.required = true;
           const caption = elemento("label", label); caption.append(input); form.append(caption);
         });
         const photoCaption = elemento("label", "Foto de perfil (PNG/JPEG, máximo 3 MiB)");
@@ -251,19 +289,20 @@ if (volunteerList) {
             const body = Object.fromEntries(formData.entries());
             const foto = formData.get("foto"); delete body.foto;
             if ("instructor_id" in body) body.instructor_id = body.instructor_id ? Number(body.instructor_id) : null;
-            await apiJson(`/api/instructores-voluntarios/${voluntario.id}`, { method: "PATCH", body });
+            const resultado = await apiJson(`/api/instructores-voluntarios/${voluntario.id}`, { method: "PATCH", body });
             if (foto?.size) { const carga = new FormData(); carga.append("foto", foto); await apiJson(`/api/usuarios/${voluntario.id}/foto`, { method: "PUT", body: carga }); }
+            managementMessage.textContent = `Perfil actualizado. Código de Instructor: ${resultado.codigo_instructor || "sin cambios"}.`;
             await cargarVoluntarios();
           }
           catch (error) { managementMessage.textContent = error.message; }
         });
-        edit.append(form); card.append(edit);
+        edit.append(form); acciones.append(edit);
         if (esAdministrador) {
           const reset = elemento("details", undefined, "edicion-voluntario"); reset.append(elemento("summary", "Restablecer contraseña"));
           const resetForm = elemento("form", undefined, "formulario-inline");
           const field = elemento("label", "Nueva contraseña (mínimo 12 caracteres)"); const password = elemento("input"); password.type = "password"; password.name = "password"; password.minLength = 12; password.maxLength = 256; password.required = true; password.autocomplete = "new-password"; field.append(password); resetForm.append(field, elemento("button", "Restablecer clave"));
           resetForm.addEventListener("submit", async (event) => { event.preventDefault(); try { await apiJson(`/api/admin/usuarios/${voluntario.id}/restablecer-clave`, { method: "POST", body: { password: password.value } }); resetForm.reset(); managementMessage.textContent = "Contraseña restablecida; las sesiones anteriores quedaron invalidadas."; } catch (error) { managementMessage.textContent = error.message; } });
-          reset.append(resetForm); card.append(reset);
+          reset.append(resetForm); acciones.append(reset);
         }
         if (voluntario.estado === "ACTIVO") {
           const deactivate = elemento("button", "Desactivar", "boton-secundario");
@@ -272,10 +311,10 @@ if (volunteerList) {
             try { await apiJson(`/api/instructores-voluntarios/${voluntario.id}/desactivar`, { method: "POST" }); await cargarVoluntarios(); }
             catch (error) { managementMessage.textContent = error.message; }
           });
-          card.append(deactivate);
+          acciones.append(deactivate);
         }
       }
-      volunteerList.append(card);
+      volunteerList.append(fila);
     });
   }
 
@@ -312,7 +351,7 @@ if (volunteerList) {
     try {
       const data = await apiJson("/api/admin/instructores-voluntarios", { method: "POST", body: new FormData(altaManualForm) });
       altaManualForm.reset();
-      altaManualMensaje.textContent = data.mensaje || "Instructor Voluntario creado y activado.";
+      altaManualMensaje.textContent = `${data.mensaje || "Instructor Voluntario creado y activado."} Código: ${data.codigo_instructor}.`;
       await cargarVoluntarios();
     } catch (error) { altaManualMensaje.textContent = error.message; }
   });
@@ -332,6 +371,13 @@ if (volunteerList) {
     : Promise.resolve();
   cargarInstructores.then(() => Promise.all([cargarVoluntarios(), cargarSolicitudes()]))
     .catch((error) => { managementMessage.textContent = error.message; });
+
+  const formularioDetalles = document.querySelector("#agregar-instructor-voluntario");
+  const abrirFormularioDesdeEnlace = () => {
+    if (formularioDetalles && window.location.hash === "#agregar-instructor-voluntario") formularioDetalles.open = true;
+  };
+  abrirFormularioDesdeEnlace();
+  window.addEventListener("hashchange", abrirFormularioDesdeEnlace);
 }
 
 const instructorForm = document.querySelector("#instructor-form");
@@ -343,14 +389,21 @@ if (instructorForm && instructorList) {
   async function cargarInstructoresAdmin() {
     instructorList.replaceChildren();
     const { instructores } = await apiJson("/api/admin/jefes-personal");
-    if (!instructores.length) instructorList.append(elemento("p", "No hay Jefes de Personal registrados.", "nota-informativa"));
+    if (!instructores.length) {
+      const fila = elemento("tr");
+      const celda = elemento("td", "No hay Jefes de Personal registrados.", "tabla-vacia");
+      celda.colSpan = 7; fila.append(celda); instructorList.append(fila);
+    }
     instructores.forEach((instructor) => {
-      const card = elemento("article", undefined, "tarjeta-modulo");
-      card.append(
-        elemento("h3", instructor.nombre),
-        elemento("p", `${instructor.username} · ${instructor.correo || "Sin correo"}`),
-        elemento("p", `${instructor.especialidad || "Sin especialidad"} · ${instructor.voluntarios_activos} Instructores Voluntarios activos · ${instructor.estado}`),
-      );
+      const fila = elemento("tr");
+      const perfil = elemento("td", undefined, "celda-perfil");
+      if (instructor.tiene_foto) {
+        const foto = elemento("img"); foto.src = `/api/usuarios/${instructor.id}/foto`; foto.alt = `Foto de ${instructor.nombre}`; foto.className = "foto-perfil"; perfil.append(foto);
+      } else perfil.append(elemento("span", instructor.nombre.slice(0, 1).toUpperCase(), "avatar avatar-perfil"));
+      perfil.append(elemento("strong", instructor.nombre));
+      const acciones = elemento("td", undefined, "acciones-tabla");
+      const estado = elemento("td"); estado.append(elemento("span", instructor.estado, `estado-tabla estado-${instructor.estado.toLowerCase()}`));
+      fila.append(perfil, elemento("td", instructor.username), elemento("td", instructor.correo || "Sin correo"), elemento("td", instructor.especialidad || "Sin especialidad"), elemento("td", String(instructor.voluntarios_activos)), estado, acciones);
       const edit = elemento("details", undefined, "edicion-voluntario");
       edit.append(elemento("summary", "Editar perfil"));
       const form = elemento("form", undefined, "formulario-inline");
@@ -370,10 +423,10 @@ if (instructorForm && instructorList) {
           await cargarInstructoresAdmin();
         } catch (error) { listMessage.textContent = error.message; }
       });
-      edit.append(form); card.append(edit);
+      edit.append(form); acciones.append(edit);
       const reset = elemento("details", undefined, "edicion-voluntario"); reset.append(elemento("summary", "Restablecer contraseña"));
       const resetForm = elemento("form", undefined, "formulario-inline"); const passwordCaption = elemento("label", "Nueva contraseña (mínimo 12 caracteres)"); const password = elemento("input"); password.type = "password"; password.name = "password"; password.minLength = 12; password.maxLength = 256; password.required = true; password.autocomplete = "new-password"; passwordCaption.append(password); resetForm.append(passwordCaption, elemento("button", "Restablecer clave"));
-      resetForm.addEventListener("submit", async (event) => { event.preventDefault(); try { await apiJson(`/api/admin/usuarios/${instructor.id}/restablecer-clave`, { method: "POST", body: { password: password.value } }); resetForm.reset(); listMessage.textContent = "Contraseña restablecida; las sesiones anteriores quedaron invalidadas."; } catch (error) { listMessage.textContent = error.message; } }); reset.append(resetForm); card.append(reset);
+      resetForm.addEventListener("submit", async (event) => { event.preventDefault(); try { await apiJson(`/api/admin/usuarios/${instructor.id}/restablecer-clave`, { method: "POST", body: { password: password.value } }); resetForm.reset(); listMessage.textContent = "Contraseña restablecida; las sesiones anteriores quedaron invalidadas."; } catch (error) { listMessage.textContent = error.message; } }); reset.append(resetForm); acciones.append(reset);
       if (instructor.estado === "ACTIVO") {
         const deactivate = elemento("button", "Desactivar Jefe de Personal", "boton-secundario");
         deactivate.addEventListener("click", async () => {
@@ -384,9 +437,9 @@ if (instructorForm && instructorList) {
             await cargarInstructoresAdmin();
           } catch (error) { listMessage.textContent = error.message; }
         });
-        card.append(deactivate);
+        acciones.append(deactivate);
       }
-      instructorList.append(card);
+      instructorList.append(fila);
     });
   }
 
@@ -402,6 +455,13 @@ if (instructorForm && instructorList) {
   });
 
   cargarInstructoresAdmin().catch((error) => { listMessage.textContent = error.message; });
+
+  const formularioDetalles = document.querySelector("#agregar-jefe-personal");
+  const abrirFormularioDesdeEnlace = () => {
+    if (formularioDetalles && window.location.hash === "#agregar-jefe-personal") formularioDetalles.open = true;
+  };
+  abrirFormularioDesdeEnlace();
+  window.addEventListener("hashchange", abrirFormularioDesdeEnlace);
 }
 
 const evaluationForm = document.querySelector("#evaluacion-form");

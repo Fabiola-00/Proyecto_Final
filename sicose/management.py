@@ -3,7 +3,8 @@
 import hashlib
 import re
 import secrets
-from datetime import datetime, timedelta, timezone
+import unicodedata
+from datetime import date, datetime, timedelta, timezone
 
 from flask import Blueprint, current_app, jsonify, render_template, request, send_file, url_for
 from flask_login import current_user
@@ -82,15 +83,60 @@ def _texto(datos, campo, maximo, obligatorio=False):
     return valor or None
 
 
+def _identidad_instructor(datos, existentes=None):
+    """Valida nombres y nacimiento y calcula la clave institucional del perfil."""
+    existentes = existentes or {}
+    nombres = _texto(datos, "nombres", 120, True) if "nombres" in datos else existentes.get("nombres")
+    paterno = _texto(datos, "apellido_paterno", 80, True) if "apellido_paterno" in datos else existentes.get("apellido_paterno")
+    materno = _texto(datos, "apellido_materno", 80, True) if "apellido_materno" in datos else existentes.get("apellido_materno")
+    fecha_texto = _texto(datos, "fecha_nacimiento", 10, True) if "fecha_nacimiento" in datos else existentes.get("fecha_nacimiento")
+    if not all((nombres, paterno, materno, fecha_texto)):
+        raise ValueError("Nombres, ambos apellidos y fecha completa de nacimiento son obligatorios.")
+    nombre_completo = " ".join((nombres, paterno, materno))
+    if len(nombre_completo) > 160:
+        raise ValueError("La suma de nombres y apellidos no puede superar 160 caracteres.")
+    try:
+        nacimiento = date.fromisoformat(fecha_texto)
+    except (ValueError, TypeError):
+        raise ValueError("La fecha de nacimiento debe ser válida y estar en formato AAAA-MM-DD.") from None
+    if nacimiento.isoformat() != fecha_texto or nacimiento > date.today():
+        raise ValueError("La fecha de nacimiento debe ser válida y no futura.")
+
+    iniciales = []
+    for parte in (nombres, paterno, materno):
+        transliterada = unicodedata.normalize("NFKD", parte[0]).encode("ascii", "ignore").decode("ascii")
+        if not transliterada or not transliterada[0].isalpha():
+            raise ValueError("Los nombres y apellidos deben comenzar con letras compatibles con el código del instructor.")
+        iniciales.append(transliterada[0].upper())
+    codigo = f"{''.join(iniciales)}-{nacimiento:%d%m%y}"
+    return {
+        "nombres": nombres,
+        "apellido_paterno": paterno,
+        "apellido_materno": materno,
+        "fecha_nacimiento": fecha_texto,
+        "codigo_instructor": codigo,
+        "nombre_completo": nombre_completo,
+    }
+
+
 def _auditar(conexion, accion, resultado="EXITOSO"):
     db.registrar_auditoria(conexion, current_user.id if current_user.is_authenticated else None,
                            accion, resultado, request.remote_addr)
 
 
+def _descartar_foto(foto):
+    if foto:
+        from pathlib import Path
+        try:
+            (Path(current_app.config["PERFIL_MEDIA_FOLDER"]) / foto).unlink(missing_ok=True)
+        except OSError:
+            current_app.logger.warning("No se pudo limpiar un archivo de perfil no asociado a una solicitud confirmada.")
+
+
 def _crear_solicitud(datos, invitacion_id=None):
     try:
+        identidad = _identidad_instructor(datos)
         username = _texto(datos, "username", 80, True)
-        nombre = _texto(datos, "nombre", 160, True)
         correo = _texto(datos, "correo", 254)
         if correo:
             correo = correo.casefold()
@@ -106,26 +152,33 @@ def _crear_solicitud(datos, invitacion_id=None):
         if antiguedad:
             datetime.strptime(antiguedad, "%Y-%m-%d")
     except (ValueError, TypeError) as error:
-        return None, _fallo(str(error), "datos_invalidos", 400)
+        return None, None, _fallo(str(error), "datos_invalidos", 400)
 
     conexion = db.obtener_conexion()
+    rol = conexion.execute("SELECT id FROM roles WHERE nombre='INSTRUCTOR_VOLUNTARIO'").fetchone()
+    if rol is None:
+        return None, None, _fallo("Falta el rol Instructor Voluntario en la base de datos.", "rol_no_configurado", 500)
     from .profile_media import guardar_foto
 
     try:
         foto = guardar_foto(request.files.get("foto"))
     except ValueError as error:
-        return None, _fallo(str(error), "foto_invalida", 400)
+        return None, None, _fallo(str(error), "foto_invalida", 400)
     try:
-        rol_id = conexion.execute("SELECT id FROM roles WHERE nombre = 'INSTRUCTOR_VOLUNTARIO'").fetchone()[0]
         cursor = conexion.execute(
             """INSERT INTO usuarios (username, nombre_completo, correo, password_hash, rol_id, estado, foto_perfil)
                VALUES (?, ?, ?, ?, ?, 'PENDIENTE', ?)""",
-            (username, nombre, correo, generate_password_hash(password), rol_id, foto),
+            (username, identidad["nombre_completo"], correo, generate_password_hash(password), rol["id"], foto),
         )
         usuario_id = cursor.lastrowid
         conexion.execute(
-            """INSERT INTO voluntarios (usuario_id, experiencia_operaciones, antiguedad_desde)
-               VALUES (?, ?, ?)""", (usuario_id, experiencia, antiguedad)
+            """INSERT INTO voluntarios
+               (usuario_id, nombres, apellido_paterno, apellido_materno, fecha_nacimiento,
+                codigo_instructor, experiencia_operaciones, antiguedad_desde)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (usuario_id, identidad["nombres"], identidad["apellido_paterno"],
+             identidad["apellido_materno"], identidad["fecha_nacimiento"],
+             identidad["codigo_instructor"], experiencia, antiguedad),
         )
         conexion.execute(
             "INSERT INTO solicitudes_registro (usuario_id, invitacion_id) VALUES (?, ?)",
@@ -138,16 +191,20 @@ def _crear_solicitud(datos, invitacion_id=None):
             )
             if cursor.rowcount != 1:
                 conexion.rollback()
-                return None, _fallo("La invitación ya fue utilizada o expiró.", "invitacion_invalida", 404)
+                _descartar_foto(foto)
+                return None, None, _fallo("La invitación ya fue utilizada o expiró.", "invitacion_invalida", 404)
         _auditar(conexion, "SOLICITUD_REGISTRO")
         conexion.commit()
     except Exception as error:
         conexion.rollback()
+        _descartar_foto(foto)
         # Unique constraints deliberately produce the same response for username/email collisions.
         if error.__class__.__name__ == "IntegrityError":
-            return None, _fallo("No se pudo registrar la solicitud. Verifica los datos e inténtalo de nuevo.", "registro_no_disponible", 409)
+            if "codigo_instructor" in str(error):
+                return None, None, _fallo("Ya existe otro Instructor Voluntario con ese código generado; administración debe revisar el conflicto.", "codigo_instructor_duplicado", 409)
+            return None, None, _fallo("No se pudo registrar la solicitud. Verifica los datos e inténtalo de nuevo.", "registro_no_disponible", 409)
         raise
-    return usuario_id, None
+    return usuario_id, identidad["codigo_instructor"], None
 
 
 @management_bp.post("/api/registro/solicitudes")
@@ -155,10 +212,11 @@ def solicitar_registro():
     datos = _datos_form_o_json()
     if datos is None:
         return _fallo("Solicitud no válida.", "solicitud_invalida", 400)
-    _, respuesta = _crear_solicitud(datos)
+    _, codigo, respuesta = _crear_solicitud(datos)
     if respuesta:
         return respuesta
-    return jsonify(ok=True, estado="PENDIENTE", mensaje="Solicitud recibida; requiere aprobación administrativa."), 201
+    return jsonify(ok=True, estado="PENDIENTE", codigo_instructor=codigo,
+                   mensaje="Solicitud recibida; requiere aprobación administrativa."), 201
 
 
 def _hash_token(token):
@@ -223,10 +281,11 @@ def usar_invitacion(token):
         correo_enviado = datos.get("correo")
         if not isinstance(correo_enviado, str) or correo_enviado.strip().casefold() != invitacion["correo"].casefold():
             return _fallo("El correo no coincide con la invitación.", "correo_no_coincide", 400)
-    usuario_id, respuesta = _crear_solicitud(datos, invitacion["id"])
+    usuario_id, codigo, respuesta = _crear_solicitud(datos, invitacion["id"])
     if respuesta:
         return respuesta
-    return jsonify(ok=True, estado="PENDIENTE", mensaje="Registro recibido; la cuenta requiere aprobación."), 201
+    return jsonify(ok=True, estado="PENDIENTE", codigo_instructor=codigo,
+                   mensaje="Registro recibido; la cuenta requiere aprobación."), 201
 
 
 @management_bp.get("/api/admin/solicitudes")
@@ -234,9 +293,12 @@ def usar_invitacion(token):
 def listar_solicitudes():
     filas = db.obtener_conexion().execute(
         """SELECT s.id, u.id AS usuario_id, u.username, u.nombre_completo AS nombre, u.correo,
+                  v.nombres, v.apellido_paterno, v.apellido_materno,
+                  v.fecha_nacimiento, v.codigo_instructor,
                   (u.foto_perfil IS NOT NULL) AS tiene_foto,
                   s.estado, s.creada_en, s.invitacion_id
            FROM solicitudes_registro s JOIN usuarios u ON u.id = s.usuario_id
+           JOIN voluntarios v ON v.usuario_id = u.id
            WHERE s.estado = 'PENDIENTE' ORDER BY s.creada_en, s.id"""
     ).fetchall()
     return jsonify(solicitudes=[dict(fila) for fila in filas]), 200
@@ -250,8 +312,8 @@ def crear_instructor_voluntario():
     if datos is None:
         return _fallo("Solicitud no válida.", "solicitud_invalida", 400)
     try:
+        identidad = _identidad_instructor(datos)
         username = _texto(datos, "username", 80, True)
-        nombre = _texto(datos, "nombre", 160, True)
         correo = _texto(datos, "correo", 254)
         if correo:
             correo = correo.casefold()
@@ -287,44 +349,46 @@ def crear_instructor_voluntario():
     ).fetchone():
         return _fallo("El Jefe de Personal asignado no existe o no está activo.", "jefe_personal_no_valido", 400)
 
-    from .profile_media import guardar_foto
-
-    try:
-        foto = guardar_foto(request.files.get("foto"))
-    except ValueError as error:
-        return _fallo(str(error), "foto_invalida", 400)
-
     rol = conexion.execute(
         "SELECT id FROM roles WHERE nombre='INSTRUCTOR_VOLUNTARIO'"
     ).fetchone()
     if rol is None:
         return _fallo("Falta el rol Instructor Voluntario en la base de datos.", "rol_no_configurado", 500)
 
+    from .profile_media import guardar_foto
+    try:
+        foto = guardar_foto(request.files.get("foto"))
+    except ValueError as error:
+        return _fallo(str(error), "foto_invalida", 400)
+
     try:
         cursor = conexion.execute(
             """INSERT INTO usuarios (username, nombre_completo, correo, password_hash,
                                      rol_id, estado, foto_perfil)
                VALUES (?, ?, ?, ?, ?, 'ACTIVO', ?)""",
-            (username, nombre, correo, generate_password_hash(password), rol["id"], foto),
+            (username, identidad["nombre_completo"], correo, generate_password_hash(password), rol["id"], foto),
         )
         usuario_id = cursor.lastrowid
         conexion.execute(
             """INSERT INTO voluntarios
-               (usuario_id, instructor_id, experiencia_operaciones, antiguedad_desde)
-               VALUES (?, ?, ?, ?)""",
-            (usuario_id, jefe_id, experiencia, antiguedad),
+               (usuario_id, instructor_id, nombres, apellido_paterno, apellido_materno,
+                fecha_nacimiento, codigo_instructor, experiencia_operaciones, antiguedad_desde)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (usuario_id, jefe_id, identidad["nombres"], identidad["apellido_paterno"],
+             identidad["apellido_materno"], identidad["fecha_nacimiento"],
+             identidad["codigo_instructor"], experiencia, antiguedad),
         )
         _auditar(conexion, "INSTRUCTOR_VOLUNTARIO_CREADO_MANUALMENTE")
         conexion.commit()
     except Exception as error:
         conexion.rollback()
-        if foto:
-            from pathlib import Path
-            (Path(current_app.config["PERFIL_MEDIA_FOLDER"]) / foto).unlink(missing_ok=True)
+        _descartar_foto(foto)
         if error.__class__.__name__ == "IntegrityError":
+            if "codigo_instructor" in str(error):
+                return _fallo("Ya existe otro Instructor Voluntario con ese código generado; revisa el nombre y la fecha de nacimiento.", "codigo_instructor_duplicado", 409)
             return _fallo("El nombre de usuario o correo ya está asociado a otra cuenta.", "cuenta_duplicada", 409)
         raise
-    return jsonify(ok=True, id=usuario_id, estado="ACTIVO",
+    return jsonify(ok=True, id=usuario_id, estado="ACTIVO", codigo_instructor=identidad["codigo_instructor"],
                    mensaje="Instructor Voluntario creado y activado."), 201
 
 
@@ -638,7 +702,9 @@ def rechazar_solicitud(solicitud_id):
 def _alcance_voluntario(conexion, usuario_id):
     consulta = """SELECT u.id, u.username, u.nombre_completo AS nombre, u.correo, u.estado,
                          (u.foto_perfil IS NOT NULL) AS tiene_foto,
-                         v.instructor_id, v.experiencia_operaciones, v.antiguedad_desde
+                         v.instructor_id, v.nombres, v.apellido_paterno, v.apellido_materno,
+                         v.fecha_nacimiento, v.codigo_instructor,
+                         v.experiencia_operaciones, v.antiguedad_desde
                   FROM usuarios u JOIN voluntarios v ON v.usuario_id=u.id
                   JOIN roles r ON r.id=u.rol_id WHERE u.id=? AND r.nombre='INSTRUCTOR_VOLUNTARIO'"""
     fila = conexion.execute(consulta, (usuario_id,)).fetchone()
@@ -655,6 +721,8 @@ def listar_voluntarios():
     consulta = """SELECT u.id, u.username, u.nombre_completo AS nombre, u.correo, u.estado,
                          (u.foto_perfil IS NOT NULL) AS tiene_foto,
                          v.instructor_id, ui.nombre_completo AS instructor_nombre,
+                         v.nombres, v.apellido_paterno, v.apellido_materno,
+                         v.fecha_nacimiento, v.codigo_instructor,
                          v.experiencia_operaciones, v.antiguedad_desde
                   FROM voluntarios v JOIN usuarios u ON u.id=v.usuario_id
                   LEFT JOIN usuarios ui ON ui.id=v.instructor_id
@@ -679,10 +747,15 @@ def editar_voluntario(usuario_id):
     if not voluntario:
         return _fallo("Instructor Voluntario no encontrado en tu ámbito.", "instructor_voluntario_no_encontrado", 404)
     campos = {}
+    identidad = None
     try:
-        for campo, limite in (("nombre", 160), ("correo", 254), ("experiencia_operaciones", 2000), ("antiguedad_desde", 10)):
+        campos_identidad = {"nombres", "apellido_paterno", "apellido_materno", "fecha_nacimiento"}
+        if campos_identidad.intersection(datos):
+            identidad = _identidad_instructor(datos, dict(voluntario))
+            campos.update({k: identidad[k] for k in ("nombres", "apellido_paterno", "apellido_materno", "fecha_nacimiento", "codigo_instructor")})
+        for campo, limite in (("correo", 254), ("experiencia_operaciones", 2000), ("antiguedad_desde", 10)):
             if campo in datos:
-                valor = _texto(datos, campo, limite, campo == "nombre")
+                valor = _texto(datos, campo, limite)
                 if campo == "correo" and valor:
                     valor = valor.casefold()
                 if campo == "correo" and valor and ("@" not in valor or any(char.isspace() for char in valor)):
@@ -703,12 +776,18 @@ def editar_voluntario(usuario_id):
         return _fallo(str(error), "datos_invalidos", 400)
     if not campos:
         return _fallo("No se enviaron campos para actualizar.", "sin_cambios", 400)
-    nombre = campos.pop("nombre", voluntario["nombre"])
     correo = campos.pop("correo", voluntario["correo"])
     ahora = datetime.now(timezone.utc).isoformat(timespec="seconds")
     try:
-        conexion.execute("UPDATE usuarios SET nombre_completo=?, correo=?, actualizado_en=? WHERE id=?", (nombre, correo, ahora, usuario_id))
-        perfil = {k: v for k, v in campos.items() if k in {"experiencia_operaciones", "antiguedad_desde", "instructor_id"}}
+        if identidad:
+            conexion.execute("UPDATE usuarios SET nombre_completo=?, correo=?, actualizado_en=? WHERE id=?",
+                             (identidad["nombre_completo"], correo, ahora, usuario_id))
+        elif "correo" in datos:
+            conexion.execute("UPDATE usuarios SET correo=?, actualizado_en=? WHERE id=?", (correo, ahora, usuario_id))
+        perfil = {k: v for k, v in campos.items() if k in {
+            "nombres", "apellido_paterno", "apellido_materno", "fecha_nacimiento", "codigo_instructor",
+            "experiencia_operaciones", "antiguedad_desde", "instructor_id",
+        }}
         if perfil:
             asignaciones = ", ".join(f"{campo}=?" for campo in perfil)
             conexion.execute(f"UPDATE voluntarios SET {asignaciones} WHERE usuario_id=?", (*perfil.values(), usuario_id))
@@ -717,9 +796,12 @@ def editar_voluntario(usuario_id):
     except Exception as error:
         conexion.rollback()
         if error.__class__.__name__ == "IntegrityError":
+            if identidad and "codigo_instructor" in str(error):
+                return _fallo("Ya existe otro Instructor Voluntario con ese código generado; revisa el nombre y la fecha de nacimiento.", "codigo_instructor_duplicado", 409)
             return _fallo("El correo ya está asociado a otra cuenta.", "correo_duplicado", 409)
         raise
-    return jsonify(ok=True, mensaje="Perfil actualizado."), 200
+    return jsonify(ok=True, codigo_instructor=identidad["codigo_instructor"] if identidad else voluntario["codigo_instructor"],
+                   mensaje="Perfil actualizado."), 200
 
 
 @management_bp.post("/api/voluntarios/<int:usuario_id>/desactivar")

@@ -32,6 +32,11 @@ CREATE TABLE IF NOT EXISTS instructores (
 CREATE TABLE IF NOT EXISTS voluntarios (
     usuario_id INTEGER PRIMARY KEY REFERENCES usuarios(id) ON UPDATE RESTRICT ON DELETE RESTRICT,
     instructor_id INTEGER REFERENCES instructores(usuario_id) ON UPDATE RESTRICT ON DELETE SET NULL,
+    nombres TEXT,
+    apellido_paterno TEXT,
+    apellido_materno TEXT,
+    fecha_nacimiento TEXT,
+    codigo_instructor TEXT UNIQUE,
     experiencia_operaciones TEXT,
     antiguedad_desde TEXT,
     creado_en TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
@@ -185,7 +190,3 @@ CREATE TABLE IF NOT EXISTS auditoria (
     direccion_ip TEXT,
     fecha TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );
-
-INSERT INTO app_meta (clave, valor)
-VALUES ('schema_version', '5')
-ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor;

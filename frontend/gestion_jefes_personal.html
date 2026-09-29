@@ -1,8 +1,10 @@
 {% extends "_dashboard_base.html" %}
 {% block contenido %}
 <section class="seccion-panel" aria-labelledby="instructores-titulo">
-  <div class="titulo-seccion"><div><p class="sobrelinea">ADMINISTRACIÓN</p><h2 id="instructores-titulo">Cuentas de Jefe de Personal</h2></div></div>
-  <div class="tarjeta-amplia"><div><h3>Registrar Jefe de Personal</h3><p>La cuenta se activa al crearla. Comparte la contraseña inicial por un canal seguro.</p>
+  <div class="titulo-seccion"><div><p class="sobrelinea">ADMINISTRACIÓN</p><h2 id="instructores-titulo">Jefes de Personal</h2></div></div>
+  <details id="agregar-jefe-personal" class="bloque-alta-manual">
+    <summary class="alta-manual-resumen"><span class="alta-manual-mas" aria-hidden="true">+</span><span><strong>Agregar Jefe de Personal</strong><small>Crear una cuenta activa manualmente</small></span></summary>
+    <div class="tarjeta-amplia alta-manual-contenido"><div><p>La cuenta se activa al crearla. Comparte la contraseña inicial por un canal seguro.</p>
     <form id="instructor-form" class="formulario-inline" enctype="multipart/form-data">
       <label>Nombre completo<input name="nombre" maxlength="160" required></label>
       <label>Nombre de usuario<input name="username" maxlength="80" required></label>
@@ -14,8 +16,9 @@
     </form>
     <p id="instructor-form-mensaje" class="mensaje" role="status" aria-live="polite"></p>
   </div></div>
-  <div class="titulo-seccion"><h2>Jefes de Personal registrados</h2></div>
-  <div id="instructores-lista" class="rejilla-modulos" aria-live="polite"></div>
+  </details>
+  <div id="jefes-personal-registrados" class="titulo-seccion"><div><p class="sobrelinea">DIRECTORIO</p><h2>Todos los Jefes de Personal</h2></div></div>
+  <div class="tabla-contenedor"><table class="tabla-registros"><thead><tr><th scope="col">Perfil</th><th scope="col">Usuario</th><th scope="col">Correo</th><th scope="col">Especialidad</th><th scope="col">Instructores Voluntarios activos</th><th scope="col">Estado</th><th scope="col">Acciones CRUD</th></tr></thead><tbody id="instructores-lista" aria-live="polite"></tbody></table></div>
   <p id="instructores-mensaje" class="mensaje" role="status" aria-live="polite"></p>
 </section>
 {% endblock %}
