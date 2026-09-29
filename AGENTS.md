@@ -34,3 +34,33 @@ SICOSE significa **Sistema de Control y Evaluación de Personal**. Es un prototi
 - Ejecutar pruebas relevantes y reportar exactamente sus resultados; no afirmar funciones sin verificarlas.
 - No borrar datos históricos ni resetear la base en comandos de inicialización.
 - Si falta una decisión que afecte privacidad, autorización, puntuación o validez psicométrica, documentar el límite y consultar antes de asumir.
+
+## Punto de continuidad del proyecto — 2026-09-29
+
+Este bloque permite continuar el trabajo desde el estado actual sin recrear la configuración local ni repetir decisiones ya confirmadas.
+
+- **Fase:** Fase 5 parcial. Fase 6, reportes e integración de IA todavía no comienzan. Consultar `docs/05_plan_desarrollo.md` antes de elegir el siguiente alcance.
+- **Esquema:** SQLite versión 7. La base local de desarrollo ya recibió `flask --app sicose init-db`; la migración preservó sus cuatro registros de asistencia. Después de cambios futuros de esquema, inicializar de forma aditiva y verificar integridad; nunca resetear ni borrar datos históricos.
+- **Verificación funcional vigente:** 42 pruebas aprobadas con `python -m unittest discover -s tests -v`; también se comprobaron compilación Python, sintaxis JavaScript y `git diff --check`. Si cambia el comportamiento, volver a ejecutar las pruebas relevantes y reportar el resultado observado, no este resultado anterior como si fuera nuevo.
+- **Entorno local:** el repositorio ya tiene `.venv`, `.env` e `instance/sicose.sqlite3`. No recrear ni reemplazar `.env`, no mostrar sus secretos y no volver a instalar/configurar el entorno sin una necesidad concreta. El estado de Git contiene cambios de trabajo sin commit: inspeccionarlos y preservarlos antes de editar.
+
+### Decisiones acordadas que no deben volver a preguntarse
+
+- Roles: `ADMINISTRADOR`, `JEFE_PERSONAL` (Jefe de Personal) e `INSTRUCTOR_VOLUNTARIO` (Instructor Voluntario). Cada uno debe entrar a su dashboard; la autorización siempre se valida en servidor.
+- El dashboard de Administrador administra cuentas y evaluaciones globales. Jefe de Personal gestiona únicamente los Instructores Voluntarios activos asignados, sus registros permitidos y sus notas no psicométricas. Instructor Voluntario solo debe ver estado/avance de sus evaluaciones, nunca notas u observaciones; puede editar su perfil propio como requerimiento acordado, aunque ese autoservicio sigue pendiente.
+- El registro de asistencia conserva **fecha y actividad** y tiene exactamente cuatro opciones visibles: **Asiste, Atraso, Permiso y Falta**. Esquema v7 conserva el campo histórico anterior y agrega `estado_detalle`. El historial permite filtrar por Instructor Voluntario, por la última fecha con registros o por rango inicial/final.
+- **Capacitaciones o Cursos** es una página aparte en los menús de Administrador y Jefe de Personal. El alcance confirmado es listar, registrar y editar filas de `capacitaciones`; no borrar físicamente registros. El nombre de curso aún es texto libre, no catálogo relacional.
+- Identidad visual: logo SBRAB, azul `#1D1BBE`, naranja `#F57B1A`, dashboards plegables y modo claro/oscuro. Evaluar.com es solo inspiración general; no copiar su marca/interfaz.
+- Código de Instructor Voluntario: inicial de nombres y de cada apellido + `DDMMAA`; la fecha completa ya está acordada y el backend genera el código. La regla definitiva para una colisión sigue sin definición; el comportamiento actual la rechaza preventivamente.
+- No habilitar evaluaciones psicométricas hasta documentar aprobación profesional/institucional, licencia/derechos, versión lingüística, puntuación y retención. No fabricar reactivos, resultados, predicciones ni IA.
+
+### Estado funcional para el siguiente trabajo
+
+- Ya hay solicitudes públicas pendientes, aprobación/rechazo, alta manual administrativa de Instructores Voluntarios, directorios CRUD tabulares por rol, gestión de Jefes de Personal, asignaciones, fotos privadas y restablecimiento administrativo de contraseñas.
+- El código de perfil v6 incluye nombres, apellidos, fecha de nacimiento y código. País/nacionalidad, departamento dependiente, incorporación/antigüedad calculada, especialidad principal/secundarias, catálogo relacional de cursos y tabla/relaciones de operaciones siguen pendientes. Los campos de operación acordados son tipo de evento, lugar, fecha de inicio/fin e institución responsable.
+- Fase 5 incluye asistencia, capacitaciones, períodos/catálogo/asignaciones iniciales y calificaciones manuales no psicométricas con historial. Versionado completo de ponderaciones, reglas de faltantes/promedios, evaluaciones psicométricas y autoservicio de perfil del Instructor Voluntario requieren trabajo adicional.
+- Reportes PDF/Excel y cualquier IA no están implementados. La IA no forma parte del estado actual.
+
+### Inicio y pruebas en Windows
+
+Desde la raíz y con el entorno existente activado, el servidor se inicia con `flask --app sicose run --debug` y las pruebas con `python -m unittest discover -s tests -v`. La guía completa y creación inicial de entorno están en `docs/07_inicio_desarrollo.md`; no repetir su configuración si `.venv` y `.env` ya existen. Para revisar y actualizar requerimientos/estado leer `README.md`, `docs/01_especificacion_funcional.md`, `docs/02_arquitectura_tecnica.md`, `docs/03_modelo_datos.md` y `docs/05_plan_desarrollo.md`.

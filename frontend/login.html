@@ -8,21 +8,30 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
   <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
 </head>
-<body>
-  <main class="contenedor acceso">
-    <p class="marca">SICOSE</p>
-    <h1>Iniciar sesión</h1>
-    <p class="subtitulo">Sistema de Control y Evaluación de Personal</p>
-    <form id="login-form" novalidate>
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <label for="username">Nombre de usuario</label>
-      <input id="username" name="username" type="text" autocomplete="username" maxlength="80" required>
-      <label for="password">Contraseña</label>
-      <input id="password" name="password" type="password" autocomplete="current-password" maxlength="256" required>
-      <button id="login-button" type="submit">Ingresar</button>
-      <p id="auth-message" class="mensaje" role="status" aria-live="polite"></p>
-    </form>
-    <p><a href="/registro">Solicitar registro como Instructor Voluntario</a></p>
+<body class="pagina-login">
+  <main class="login-shell">
+    <section class="login-presentacion" aria-label="Sistema SICOSE">
+      <img class="login-logo" src="{{ url_for('static', filename='images/sbrab-logo.png') }}" alt="Emblema institucional SBRAB">
+      <p class="login-organizacion">ARMADA BOLIVIANA · S.B.R.A.B.</p>
+      <h1>SICOSE</h1>
+      <p class="login-lema">Sistema de Control y Evaluación de Personal</p>
+      <span class="login-acento" aria-hidden="true"></span>
+    </section>
+    <section class="contenedor acceso login-tarjeta" aria-labelledby="login-titulo">
+      <p class="sobrelinea">ACCESO AL SISTEMA</p>
+      <h2 id="login-titulo">Iniciar sesión</h2>
+      <p class="subtitulo">Ingresa tus credenciales para continuar a tu espacio de trabajo.</p>
+      <form id="login-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="username">Nombre de usuario</label>
+        <input id="username" name="username" type="text" autocomplete="username" maxlength="80" required>
+        <label for="password">Contraseña</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" maxlength="256" required>
+        <button id="login-button" type="submit">Ingresar</button>
+        <p id="auth-message" class="mensaje" role="status" aria-live="polite"></p>
+      </form>
+      <p class="login-registro"><a href="/registro">Solicitar registro como Instructor Voluntario</a></p>
+    </section>
   </main>
 </body>
 </html>

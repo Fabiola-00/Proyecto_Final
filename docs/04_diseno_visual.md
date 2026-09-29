@@ -38,6 +38,8 @@ Estas pantallas y contadores son una base, no la implementación completa de tod
 
 Administración cuenta con pantallas iniciales para períodos, catálogo y asignaciones. Jefe de Personal/Administrador pueden marcar asistencias, registrar capacitaciones y crear/corregir notas no psicométricas conservando versiones anteriores; Jefe de Personal queda limitado a Instructores Voluntarios activos asignados. Instructor Voluntario ve la lista de evaluaciones completadas/pendientes sin notas ni observaciones. Los candidatos psicométricos no están aprobados en `docs/06_pruebas_psicometricas.md`, por lo que se bloquea su activación y no se muestran formularios, intentos o reinicios operativos.
 
+Asistencias tiene una lista de estado por persona y fecha, con opciones Asiste, Atraso, Permiso y Falta; la actividad se conserva como referencia de la gestión. El historial se filtra por persona y permite consultar la última fecha con registros o un rango. Capacitaciones o Cursos es una sección aparte para Administrador y Jefe de Personal, con listado, alta y edición vinculada a `capacitaciones`; no permite borrado físico.
+
 La barra lateral se convierte en menú móvil con control accesible por teclado y también puede plegarse en escritorio para liberar espacio. El estado plegado se recuerda en el navegador; la navegación sigue identificable mediante nombres accesibles. El selector de tema permite cambiar entre modo claro y oscuro y conserva la preferencia local. Ambos temas mantienen contraste, foco visible y los colores institucionales como identidad de las acciones y acentos. Los estados usan texto además de color.
 
 ## Responsividad e interacción

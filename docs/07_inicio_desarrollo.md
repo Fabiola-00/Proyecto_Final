@@ -35,7 +35,7 @@ Copiar la salida a `SICOSE_SECRET_KEY` dentro de `.env`; define también la cont
 flask --app sicose init-db
 ```
 
-El comando crea o amplía `instance\sicose.sqlite3`; preserva los datos, aplica migraciones aditivas y crea las tablas/columnas del modelo actual y tres roles (`ADMINISTRADOR`, `JEFE_PERSONAL` e `INSTRUCTOR_VOLUNTARIO`, esquema versión 5).
+El comando crea o amplía `instance\sicose.sqlite3`; preserva los datos, aplica migraciones aditivas y crea las tablas/columnas del modelo actual y tres roles (`ADMINISTRADOR`, `JEFE_PERSONAL` e `INSTRUCTOR_VOLUNTARIO`, esquema versión 7).
 
 Después de actualizar el código a una fase nueva, detén el servidor y vuelve a ejecutar este comando antes de usar los módulos nuevos. Es aditivo e idempotente: añade las tablas faltantes y no reinicia ni borra los datos existentes.
 
@@ -53,7 +53,7 @@ El usuario es `admin.demo`, salvo que configures otro valor. El comando falla si
 flask --app sicose run --debug
 ```
 
-Abrir `http://127.0.0.1:5000/login`. Administración puede registrar y editar perfiles de Jefes de Personal e Instructores Voluntarios, cargar fotos PNG/JPEG (máximo 3 MiB) y restablecer sus contraseñas; comunica la nueva clave al usuario por un canal seguro. El alta de Instructor Voluntario solicita nombres, ambos apellidos y fecha completa de nacimiento y genera su código como iniciales + `DDMMAA`; los perfiles históricos sin fecha muestran el dato pendiente hasta actualizarlo. En su dashboard ve las fotos de los perfiles registrados. Desde **Configuración** puede editar su propio nombre y foto; para cambiar su contraseña debe ingresar la actual y volver a iniciar sesión después. Las fotos se almacenan localmente en `instance\perfiles`. Administración usa **Evaluaciones** para catálogo y asignaciones. Jefe de Personal usa **Asistencias** y **Notas e historial**. Instructor Voluntario ve estados de evaluaciones sin notas ni observaciones. Las operaciones mutables requieren CSRF mediante `X-CSRFToken`. Detener el servidor con `Ctrl+C`.
+Abrir `http://127.0.0.1:5000/login`. Administración puede registrar y editar perfiles de Jefes de Personal e Instructores Voluntarios, cargar fotos PNG/JPEG (máximo 3 MiB) y restablecer sus contraseñas; comunica la nueva clave al usuario por un canal seguro. El alta de Instructor Voluntario solicita nombres, ambos apellidos y fecha completa de nacimiento y genera su código como iniciales + `DDMMAA`; los perfiles históricos sin fecha muestran el dato pendiente hasta actualizarlo. En su dashboard ve las fotos de los perfiles registrados. Desde **Configuración** puede editar su propio nombre y foto; para cambiar su contraseña debe ingresar la actual y volver a iniciar sesión después. Las fotos se almacenan localmente en `instance\perfiles`. Administración usa **Evaluaciones** para catálogo/asignaciones y **Capacitaciones o cursos** para consultar, registrar o editar cursos. Jefe de Personal usa **Asistencias**, **Capacitaciones o cursos** y **Notas e historial**. En Asistencias selecciona fecha y actividad, asigna uno de cuatro estados al equipo activo y filtra el historial por persona, última gestión o rango de fechas. Instructor Voluntario ve estados de evaluaciones sin notas ni observaciones. Las operaciones mutables requieren CSRF mediante `X-CSRFToken`. Detener el servidor con `Ctrl+C`.
 
 ## 6. Ejecutar pruebas
 
@@ -63,7 +63,7 @@ Con el entorno virtual activo:
 python -m unittest discover -s tests -v
 ```
 
-Las pruebas usan el cliente de Flask y una base SQLite en memoria; no requieren iniciar un servidor ni alteran la base local.
+Las pruebas usan el cliente de Flask y bases SQLite temporales aisladas; no requieren iniciar un servidor ni alteran la base local.
 
 ## Estructura inicial
 
@@ -77,6 +77,6 @@ docs/07_inicio_desarrollo.md  instrucciones para Windows
 
 ## Alcance y seguridad
 
-La sesión dura ocho horas; cookies `HttpOnly`, `SameSite=Lax` y `Secure` configurable para HTTPS. Los endpoints JSON distinguen 401 y 403. Login y logout validan CSRF. Hay vistas iniciales protegidas por rol; los enlaces de gestión aparecen deshabilitados hasta que sus módulos se implementen. `/api/admin/estado` es solo una ruta breve de comprobación de autorización. La limitación de intentos de login y el despliegue con servidor WSGI/HTTPS están pendientes.
+La sesión dura ocho horas; cookies `HttpOnly`, `SameSite=Lax` y `Secure` configurable para HTTPS. Los endpoints JSON distinguen 401 y 403. Login y logout validan CSRF; las demás operaciones mutables desde la interfaz también usan token CSRF. Los paneles y módulos disponibles aplican autorización por rol y ámbito en backend; algunas capacidades futuras permanecen señaladas como pendientes en la interfaz. `/api/admin/estado` es solo una ruta breve de comprobación de autorización. La limitación de intentos de login y el despliegue con servidor WSGI/HTTPS están pendientes.
 
 Las solicitudes guardan hash de contraseña y permanecen pendientes sin sesión. La administración crea manualmente cuentas activas de Instructores Voluntarios desde **Agregar manualmente**; puede consultar solicitudes pendientes y usar **Ver todos los perfiles** para acceder al listado CRUD. Las rutas de invitaciones previas se conservan por compatibilidad, pero el dashboard ya no ofrece crear invitaciones. Desactivar conserva historial. El servidor incorporado de Flask es exclusivamente para desarrollo local; antes de un despliegue será necesario definir servidor WSGI, HTTPS, secretos y demás requisitos operativos.

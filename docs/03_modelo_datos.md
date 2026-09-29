@@ -2,7 +2,7 @@
 
 ## Esquema implementado
 
-SQLite usa `PRAGMA foreign_keys = ON`. El esquema `sicose/schema.sql` declara las tablas; `flask --app sicose init-db` agrega las columnas faltantes y solo marca `app_meta.schema_version` como 6 después de completar las migraciones. La base local previa se preserva y amplía; no se eliminan tablas/filas. Fechas técnicas se expresan en UTC; claves numéricas son internas.
+SQLite usa `PRAGMA foreign_keys = ON`. El esquema `sicose/schema.sql` declara las tablas; `flask --app sicose init-db` agrega las columnas faltantes y solo marca `app_meta.schema_version` como 7 después de completar las migraciones. La base local previa se preserva y amplía; no se eliminan tablas/filas. Fechas técnicas se expresan en UTC; claves numéricas son internas.
 
 | Tabla | Uso y restricciones principales |
 |---|---|
@@ -22,7 +22,7 @@ SQLite usa `PRAGMA foreign_keys = ON`. El esquema `sicose/schema.sql` declara la
 | `respuestas` | FK restrictiva a intento y referencia única por intento; tabla vacía y sin reactivos ni lógica psicométrica. |
 | `calificaciones` | FK a asignación y usuario que registra; nota 0–100; correcciones enlazables sin sobrescribir la fila previa. Operación manual habilitada solo para evaluaciones no psicométricas. |
 | `capacitaciones` | Historial de cursos asociado a voluntario; instructor/admin registran para perfiles dentro de su ámbito. |
-| `asistencias` | Registro por voluntario/fecha/actividad con estado limitado y autor; la operación valida ámbito de instructor y conserva fecha/actividad. |
+| `asistencias` | Registro por voluntario/fecha/actividad con estado histórico y estado detallado (`ASISTE`, `ATRASO`, `PERMISO`, `FALTA`); la consulta valida ámbito de Jefe de Personal y permite último día o rango de fechas. |
 | `auditoria` | Actor nullable (fallos de usuario desconocido), acción, resultado, IP y fecha. No guarda contraseñas, hashes ni username fallido. |
 
 ## Relaciones
@@ -37,7 +37,7 @@ La cuenta guarda el nombre de rol por FK y un hash generado por Werkzeug (scrypt
 
 El registro público crea usuario y perfil en estado PENDIENTE con contraseña hasheada y sin sesión. Un administrador aprueba o rechaza la solicitud. Las invitaciones duran siete días, son de un solo uso, guardan solo el hash del token y no se envían por correo: el administrador comparte manualmente el enlace mostrado al crearlas. Administración crea directamente las cuentas de Jefe de Personal en estado ACTIVO con hash de contraseña y perfil asociado; puede editar o desactivar. Desactivar un Jefe de Personal conserva su cuenta/perfil y desvincula los voluntarios activos para evitar nuevas operaciones bajo una asignación inactiva. Los Jefes de Personal solo consultan, editan y desactivan perfiles de Instructores Voluntarios asignados a su cuenta.
 
-Los códigos internos de rol se actualizaron en el esquema v5. La migración renombra `INSTRUCTOR` a `JEFE_PERSONAL` y `VOLUNTARIO` a `INSTRUCTOR_VOLUNTARIO` conservando los IDs y actualiza categorías/orígenes históricos de evaluación. El esquema v6 agrega campos de identidad del Instructor Voluntario de forma aditiva; no inventa fecha de nacimiento ni código para perfiles antiguos. El código se forma con las iniciales de nombres, apellido paterno y materno, más `DDMMAA`; la colisión devuelve un error y requiere revisión. Esta regla es provisional hasta confirmar la política de códigos duplicados. Nacionalidades/departamentos y catálogos relacionales de cursos/operaciones están pendientes de definición. Los nombres internos de tablas y columnas (`instructores`, `voluntarios`, `instructor_id`, `voluntario_id`) se conservan para no romper relaciones ni datos existentes.
+Los códigos internos de rol se actualizaron en el esquema v5. La migración renombra `INSTRUCTOR` a `JEFE_PERSONAL` y `VOLUNTARIO` a `INSTRUCTOR_VOLUNTARIO` conservando los IDs y actualiza categorías/orígenes históricos de evaluación. El esquema v6 agrega campos de identidad del Instructor Voluntario de forma aditiva. El esquema v7 añade `asistencias.estado_detalle`; preserva `estado` histórico y asigna una categoría inicial (`PRESENTE`→`ASISTE`, `AUSENTE`→`FALTA`, `JUSTIFICADO`→`PERMISO`) para hacer consultables los datos previos sin reemplazarlos. Los cursos tienen listado, alta y edición por ámbito, sin borrado físico. El código institucional se forma con las iniciales de nombres, apellido paterno y materno, más `DDMMAA`; la colisión devuelve un error y requiere revisión. Nacionalidades/departamentos y catálogos relacionales de cursos/operaciones están pendientes de definición. Los nombres internos de tablas y columnas (`instructores`, `voluntarios`, `instructor_id`, `voluntario_id`) se conservan para no romper relaciones ni datos existentes.
 
 Las fotos PNG/JPEG (máximo 3 MiB y 4096 × 4096) se guardan en `instance/perfiles`, fuera de static, con nombre generado y acceso por API autenticada con control por rol/ámbito. No se guardan bytes en SQLite. Administración puede editar perfil y restablecer clave de Jefes de Personal/Instructores Voluntarios; no se muestra la clave anterior. El backend guarda un hash nuevo e incrementa `password_version`, por lo que las sesiones previas dejan de autenticar.
 

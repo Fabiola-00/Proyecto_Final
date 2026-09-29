@@ -135,6 +135,7 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertIn(b"images/sbrab-logo.png", respuesta.data)
         self.assertIn(b"Agregar Jefe de Personal", respuesta.data)
         self.assertIn(b"Ver todos los Jefes de Personal", respuesta.data)
+        self.assertIn(b"Capacitaciones o cursos", respuesta.data)
         self.assertIn(b"SICOSE", respuesta.data)
 
     def test_logo_institucional_esta_disponible_como_imagen(self):
@@ -142,6 +143,17 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertEqual(respuesta.status_code, 200)
         self.assertEqual(respuesta.mimetype, "image/png")
         respuesta.close()
+
+    def test_login_muestra_emblema_y_estilos_institucionales(self):
+        respuesta = self.cliente.get("/login")
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertIn(b"images/sbrab-logo.png", respuesta.data)
+        self.assertIn(b"Emblema institucional SBRAB", respuesta.data)
+        css = self.cliente.get("/static/css/estilos.css")
+        self.assertEqual(css.status_code, 200)
+        self.assertIn(b"#1D1BBE", css.data)
+        self.assertIn(b"#F57B1A", css.data)
+        css.close()
 
     def test_inicio_instructor_muestra_solo_su_panel(self):
         self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
@@ -233,7 +245,9 @@ class AplicacionTestCase(unittest.TestCase):
             version = conexion.execute(
                 "SELECT valor FROM app_meta WHERE clave = ?", ("schema_version",)
             ).fetchone()[0]
-            self.assertEqual(version, "6")
+            self.assertEqual(version, "7")
+            columnas_asistencias = {fila["name"] for fila in conexion.execute("PRAGMA table_info(asistencias)")}
+            self.assertIn("estado_detalle", columnas_asistencias)
             self.assertEqual(
                 conexion.execute("SELECT COUNT(*) FROM roles").fetchone()[0], 3
             )
@@ -259,6 +273,8 @@ class AplicacionTestCase(unittest.TestCase):
             "('VOLUNTARIO', 'INSTRUCTOR')",
         ).replace(
             "    nombres TEXT,\n    apellido_paterno TEXT,\n    apellido_materno TEXT,\n    fecha_nacimiento TEXT,\n    codigo_instructor TEXT UNIQUE,\n", ""
+        ).replace(
+            "    estado_detalle TEXT CHECK (estado_detalle IS NULL OR estado_detalle IN ('ASISTE', 'ATRASO', 'PERMISO', 'FALTA')),\n", ""
         )
         legacy = sqlite3.connect(legacy_path)
         legacy.execute("PRAGMA foreign_keys=ON")
@@ -272,6 +288,7 @@ class AplicacionTestCase(unittest.TestCase):
         legacy.execute("INSERT INTO usuarios(username,nombre_completo,password_hash,rol_id) VALUES ('iv.demo','IV demo','hash',?)", (roles["VOLUNTARIO"],))
         iv_id = legacy.execute("SELECT id FROM usuarios WHERE username='iv.demo'").fetchone()[0]
         legacy.execute("INSERT INTO voluntarios(usuario_id,instructor_id) VALUES (?,?)", (iv_id, jefe_id))
+        legacy.execute("INSERT INTO asistencias(voluntario_id,fecha,estado,actividad,registrado_por) VALUES (?, '2026-09-01', 'PRESENTE', 'Histórica', ?)", (iv_id, jefe_id))
         period_id = legacy.execute("INSERT INTO periodos(nombre,fecha_inicio,fecha_fin) VALUES ('Migración','2026-01-01','2026-12-31')").lastrowid
         eval_id = legacy.execute("INSERT INTO evaluaciones(codigo,nombre,categoria,origen_nota) VALUES ('JEF-OLD','Registro previo','INSTRUCTOR','INSTRUCTOR')").lastrowid
         legacy.execute("INSERT INTO asignaciones_evaluacion(voluntario_id,periodo_id,evaluacion_id) VALUES (?,?,?)", (iv_id, period_id, eval_id))
@@ -296,7 +313,9 @@ class AplicacionTestCase(unittest.TestCase):
                 self.assertEqual(tuple(conexion.execute("SELECT categoria,origen_nota FROM evaluaciones WHERE id=?", (eval_id,)).fetchone()), ("JEFE_PERSONAL", "JEFE_PERSONAL"))
                 self.assertEqual(conexion.execute("SELECT COUNT(*) FROM asignaciones_evaluacion WHERE voluntario_id=? AND evaluacion_id=?", (iv_id, eval_id)).fetchone()[0], 1)
                 self.assertIsNone(conexion.execute("SELECT fecha_nacimiento FROM voluntarios WHERE usuario_id=?", (iv_id,)).fetchone()[0])
-                self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "6")
+                asistencia_migrada = conexion.execute("SELECT estado,estado_detalle FROM asistencias WHERE voluntario_id=?", (iv_id,)).fetchone()
+                self.assertEqual(tuple(asistencia_migrada), ("PRESENTE", "ASISTE"))
+                self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "7")
                 self.assertEqual(conexion.execute("PRAGMA foreign_key_check").fetchall(), [])
         finally:
             if legacy_path.exists():
@@ -567,8 +586,55 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertEqual(correccion.status_code, 201)
         historial = self.cliente.get(f"/api/jefe-personal/asignaciones/{assignment_id}/calificaciones")
         self.assertEqual([item["nota_0_100"] for item in historial.json["historial"]], [75, 80])
-        self.assertEqual(self.cliente.get("/gestion/asistencias").status_code, 200)
+        pagina_asistencias = self.cliente.get("/gestion/asistencias")
+        self.assertEqual(pagina_asistencias.status_code, 200)
+        self.assertIn(b"Fecha de la gesti", pagina_asistencias.data)
+        self.assertIn(b"Capacitaciones o cursos", pagina_asistencias.data)
+        assets = self.cliente.get("/static/js/app.js")
+        self.assertIn(b"ATRASO", assets.data)
+        assets.close()
+        self.assertEqual(self.cliente.get("/gestion/capacitaciones").status_code, 200)
         self.assertEqual(self.cliente.get("/gestion/calificaciones").status_code, 200)
+
+    def test_asistencias_aceptan_cuatro_estados_y_filtran_por_persona_y_fechas(self):
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            connection = obtener_conexion()
+            instructor_id = connection.execute("SELECT id FROM usuarios WHERE username='instructor.demo'").fetchone()[0]
+            volunteer_id = connection.execute("SELECT id FROM usuarios WHERE username='voluntario.demo'").fetchone()[0]
+            connection.execute("INSERT INTO instructores(usuario_id) VALUES (?)", (instructor_id,))
+            connection.execute("INSERT INTO voluntarios(usuario_id,instructor_id) VALUES (?,?)", (volunteer_id,instructor_id))
+            connection.commit()
+        self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
+        headers = {"X-CSRFToken": self._csrf_token()}
+        for index, state in enumerate(("ASISTE", "ATRASO", "PERMISO", "FALTA"), start=1):
+            response = self.cliente.post("/api/jefe-personal/asistencias", json={
+                "fecha": f"2026-09-0{index}", "actividad": "Entrenamiento",
+                "asistencias": [{"voluntario_id": volunteer_id, "estado": state}],
+            }, headers=headers)
+            self.assertEqual(response.status_code, 200)
+        history = self.cliente.get(f"/api/jefe-personal/asistencias?modo=rango&desde=2026-09-01&hasta=2026-09-04&voluntario_id={volunteer_id}")
+        self.assertEqual([row["estado"] for row in history.json["asistencias"]], ["FALTA", "PERMISO", "ATRASO", "ASISTE"])
+        self.assertEqual(self.cliente.get("/api/jefe-personal/asistencias?modo=rango&desde=2026-09-05&hasta=2026-09-01").status_code, 400)
+
+    def test_capacitaciones_se_listan_y_se_editan_dentro_del_ambito(self):
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            connection = obtener_conexion()
+            instructor_id = connection.execute("SELECT id FROM usuarios WHERE username='instructor.demo'").fetchone()[0]
+            volunteer_id = connection.execute("SELECT id FROM usuarios WHERE username='voluntario.demo'").fetchone()[0]
+            connection.execute("INSERT INTO instructores(usuario_id) VALUES (?)", (instructor_id,))
+            connection.execute("INSERT INTO voluntarios(usuario_id,instructor_id) VALUES (?,?)", (volunteer_id,instructor_id))
+            connection.commit()
+        self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
+        headers = {"X-CSRFToken": self._csrf_token()}
+        created = self.cliente.post(f"/api/jefe-personal/instructores-voluntarios/{volunteer_id}/capacitaciones", json={"nombre": "Primeros auxilios", "entidad": "SBRAB", "fecha": "2026-09-10"}, headers=headers)
+        self.assertEqual(created.status_code, 201)
+        listed = self.cliente.get("/api/jefe-personal/capacitaciones")
+        self.assertEqual(listed.json["capacitaciones"][0]["nombre"], "Primeros auxilios")
+        edited = self.cliente.patch(f"/api/jefe-personal/capacitaciones/{created.json['id']}", json={"nombre": "Primeros auxilios avanzados"}, headers=headers)
+        self.assertEqual(edited.status_code, 200)
+        self.assertEqual(self.cliente.get("/api/jefe-personal/capacitaciones").json["capacitaciones"][0]["nombre"], "Primeros auxilios avanzados")
 
     def test_evaluacion_psicometrica_pendiente_no_se_activa_ni_califica_manualmente(self):
         with self.app.app_context():

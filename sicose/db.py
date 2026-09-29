@@ -111,6 +111,19 @@ def inicializar_base_datos():
     for campo in ("nombres", "apellido_paterno", "apellido_materno", "fecha_nacimiento", "codigo_instructor"):
         if campo not in columnas_voluntarios:
             conexion.execute(f"ALTER TABLE voluntarios ADD COLUMN {campo} TEXT")
+    columnas_asistencias = {fila["name"] for fila in conexion.execute("PRAGMA table_info(asistencias)")}
+    if "estado_detalle" not in columnas_asistencias:
+        conexion.execute(
+            "ALTER TABLE asistencias ADD COLUMN estado_detalle TEXT "
+            "CHECK (estado_detalle IS NULL OR estado_detalle IN ('ASISTE','ATRASO','PERMISO','FALTA'))"
+        )
+    conexion.execute(
+        """UPDATE asistencias SET estado_detalle = CASE estado
+               WHEN 'PRESENTE' THEN 'ASISTE'
+               WHEN 'AUSENTE' THEN 'FALTA'
+               WHEN 'JUSTIFICADO' THEN 'PERMISO'
+           END WHERE estado_detalle IS NULL"""
+    )
     conexion.execute(
         """CREATE UNIQUE INDEX IF NOT EXISTS idx_voluntarios_codigo_instructor
            ON voluntarios(codigo_instructor) WHERE codigo_instructor IS NOT NULL"""
@@ -120,7 +133,7 @@ def inicializar_base_datos():
         ((rol,) for rol in ROLES),
     )
     conexion.execute(
-        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '6')
+        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '7')
            ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor"""
     )
     conexion.commit()

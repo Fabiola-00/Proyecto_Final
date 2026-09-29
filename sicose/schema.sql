@@ -176,6 +176,7 @@ CREATE TABLE IF NOT EXISTS asistencias (
     voluntario_id INTEGER NOT NULL REFERENCES voluntarios(usuario_id) ON DELETE RESTRICT,
     fecha TEXT NOT NULL,
     estado TEXT NOT NULL CHECK (estado IN ('PRESENTE', 'AUSENTE', 'JUSTIFICADO')),
+    estado_detalle TEXT CHECK (estado_detalle IS NULL OR estado_detalle IN ('ASISTE', 'ATRASO', 'PERMISO', 'FALTA')),
     actividad TEXT,
     registrado_por INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
     creado_en TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),

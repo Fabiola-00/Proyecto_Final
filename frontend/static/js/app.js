@@ -559,48 +559,152 @@ if (attendanceForm) {
   const attendanceRows = document.querySelector("#asistencias-voluntarios");
   const attendanceMessage = document.querySelector("#asistencias-mensaje");
   const attendanceHistory = document.querySelector("#asistencias-historial");
-  const courseForm = document.querySelector("#capacitacion-form");
-  const courseMessage = document.querySelector("#capacitacion-mensaje");
+  const attendanceDate = attendanceForm.elements.fecha;
+  const attendanceActivity = attendanceForm.elements.actividad;
+  const attendanceSave = document.querySelector("#guardar-asistencias");
+  const attendanceCount = document.querySelector("#asistencias-conteo");
+  const historyForm = document.querySelector("#asistencias-filtros");
+  const historySummary = document.querySelector("#asistencias-historial-resumen");
+  let activeVolunteers = [];
 
   async function cargarEquipoAsistencia() {
     const { voluntarios } = await apiJson("/api/instructores-voluntarios");
-    const activos = voluntarios.filter((voluntario) => voluntario.estado === "ACTIVO");
-    attendanceRows.replaceChildren();
-    const courseSelect = courseForm.elements.voluntario_id; courseSelect.replaceChildren();
-    activos.forEach((voluntario) => {
-      const option = elemento("option", voluntario.nombre); option.value = voluntario.id; courseSelect.append(option);
-      const card = elemento("label", `${voluntario.nombre} · Asistencia`, "tarjeta-modulo");
+    activeVolunteers = voluntarios.filter((voluntario) => voluntario.estado === "ACTIVO");
+    const historyVolunteer = historyForm.elements.voluntario_id;
+    historyVolunteer.replaceChildren(elemento("option", "Todos los de mi ámbito")); historyVolunteer.options[0].value = "";
+    voluntarios.forEach((voluntario) => { const option = elemento("option", voluntario.nombre); option.value = voluntario.id; historyVolunteer.append(option); });
+  }
+
+  function actualizarConteo() {
+    const selects = [...attendanceRows.querySelectorAll("select")];
+    const completed = selects.filter((select) => select.value).length;
+    attendanceCount.textContent = selects.length ? `${completed} de ${selects.length} estados seleccionados` : "";
+    attendanceSave.disabled = !selects.length || completed !== selects.length || !attendanceDate.value;
+  }
+
+  function renderizarEquipo() {
+    attendanceRows.replaceChildren(); attendanceSave.disabled = true;
+    if (!attendanceDate.value) {
+      attendanceRows.append(elemento("p", "Selecciona una fecha para cargar el equipo activo.", "nota-informativa"));
+      actualizarConteo(); return;
+    }
+    if (!activeVolunteers.length) {
+      attendanceRows.append(elemento("p", "No hay Instructores Voluntarios activos en tu ámbito.", "nota-informativa"));
+      actualizarConteo(); return;
+    }
+    activeVolunteers.forEach((voluntario) => {
+      const card = elemento("label", undefined, "fila-asistencia");
+      const identity = elemento("span"); identity.append(elemento("strong", voluntario.nombre));
+      if (voluntario.codigo_instructor) identity.append(elemento("small", voluntario.codigo_instructor));
+      card.append(identity);
       const select = elemento("select"); select.name = "estado"; select.dataset.volunteerId = voluntario.id; select.required = true;
       const prompt = elemento("option", "Selecciona el estado"); prompt.value = ""; prompt.selected = true; prompt.disabled = true; select.append(prompt);
-      [["PRESENTE", "Presente"], ["AUSENTE", "Ausente"], ["JUSTIFICADO", "Justificado"]].forEach(([value, label]) => { const opt = elemento("option", label); opt.value = value; select.append(opt); });
+      [["ASISTE", "Asiste"], ["ATRASO", "Atraso"], ["PERMISO", "Permiso"], ["FALTA", "Falta"]].forEach(([value, label]) => { const opt = elemento("option", label); opt.value = value; select.append(opt); });
+      select.addEventListener("change", actualizarConteo);
       card.append(select); attendanceRows.append(card);
     });
+    actualizarConteo();
   }
 
   async function cargarHistorialAsistencia() {
-    const { asistencias } = await apiJson("/api/jefe-personal/asistencias"); attendanceHistory.replaceChildren();
-    if (!asistencias.length) attendanceHistory.append(elemento("p", "Sin registros de asistencia.", "nota-informativa"));
-    asistencias.slice(0, 30).forEach((row) => attendanceHistory.append(elemento("article", `${row.fecha} · ${row.actividad} · ${row.voluntario}: ${row.estado}`, "tarjeta-modulo")));
+    const data = new FormData(historyForm);
+    const params = new URLSearchParams({ modo: data.get("modo") });
+    if (data.get("voluntario_id")) params.set("voluntario_id", data.get("voluntario_id"));
+    if (data.get("modo") === "rango") { params.set("desde", data.get("desde")); params.set("hasta", data.get("hasta")); }
+    const { asistencias, modo, fecha_consultada: latestDate } = await apiJson(`/api/jefe-personal/asistencias?${params}`);
+    attendanceHistory.replaceChildren();
+    if (!asistencias.length) {
+      historySummary.textContent = modo === "ultima" ? "No hay gestiones registradas para este filtro." : "No hay registros en el rango seleccionado.";
+      const empty = elemento("tr"); const cell = elemento("td", "Sin registros de asistencia.", "tabla-vacia"); cell.colSpan = 4; empty.append(cell); attendanceHistory.append(empty); return;
+    }
+    historySummary.textContent = modo === "ultima" ? `Última gestión registrada: ${latestDate}.` : `Mostrando ${asistencias.length} registros del ${data.get("desde")} al ${data.get("hasta")}.`;
+    const labels = { ASISTE: "Asiste", ATRASO: "Atraso", PERMISO: "Permiso", FALTA: "Falta" };
+    asistencias.forEach((row) => {
+      const tr = elemento("tr");
+      [row.fecha, row.voluntario, row.actividad || "—", labels[row.estado] || row.estado].forEach((value) => tr.append(elemento("td", value)));
+      attendanceHistory.append(tr);
+    });
   }
 
+  attendanceDate.addEventListener("change", renderizarEquipo);
   attendanceForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const data = new FormData(attendanceForm);
+    if (!attendanceForm.reportValidity()) return;
     const entries = [...attendanceRows.querySelectorAll("select")].map((select) => ({ voluntario_id: Number(select.dataset.volunteerId), estado: select.value }));
     try {
-      const result = await apiJson("/api/jefe-personal/asistencias", { method: "POST", body: { fecha: data.get("fecha"), actividad: data.get("actividad"), asistencias: entries } });
-      attendanceMessage.textContent = `Registros guardados: ${result.registrados}.`; await cargarHistorialAsistencia();
+      const result = await apiJson("/api/jefe-personal/asistencias", { method: "POST", body: { fecha: attendanceDate.value, actividad: attendanceActivity.value.trim(), asistencias: entries } });
+      attendanceMessage.textContent = `Asistencia guardada para ${result.registrados} personas.`;
+      historyForm.elements.modo.value = "ultima"; historyForm.elements.voluntario_id.value = "";
+      await cargarHistorialAsistencia();
     } catch (error) { attendanceMessage.textContent = error.message; }
   });
 
-  courseForm.addEventListener("submit", async (event) => {
-    event.preventDefault(); const data = Object.fromEntries(new FormData(courseForm).entries());
-    const volunteerId = Number(data.voluntario_id); delete data.voluntario_id;
-    try { await apiJson(`/api/jefe-personal/instructores-voluntarios/${volunteerId}/capacitaciones`, { method: "POST", body: data }); courseForm.reset(); courseMessage.textContent = "Capacitación registrada."; }
-    catch (error) { courseMessage.textContent = error.message; }
+  historyForm.elements.modo.addEventListener("change", () => {
+    const range = historyForm.elements.modo.value === "rango";
+    historyForm.elements.desde.disabled = !range; historyForm.elements.hasta.disabled = !range;
+    historyForm.elements.desde.required = range; historyForm.elements.hasta.required = range;
+  });
+  historyForm.addEventListener("submit", async (event) => { event.preventDefault(); if (!historyForm.reportValidity()) return; try { await cargarHistorialAsistencia(); } catch (error) { historySummary.textContent = error.message; } });
+  historyForm.elements.voluntario_id.addEventListener("change", () => { if (historyForm.elements.modo.value === "ultima") cargarHistorialAsistencia().catch((error) => { historySummary.textContent = error.message; }); });
+
+  const hoy = new Date(); attendanceDate.value = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+  cargarEquipoAsistencia().then(() => { renderizarEquipo(); return cargarHistorialAsistencia(); }).catch((error) => { attendanceMessage.textContent = error.message; });
+}
+
+const trainingForm = document.querySelector("#capacitacion-form");
+if (trainingForm) {
+  const trainingMessage = document.querySelector("#capacitacion-mensaje");
+  const trainingRows = document.querySelector("#capacitaciones-lista");
+  const trainingEmpty = document.querySelector("#capacitaciones-vacio");
+  const trainingFilter = document.querySelector("#capacitacion-filtro");
+  const trainingCancel = document.querySelector("#capacitacion-cancelar");
+  const trainingSave = document.querySelector("#capacitacion-guardar");
+
+  function populateSelect(select, volunteers, firstLabel) {
+    select.replaceChildren(elemento("option", firstLabel)); select.options[0].value = "";
+    volunteers.forEach((volunteer) => { const option = elemento("option", volunteer.nombre); option.value = volunteer.id; select.append(option); });
+  }
+
+  async function loadTrainings() {
+    const params = new URLSearchParams(); if (trainingFilter.value) params.set("voluntario_id", trainingFilter.value);
+    const query = params.toString();
+    const response = await apiJson(`/api/jefe-personal/capacitaciones${query ? `?${query}` : ""}`);
+    trainingRows.replaceChildren(); trainingEmpty.hidden = response.capacitaciones.length > 0;
+    response.capacitaciones.forEach((course) => {
+      const row = elemento("tr");
+      [course.fecha || "—", course.voluntario, course.nombre, course.entidad || "—", course.observacion || "—"].forEach((value) => row.append(elemento("td", value)));
+      const actions = elemento("td"); const edit = elemento("button", "Editar", "boton-secundario"); edit.type = "button";
+      edit.addEventListener("click", () => {
+        trainingForm.elements.id.value = course.id; trainingForm.elements.voluntario_id.value = course.voluntario_id;
+        trainingForm.elements.nombre.value = course.nombre; trainingForm.elements.entidad.value = course.entidad || "";
+        trainingForm.elements.fecha.value = course.fecha || ""; trainingForm.elements.observacion.value = course.observacion || "";
+        trainingForm.elements.voluntario_id.disabled = true; trainingSave.textContent = "Guardar cambios"; trainingCancel.hidden = false;
+        trainingForm.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      actions.append(edit); row.append(actions); trainingRows.append(row);
+    });
+  }
+
+  function resetTrainingForm() { trainingForm.reset(); trainingForm.elements.id.value = ""; trainingForm.elements.voluntario_id.disabled = false; trainingSave.textContent = "Guardar capacitación"; trainingCancel.hidden = true; }
+  trainingCancel.addEventListener("click", resetTrainingForm);
+  trainingFilter.addEventListener("change", () => loadTrainings().catch((error) => { trainingMessage.textContent = error.message; }));
+  trainingForm.addEventListener("submit", async (event) => {
+    event.preventDefault(); if (!trainingForm.reportValidity()) return;
+    const formData = Object.fromEntries(new FormData(trainingForm).entries());
+    const id = formData.id; const volunteerId = formData.voluntario_id; delete formData.id; delete formData.voluntario_id;
+    try {
+      if (id) await apiJson(`/api/jefe-personal/capacitaciones/${id}`, { method: "PATCH", body: formData });
+      else await apiJson(`/api/jefe-personal/instructores-voluntarios/${volunteerId}/capacitaciones`, { method: "POST", body: formData });
+      resetTrainingForm(); trainingMessage.textContent = id ? "Capacitación actualizada." : "Capacitación registrada."; await loadTrainings();
+    } catch (error) { trainingMessage.textContent = error.message; }
   });
 
-  Promise.all([cargarEquipoAsistencia(), cargarHistorialAsistencia()]).catch((error) => { attendanceMessage.textContent = error.message; });
+  apiJson("/api/instructores-voluntarios").then(({ voluntarios }) => {
+    const active = voluntarios.filter((volunteer) => volunteer.estado === "ACTIVO");
+    populateSelect(trainingForm.elements.voluntario_id, active, "Selecciona una persona");
+    populateSelect(trainingFilter, voluntarios, "Todos los de mi ámbito");
+    return loadTrainings();
+  }).catch((error) => { trainingMessage.textContent = error.message; });
 }
 
 const gradeSelect = document.querySelector("#calificacion-asignacion");

@@ -118,6 +118,72 @@ a { color: var(--brand); }
 a:hover { color: var(--brand-hover); }
 .mensaje { min-height: 1.4rem; color: var(--danger); }
 
+/* Acceso institucional, alineado con la identidad de los paneles. */
+.pagina-login {
+  padding: clamp(1rem, 4vw, 3rem);
+  background:
+    radial-gradient(ellipse at 8% 10%, rgb(29 27 190 / 9%), transparent 36rem),
+    radial-gradient(ellipse at 94% 88%, rgb(245 123 26 / 8%), transparent 30rem),
+    var(--canvas);
+}
+.login-shell {
+  display: grid;
+  width: min(100%, 66rem);
+  grid-template-columns: minmax(0, 1fr) minmax(20rem, .88fr);
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.login-presentacion {
+  position: relative;
+  display: flex;
+  min-height: 34rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 3rem;
+  color: #fff;
+  text-align: center;
+  background: linear-gradient(145deg, #1D1BBE 0%, #17158f 100%);
+}
+.login-presentacion::after {
+  position: absolute;
+  right: -5rem;
+  bottom: -8rem;
+  width: 22rem;
+  height: 22rem;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2.3rem rgb(255 255 255 / 4%), 0 0 0 4.6rem rgb(255 255 255 / 3%);
+  content: "";
+}
+.login-logo { z-index: 1; width: clamp(7rem, 16vw, 10rem); height: clamp(7rem, 16vw, 10rem); padding: .35rem; border-radius: 1rem; background: #fff; object-fit: contain; }
+.login-organizacion { z-index: 1; margin: 1.5rem 0 .5rem; color: rgb(255 255 255 / 78%); font-size: .72rem; font-weight: 700; letter-spacing: .13em; }
+.login-presentacion h1 { z-index: 1; margin: 0; color: #fff; font-size: clamp(2.4rem, 5vw, 3.6rem); letter-spacing: .1em; }
+.login-lema { z-index: 1; max-width: 19rem; margin: .45rem 0 0; color: rgb(255 255 255 / 82%); line-height: 1.6; }
+.login-acento { z-index: 1; width: 3rem; height: .25rem; margin-top: 1.75rem; border-radius: 9rem; background: #F57B1A; }
+.login-tarjeta { align-self: center; width: 100%; padding: clamp(1.75rem, 4vw, 3.25rem); border: 0; border-radius: 0; box-shadow: none; }
+.login-tarjeta .sobrelinea { margin: 0 0 .6rem; color: var(--brand); font-size: .68rem; font-weight: 750; letter-spacing: .12em; }
+.login-tarjeta h2 { margin: 0 0 .55rem; color: var(--text-strong); font-size: 1.8rem; }
+.login-tarjeta .subtitulo { margin-bottom: 1.7rem; }
+.login-tarjeta form { gap: .65rem; }
+.login-tarjeta form button { margin-top: .65rem; }
+.login-tarjeta .login-registro { margin: 1.3rem 0 0; font-size: .85rem; line-height: 1.5; }
+@media (max-width: 700px) {
+  .login-shell { width: min(100%, 29rem); grid-template-columns: 1fr; }
+  .login-presentacion { min-height: auto; padding: 1.6rem 1.25rem 1.4rem; }
+  .login-logo { width: 5rem; height: 5rem; }
+  .login-organizacion { margin-top: .8rem; font-size: .62rem; }
+  .login-presentacion h1 { font-size: 2rem; }
+  .login-lema { margin-top: .2rem; font-size: .85rem; }
+  .login-acento { margin-top: .9rem; }
+  .login-tarjeta { padding: 1.65rem 1.4rem; }
+}
+
 /* Cascarón común de los dashboards */
 .pagina-panel {
   display: block;
@@ -330,6 +396,22 @@ a.modulo-estado:hover { text-decoration: underline; }
 .formulario-inline input, .formulario-inline select, .formulario-inline textarea, #solicitudes-lista select { min-height: 2.55rem; padding: .55rem .65rem; border: 1px solid var(--border-strong); border-radius: .5rem; background: var(--surface); font: inherit; }
 .formulario-inline textarea { min-height: 5rem; resize: vertical; }
 .formulario-inline button, #solicitudes-lista button, .boton-secundario { min-height: 2.55rem; font-size: .76rem; }
+.asistencia-cabecera { align-items: start; margin-top: 0; }
+.asistencia-cabecera label { flex: 1 1 15rem; }
+.lista-asistencia { display: grid; width: 100%; gap: .35rem; margin: .9rem 0; }
+.fila-asistencia { display: grid; grid-template-columns: minmax(12rem, 1fr) minmax(10rem, 14rem); align-items: center; gap: 1rem; padding: .55rem .75rem; border: 1px solid var(--border); border-radius: .6rem; background: var(--surface); }
+.fila-asistencia strong { color: var(--text-strong); font-size: .82rem; font-weight: 650; }
+.fila-asistencia small { display: block; margin-top: .18rem; color: var(--muted); font-size: .68rem; }
+.fila-asistencia select { min-height: 2.35rem; padding: .45rem .6rem; border: 1px solid var(--border-strong); border-radius: .5rem; color: var(--text); background: var(--surface); font: inherit; font-size: .78rem; }
+.acciones-formulario { display: flex; width: 100%; align-items: center; gap: .75rem; }
+.texto-secundario { color: var(--muted); font-size: .75rem; }
+.tabla-asistencia { min-width: 42rem; }
+.tabla-capacitaciones { min-width: 58rem; }
+.tabla-registros td { max-width: 22rem; overflow-wrap: anywhere; }
+.tabla-registros .boton-secundario { min-height: 2.2rem; padding: .45rem .65rem; font-size: .7rem; }
+.filtro-tabla { display: grid; min-width: min(100%, 15rem); gap: .35rem; color: var(--muted); font-size: .74rem; }
+.filtro-tabla select { min-height: 2.55rem; padding: .55rem .65rem; border: 1px solid var(--border-strong); border-radius: .5rem; color: var(--text); background: var(--surface); font: inherit; }
+@media (max-width: 560px) { .fila-asistencia { grid-template-columns: 1fr; gap: .45rem; } .acciones-formulario { align-items: flex-start; flex-direction: column; } }
 .boton-secundario { color: var(--danger); background: var(--danger-soft); }
 .boton-secundario:hover { color: #fff; background: var(--danger-fill); }
 .edicion-voluntario { width: 100%; margin-top: .8rem; color: var(--muted); font-size: .78rem; }
