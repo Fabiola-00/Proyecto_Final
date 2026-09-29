@@ -4,7 +4,7 @@ from flask_login import UserMixin
 
 
 class Usuario(UserMixin):
-    def __init__(self, id, username, nombre, correo, rol, estado, password_version=1):
+    def __init__(self, id, username, nombre, correo, rol, estado, password_version=1, foto_perfil=None):
         self.id = id
         self.username = username
         self.nombre = nombre
@@ -12,6 +12,7 @@ class Usuario(UserMixin):
         self.rol = rol
         self.estado = estado
         self.password_version = password_version
+        self.foto_perfil = foto_perfil
 
     @property
     def is_active(self):

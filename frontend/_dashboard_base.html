@@ -44,7 +44,11 @@
       <div class="lateral-inferior">
         <div class="periodo-resumen"><span class="punto-estado" aria-hidden="true"></span><span><small>PERÍODO ACTUAL</small><strong>{{ periodo_actual }}</strong></span></div>
         <div class="usuario-lateral">
-          <span class="avatar" aria-hidden="true">{{ current_user.nombre[:1]|upper }}</span>
+          {% if current_user.foto_perfil %}
+            <img class="avatar avatar-imagen" src="{{ url_for('management.foto_perfil', usuario_id=current_user.id) }}" alt="Foto de perfil de {{ current_user.nombre }}">
+          {% else %}
+            <span class="avatar" aria-hidden="true">{{ current_user.nombre[:1]|upper }}</span>
+          {% endif %}
           <span class="usuario-datos"><strong>{{ current_user.nombre }}</strong><small>{{ current_user.rol|capitalize }}</small></span>
         </div>
         <input class="token-csrf" type="hidden" name="csrf_token" value="{{ csrf_token() }}">

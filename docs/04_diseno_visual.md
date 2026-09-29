@@ -27,6 +27,8 @@ Interfaz en español, clara, sobria y adaptable. Como inspiración funcional gen
 
 Se implementó una plantilla compartida con barra lateral condicionada por rol, encabezado, período actual, identidad de cuenta, estado activo de navegación y salida de sesión. Hay una página diferente para cada rol y el inicio redirige según el rol autenticado. Las tarjetas usan cifras leídas de SQLite: administrador ve perfiles activos, cuentas pendientes y períodos; instructor ve únicamente voluntarios asignados y sus asignaciones incompletas; voluntario ve sus propias asignaciones y capacitaciones. También están las primeras pantallas para administrar cuentas de instructor y perfiles/solicitudes de voluntario.
 
+El bloque de perfil de la barra lateral muestra la foto privada de la cuenta para administrador, instructor y voluntario; si no hay foto, conserva el avatar con inicial. La imagen se solicita a la API autenticada de perfil.
+
 Estas pantallas y contadores son una base, no la implementación completa de todos los permisos descritos arriba. Con Fase 5 se agregan registros de asistencia, notas no psicométricas y estados de evaluaciones del voluntario. Continúan pendientes el autoservicio del perfil del voluntario y los formularios/intentros psicométricos, que permanecen bloqueados por falta de instrumentos autorizados. Las funciones no disponibles deben mostrarse como pendientes.
 
 ## Implementación de Fase 5

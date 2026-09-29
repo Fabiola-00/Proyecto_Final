@@ -62,12 +62,13 @@ def _usuario_desde_fila(fila):
         rol=fila["rol"],
         estado=fila["estado"],
         password_version=fila["password_version"],
+        foto_perfil=fila["foto_perfil"],
     )
 
 
 def obtener_usuario_por_id(user_id, solo_activo=False):
     consulta = """SELECT u.id, u.username, u.nombre_completo, u.correo,
-                         r.nombre AS rol, u.estado, u.password_version
+                         r.nombre AS rol, u.estado, u.password_version, u.foto_perfil
                   FROM usuarios u JOIN roles r ON r.id = u.rol_id
                   WHERE u.id = ?"""
     parametros = [user_id]
@@ -80,7 +81,7 @@ def obtener_usuario_por_id(user_id, solo_activo=False):
 def obtener_usuario_por_username(username):
     return obtener_conexion().execute(
         """SELECT u.id, u.username, u.nombre_completo, u.correo, u.password_hash,
-                         r.nombre AS rol, u.estado, u.password_version
+                         r.nombre AS rol, u.estado, u.password_version, u.foto_perfil
            FROM usuarios u JOIN roles r ON r.id = u.rol_id
            WHERE u.username = ? COLLATE NOCASE""",
         (username,),

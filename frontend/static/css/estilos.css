@@ -143,6 +143,7 @@ a.enlace-nav:hover { color: #1f1abc; background: #f5f4ff; }
 .periodo-resumen strong { margin-top: .3rem; color: #45495a; font-size: .76rem; font-weight: 600; }
 .usuario-lateral { display: flex; align-items: center; gap: .7rem; padding: .85rem .4rem .55rem; border-top: 1px solid #ececf2; }
 .avatar { display: grid; width: 2.25rem; height: 2.25rem; flex: 0 0 auto; place-items: center; border-radius: 50%; color: #fff; background: #1f1abc; font-weight: 700; }
+.avatar-imagen { display: block; object-fit: cover; border: 2px solid #1f1abc; }
 .usuario-datos { min-width: 0; }
 .usuario-datos strong { overflow: hidden; color: #333747; font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }
 .usuario-datos small { margin-top: .2rem; color: #858897; font-size: .7rem; }
