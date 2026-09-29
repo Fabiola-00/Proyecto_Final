@@ -203,7 +203,8 @@ a.enlace-nav:hover { color: #1f1abc; background: #f5f4ff; }
 .boton-enlace { display: inline-flex; min-height: 2.7rem; align-items: center; margin-top: .75rem; padding: .6rem 1rem; border-radius: .45rem; color: #fff; background: #1f1abc; font-size: .85rem; font-weight: 650; text-decoration: none; }
 .formulario-inline { display: flex; flex-wrap: wrap; align-items: end; gap: .7rem; margin-top: 1rem; }
 .formulario-inline label { display: grid; min-width: min(100%, 12rem); flex: 1 1 12rem; gap: .35rem; color: #55596a; font-size: .76rem; }
-.formulario-inline input, .formulario-inline select, #solicitudes-lista select { min-height: 2.55rem; padding: .55rem .65rem; border: 1px solid #c9cbd5; border-radius: .45rem; background: #fff; font: inherit; }
+.formulario-inline input, .formulario-inline select, .formulario-inline textarea, #solicitudes-lista select { min-height: 2.55rem; padding: .55rem .65rem; border: 1px solid #c9cbd5; border-radius: .45rem; background: #fff; font: inherit; }
+.formulario-inline textarea { min-height: 5rem; resize: vertical; }
 .formulario-inline button, #solicitudes-lista button, .boton-secundario { min-height: 2.55rem; font-size: .78rem; }
 .boton-secundario { color: #8f2828; background: #fff1ef; }
 .boton-secundario:hover { color: #fff; background: #a32121; }
@@ -246,3 +247,4 @@ a.modulo-estado { color: #1f1abc; font-weight: 700; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+.foto-perfil { width: 4.5rem; height: 4.5rem; border-radius: 50%; object-fit: cover; border: 2px solid #1F1ABC; margin-bottom: .75rem; }

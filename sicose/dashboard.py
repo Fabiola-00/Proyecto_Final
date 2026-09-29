@@ -16,7 +16,7 @@ def _periodo_actual(conexion):
     return fila["nombre"] if fila else "Sin período activo"
 
 
-def _renderizar_panel(template, page_title, nav_activo, indicadores, descripcion):
+def _renderizar_panel(template, page_title, nav_activo, indicadores, descripcion, **extra):
     conexion = obtener_conexion()
     return render_template(
         template,
@@ -25,6 +25,7 @@ def _renderizar_panel(template, page_title, nav_activo, indicadores, descripcion
         indicadores=indicadores,
         descripcion=descripcion,
         periodo_actual=_periodo_actual(conexion),
+        **extra,
     )
 
 
@@ -110,6 +111,12 @@ def voluntario():
         "SELECT COUNT(*) AS total FROM capacitaciones WHERE voluntario_id = ?",
         (current_user.id,),
     ).fetchone()["total"]
+    evaluaciones = conexion.execute(
+        """SELECT e.nombre AS evaluacion,p.nombre AS periodo,a.estado
+           FROM asignaciones_evaluacion a JOIN evaluaciones e ON e.id=a.evaluacion_id
+           JOIN periodos p ON p.id=a.periodo_id WHERE a.voluntario_id=?
+           ORDER BY p.fecha_inicio DESC,e.nombre""", (current_user.id,)
+    ).fetchall()
     return _renderizar_panel(
         "dashboard_voluntario.html",
         "Mi seguimiento",
@@ -121,6 +128,7 @@ def voluntario():
             {"etiqueta": "Capacitaciones", "valor": capacitaciones, "detalle": "Registros en tu perfil"},
         ],
         "Consulta tu avance personal y la información asociada a tu cuenta.",
+        evaluaciones_resumen=[dict(fila) for fila in evaluaciones],
     )
 
 

@@ -1,6 +1,6 @@
 # 05. Plan de desarrollo
 
-**Punto de control actual: Fase 4.1 y aclaración de requisitos aprobadas.** Los dashboards por rol existen, pero la matriz de permisos aprobada no está implementada completa. Cada fase inicia con alcance/archivos; al terminar se realizan verificaciones apropiadas y se reporta su alcance.
+**Punto de control actual: Fase 5 parcial + corrección de perfiles.** Hay asistencias, catálogo/asignaciones y notas no psicométricas con historial; se añadieron fotos de perfil y restablecimiento administrativo de contraseñas. Las pantallas psicométricas quedan bloqueadas mientras los instrumentos sigan sin aprobación documental. Fase 6 aún no inicia.
 
 | Fase | Objetivo | Entregables tentativos | Condición para avanzar |
 |---|---|---|---|
@@ -11,9 +11,10 @@
 | 4. Gestión | Solicitudes, invitaciones, aprobación, perfiles de voluntarios e instructores y asignaciones | Flujos iniciales para registro, administración de instructores y gestión de voluntarios | Parcial: instructor aún requiere alta de voluntarios por su ámbito y perfil autónomo del voluntario |
 | 4.1 Gestión de instructores | Alta, edición, desactivación y acceso diferenciado | APIs administrativas, interfaz de instructores y pruebas de rol | Implementada en esta entrega |
 | 4.2 Autoservicio y CRUD por rol | Completar CRUD de voluntarios asignados al instructor; permitir que el voluntario edite sus datos propios y vea estados/avance, sin notas u observaciones | Vistas, endpoints y autorización de objeto | Aplicar denegación por defecto y preservar historial |
+| 4.3 Perfil y recuperación administrativa | Fotos para registro/edición de instructores y voluntarios; restablecimiento de clave desde administración | Carga privada PNG/JPEG con validación y límite, clave hasheada e invalidación de sesiones | Implementado antes de iniciar Fase 6 |
 | 4B. Gestión restante | Períodos, ponderaciones y catálogo global de evaluaciones para administración | CRUD permitido y bajas lógicas; admin con alcance global | Verificar autorización, validación e historial |
-| 5. Evaluaciones no psicométricas | Instructor registra notas físicas, cursos y desempeño de su equipo; admin mantiene acceso global | Formularios, historial, avance y vista de voluntario solo con estado/resumen | Definir faltantes, correcciones y escalas institucionales |
-| 6. Instrumentos aprobados | Admin gestiona instrumentos/evaluaciones; instructor habilita/deshabilita cada prueba por voluntario y consulta resultados sin editar notas psicométricas | Pruebas autoadministradas, asignación por voluntario y puntuación documentada | Aprobación de derechos, contenido, validación local y privacidad |
+| 5. Evaluaciones, asistencias y calificaciones | Admin gestiona períodos, catálogo y asignaciones; instructor registra asistencia, cursos y calificaciones no psicométricas; voluntario solo consulta estados | Vistas y APIs para catálogo/asignaciones, asistencias, capacitación, nota versionada e historial | Implementación parcial; psicometría bloqueada por `docs/06` |
+| 6. Instrumentos aprobados | Admin mantiene aprobación/documentación; instructor habilita/deshabilita prueba por voluntario y consulta resultados sin modificar nota | Solo después de definir instrumento, versión, formulario, puntuación, intentos/reinicios e historial | Pendiente de autorización institucional/profesional, licencia, idioma, retención y regla de puntuación |
 | 7. Reportes | PDF individuales/consolidados y Excel con permisos | Exportación auditada y filtros | Confirmar campos, destinatarios, retención y reglas de promedio |
 | 8. Integración IA opcional | Conectar modelo entrenado/validado y flujo de revisión bajo solicitud | Adaptador, versión de modelo, salida revisable | Dataset/model card, validación, revisión ética/profesional y autorización |
 

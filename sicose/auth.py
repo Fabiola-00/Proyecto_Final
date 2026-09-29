@@ -57,6 +57,7 @@ def login_api():
     session.clear()
     session.permanent = True
     login_user(usuario, fresh=True)
+    session["sicose_password_version"] = usuario.password_version
     current_app.logger.info("Inicio de sesión exitoso para usuario_id=%s", usuario.id)
     return jsonify(ok=True, usuario=usuario.publico(), redirect_url="/"), 200
 

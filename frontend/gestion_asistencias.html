@@ -1,0 +1,31 @@
+{% extends "_dashboard_base.html" %}
+{% block contenido %}
+<section class="seccion-panel">
+  <div class="titulo-seccion"><h2>Marcar asistencia</h2></div>
+  <form id="asistencias-form" class="tarjeta-amplia">
+    <div class="formulario-inline">
+      <label>Fecha<input name="fecha" type="date" required></label>
+      <label>Actividad<input name="actividad" maxlength="160" required></label>
+    </div>
+    <div id="asistencias-voluntarios" class="rejilla-modulos"></div>
+    <button type="submit">Guardar asistencia</button>
+  </form>
+  <p id="asistencias-mensaje" class="mensaje" role="status"></p>
+</section>
+<section class="seccion-panel">
+  <div class="titulo-seccion"><h2>Registrar capacitación o curso</h2></div>
+  <form id="capacitacion-form" class="tarjeta-amplia formulario-inline">
+    <label>Voluntario<select name="voluntario_id" required></select></label>
+    <label>Curso o capacitación<input name="nombre" maxlength="160" required></label>
+    <label>Entidad<input name="entidad" maxlength="160"></label>
+    <label>Fecha<input name="fecha" type="date"></label>
+    <label>Observación<input name="observacion" maxlength="2000"></label>
+    <button type="submit">Guardar capacitación</button>
+  </form>
+  <p id="capacitacion-mensaje" class="mensaje" role="status"></p>
+</section>
+<section class="seccion-panel">
+  <div class="titulo-seccion"><h2>Historial de asistencias</h2></div>
+  <div id="asistencias-historial" class="rejilla-modulos"></div>
+</section>
+{% endblock %}

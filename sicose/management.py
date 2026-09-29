@@ -5,7 +5,7 @@ import re
 import secrets
 from datetime import datetime, timedelta, timezone
 
-from flask import Blueprint, jsonify, render_template, request, url_for
+from flask import Blueprint, current_app, jsonify, render_template, request, send_file, url_for
 from flask_login import current_user
 from werkzeug.security import generate_password_hash
 
@@ -53,6 +53,12 @@ def _datos_json():
     return datos if isinstance(datos, dict) else None
 
 
+def _datos_form_o_json():
+    if request.mimetype == "multipart/form-data":
+        return request.form.to_dict()
+    return _datos_json()
+
+
 def _texto(datos, campo, maximo, obligatorio=False):
     valor = datos.get(campo)
     if valor is None and not obligatorio:
@@ -92,12 +98,18 @@ def _crear_solicitud(datos, invitacion_id=None):
         return None, _fallo(str(error), "datos_invalidos", 400)
 
     conexion = db.obtener_conexion()
+    from .profile_media import guardar_foto
+
+    try:
+        foto = guardar_foto(request.files.get("foto"))
+    except ValueError as error:
+        return None, _fallo(str(error), "foto_invalida", 400)
     try:
         rol_id = conexion.execute("SELECT id FROM roles WHERE nombre = 'VOLUNTARIO'").fetchone()[0]
         cursor = conexion.execute(
-            """INSERT INTO usuarios (username, nombre_completo, correo, password_hash, rol_id, estado)
-               VALUES (?, ?, ?, ?, ?, 'PENDIENTE')""",
-            (username, nombre, correo, generate_password_hash(password), rol_id),
+            """INSERT INTO usuarios (username, nombre_completo, correo, password_hash, rol_id, estado, foto_perfil)
+               VALUES (?, ?, ?, ?, ?, 'PENDIENTE', ?)""",
+            (username, nombre, correo, generate_password_hash(password), rol_id, foto),
         )
         usuario_id = cursor.lastrowid
         conexion.execute(
@@ -129,7 +141,7 @@ def _crear_solicitud(datos, invitacion_id=None):
 
 @management_bp.post("/api/registro/solicitudes")
 def solicitar_registro():
-    datos = _datos_json()
+    datos = _datos_form_o_json()
     if datos is None:
         return _fallo("Solicitud no válida.", "solicitud_invalida", 400)
     _, respuesta = _crear_solicitud(datos)
@@ -188,7 +200,7 @@ def consultar_invitacion(token):
 
 @management_bp.post("/api/registro/invitaciones/<token>")
 def usar_invitacion(token):
-    datos = _datos_json()
+    datos = _datos_form_o_json()
     if datos is None or len(token) > 128:
         return _fallo("Solicitud no válida.", "solicitud_invalida", 400)
     conexion = db.obtener_conexion()
@@ -223,7 +235,7 @@ def listar_solicitudes():
 def listar_instructores():
     filas = db.obtener_conexion().execute(
         """SELECT i.usuario_id AS id, u.username, u.nombre_completo AS nombre,
-                  u.correo, u.estado, i.especialidad,
+                  u.correo, u.estado, (u.foto_perfil IS NOT NULL) AS tiene_foto, i.especialidad,
                   (SELECT COUNT(*) FROM voluntarios v JOIN usuarios uv ON uv.id=v.usuario_id
                    WHERE v.instructor_id=i.usuario_id AND uv.estado='ACTIVO') AS voluntarios_activos
            FROM instructores i JOIN usuarios u ON u.id=i.usuario_id
@@ -235,7 +247,7 @@ def listar_instructores():
 @management_bp.post("/api/admin/instructores")
 @role_required("ADMINISTRADOR")
 def crear_instructor():
-    datos = _datos_json()
+    datos = _datos_form_o_json()
     if datos is None:
         return _fallo("Solicitud no válida.", "solicitud_invalida", 400)
     try:
@@ -253,14 +265,20 @@ def crear_instructor():
     except (ValueError, TypeError) as error:
         return _fallo(str(error), "datos_invalidos", 400)
 
+    from .profile_media import guardar_foto
+
+    try:
+        foto = guardar_foto(request.files.get("foto"))
+    except ValueError as error:
+        return _fallo(str(error), "foto_invalida", 400)
     conexion = db.obtener_conexion()
     rol_id = conexion.execute("SELECT id FROM roles WHERE nombre='INSTRUCTOR'").fetchone()[0]
     ahora = _now()
     try:
         cursor = conexion.execute(
-            """INSERT INTO usuarios (username, nombre_completo, correo, password_hash, rol_id, estado)
-               VALUES (?, ?, ?, ?, ?, 'ACTIVO')""",
-            (username, nombre, correo.casefold() if correo else None, generate_password_hash(password), rol_id),
+            """INSERT INTO usuarios (username, nombre_completo, correo, password_hash, rol_id, estado, foto_perfil)
+               VALUES (?, ?, ?, ?, ?, 'ACTIVO', ?)""",
+            (username, nombre, correo.casefold() if correo else None, generate_password_hash(password), rol_id, foto),
         )
         usuario_id = cursor.lastrowid
         conexion.execute("INSERT INTO instructores (usuario_id, especialidad) VALUES (?, ?)", (usuario_id, especialidad))
@@ -316,6 +334,77 @@ def editar_instructor(usuario_id):
             return _fallo("El correo ya está asociado a otra cuenta.", "correo_duplicado", 409)
         raise
     return jsonify(ok=True, mensaje="Perfil de instructor actualizado."), 200
+
+
+@management_bp.post("/api/admin/usuarios/<int:usuario_id>/restablecer-clave")
+@role_required("ADMINISTRADOR")
+def restablecer_clave(usuario_id):
+    datos = _datos_json()
+    password = datos.get("password") if datos else None
+    if not isinstance(password, str) or not 12 <= len(password) <= 256:
+        return _fallo("La nueva contraseña debe tener entre 12 y 256 caracteres.", "datos_invalidos", 400)
+    conexion = db.obtener_conexion()
+    fila = conexion.execute(
+        """SELECT u.id FROM usuarios u JOIN roles r ON r.id=u.rol_id
+           WHERE u.id=? AND r.nombre IN ('INSTRUCTOR','VOLUNTARIO')""", (usuario_id,)
+    ).fetchone()
+    if not fila:
+        return _fallo("Perfil no encontrado.", "perfil_no_encontrado", 404)
+    conexion.execute(
+        "UPDATE usuarios SET password_hash=?, password_version=password_version+1, actualizado_en=? WHERE id=?",
+        (generate_password_hash(password), _now(), usuario_id),
+    )
+    _auditar(conexion, "CLAVE_RESTABLECIDA_ADMIN")
+    conexion.commit()
+    return jsonify(ok=True, mensaje="Contraseña restablecida. Las sesiones anteriores quedaron invalidadas."), 200
+
+
+@management_bp.route("/api/usuarios/<int:usuario_id>/foto", methods=["GET", "PUT"])
+@role_required("ADMINISTRADOR", "INSTRUCTOR", "VOLUNTARIO")
+def foto_perfil(usuario_id):
+    conexion = db.obtener_conexion()
+    fila = conexion.execute(
+        """SELECT u.foto_perfil, r.nombre AS rol FROM usuarios u JOIN roles r ON r.id=u.rol_id
+           WHERE u.id=? AND r.nombre IN ('INSTRUCTOR','VOLUNTARIO')""", (usuario_id,)
+    ).fetchone()
+    if not fila:
+        return _fallo("Perfil no encontrado.", "perfil_no_encontrado", 404)
+    es_admin = current_user.rol == "ADMINISTRADOR"
+    es_propio = current_user.id == usuario_id
+    es_equipo = current_user.rol == "INSTRUCTOR" and fila["rol"] == "VOLUNTARIO" and conexion.execute(
+        "SELECT 1 FROM voluntarios WHERE usuario_id=? AND instructor_id=?", (usuario_id, current_user.id)
+    ).fetchone()
+    if request.method == "PUT":
+        if not (es_admin or es_propio):
+            return _fallo("No tienes permiso para cambiar esta foto.", "sin_permiso", 403)
+        if request.files.get("foto") is None:
+            return _fallo("Selecciona una foto PNG o JPEG.", "foto_requerida", 400)
+        from .profile_media import guardar_foto
+
+        try:
+            nombre = guardar_foto(request.files.get("foto"))
+        except ValueError as error:
+            return _fallo(str(error), "foto_invalida", 400)
+        conexion.execute("UPDATE usuarios SET foto_perfil=?, actualizado_en=? WHERE id=?", (nombre, _now(), usuario_id))
+        _auditar(conexion, "FOTO_PERFIL_ACTUALIZADA")
+        conexion.commit()
+        return jsonify(ok=True, mensaje="Foto de perfil actualizada."), 200
+    if not (es_admin or es_propio or es_equipo):
+        return _fallo("No tienes permiso para ver esta foto.", "sin_permiso", 403)
+    if not fila["foto_perfil"]:
+        return _fallo("Este perfil aún no tiene foto.", "foto_no_encontrada", 404)
+    if not re.fullmatch(r"[0-9a-f]{32}\.(?:png|jpg)", fila["foto_perfil"]):
+        return _fallo("Foto no disponible.", "foto_no_encontrada", 404)
+    extension = fila["foto_perfil"].rsplit(".", 1)[-1]
+    respuesta = send_file(
+        current_app.config["PERFIL_MEDIA_FOLDER"] + "/" + fila["foto_perfil"],
+        mimetype="image/png" if extension == "png" else "image/jpeg",
+        conditional=False,
+    )
+    respuesta.headers["Cache-Control"] = "private, no-store"
+    respuesta.headers["X-Content-Type-Options"] = "nosniff"
+    respuesta.headers["Content-Security-Policy"] = "default-src 'none'; sandbox"
+    return respuesta
 
 
 @management_bp.post("/api/admin/instructores/<int:usuario_id>/desactivar")
@@ -394,6 +483,7 @@ def rechazar_solicitud(solicitud_id):
 
 def _alcance_voluntario(conexion, usuario_id):
     consulta = """SELECT u.id, u.username, u.nombre_completo AS nombre, u.correo, u.estado,
+                         (u.foto_perfil IS NOT NULL) AS tiene_foto,
                          v.instructor_id, v.experiencia_operaciones, v.antiguedad_desde
                   FROM usuarios u JOIN voluntarios v ON v.usuario_id=u.id
                   JOIN roles r ON r.id=u.rol_id WHERE u.id=? AND r.nombre='VOLUNTARIO'"""
@@ -408,6 +498,7 @@ def _alcance_voluntario(conexion, usuario_id):
 def listar_voluntarios():
     conexion = db.obtener_conexion()
     consulta = """SELECT u.id, u.username, u.nombre_completo AS nombre, u.correo, u.estado,
+                         (u.foto_perfil IS NOT NULL) AS tiene_foto,
                          v.instructor_id, ui.nombre_completo AS instructor_nombre,
                          v.experiencia_operaciones, v.antiguedad_desde
                   FROM voluntarios v JOIN usuarios u ON u.id=v.usuario_id

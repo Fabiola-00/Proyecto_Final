@@ -1,6 +1,6 @@
 # Inicio de desarrollo en Windows
 
-Guía para ejecutar localmente la base de Fase 4. Requiere Python 3.10 o posterior y PowerShell. Flask usa su servidor de desarrollo, por lo que se limita a la máquina local; no desplegarlo en producción.
+Guía para ejecutar localmente la base de Fase 5. Requiere Python 3.10 o posterior y PowerShell. Flask usa su servidor de desarrollo, por lo que se limita a la máquina local; no desplegarlo en producción.
 
 ## 1. Abrir el proyecto y crear entorno virtual
 
@@ -35,7 +35,7 @@ Copiar la salida a `SICOSE_SECRET_KEY` dentro de `.env`; define también la cont
 flask --app sicose init-db
 ```
 
-El comando crea o amplía `instance\sicose.sqlite3`; preserva los datos y la metadata existente, y crea las tablas del modelo actual y tres roles (versión 3).
+El comando crea o amplía `instance\sicose.sqlite3`; preserva los datos, aplica migraciones aditivas y crea las tablas/columnas del modelo actual y tres roles (versión 4).
 
 Después de actualizar el código a una fase nueva, detén el servidor y vuelve a ejecutar este comando antes de usar los módulos nuevos. Es aditivo e idempotente: añade las tablas faltantes y no reinicia ni borra los datos existentes.
 
@@ -53,7 +53,7 @@ El usuario es `admin.demo`, salvo que configures otro valor. El comando falla si
 flask --app sicose run --debug
 ```
 
-Abrir `http://127.0.0.1:5000/login`. Registro voluntario: `http://127.0.0.1:5000/registro`; las solicitudes quedan pendientes hasta aprobación administrativa. Se pueden crear invitaciones de un solo uso con siete días de vigencia para compartir manualmente. Tras iniciar como administrador, usa el menú **Instructores** para dar de alta/editar/desactivar cuentas y **Voluntarios** para solicitudes y perfiles. Instructores y voluntarios tienen paneles separados con datos según su rol. Las operaciones mutables requieren CSRF mediante `X-CSRFToken`. Detener el servidor con `Ctrl+C`.
+Abrir `http://127.0.0.1:5000/login`. Administración puede registrar y editar perfiles de instructores/voluntarios, cargar fotos PNG/JPEG (máximo 3 MiB) y restablecer sus contraseñas; comunica la nueva clave al usuario por un canal seguro. Las fotos se almacenan localmente en `instance\perfiles`. Administración usa **Evaluaciones** para crear períodos, catálogo no psicométrico y asignaciones. Instructor usa **Asistencias** y **Notas e historial**. Voluntario ve estados de evaluaciones sin notas ni observaciones. Las operaciones mutables requieren CSRF mediante `X-CSRFToken`. Detener el servidor con `Ctrl+C`.
 
 ## 6. Ejecutar pruebas
 

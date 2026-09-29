@@ -2,8 +2,10 @@
 
 import re
 import sqlite3
+import struct
 import unittest
 import uuid
+import zlib
 from pathlib import Path
 
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -16,11 +18,13 @@ class AplicacionTestCase(unittest.TestCase):
     def setUp(self):
         Path(".tmp").mkdir(exist_ok=True)
         self.db_path = Path(".tmp") / f"test-{uuid.uuid4().hex}.sqlite3"
+        self.media_path = Path(".tmp") / f"media-{uuid.uuid4().hex}"
         self.app = create_app(
             {
                 "TESTING": True,
                 "SECRET_KEY": "clave-de-prueba-no-usar-fuera-de-tests",
                 "DATABASE": str(self.db_path.resolve()),
+                "PERFIL_MEDIA_FOLDER": str(self.media_path.resolve()),
             }
         )
         self.cliente = self.app.test_client()
@@ -34,6 +38,10 @@ class AplicacionTestCase(unittest.TestCase):
         self.cliente = None
         if self.db_path.exists():
             self.db_path.unlink()
+        if self.media_path.exists():
+            for archivo in self.media_path.iterdir():
+                archivo.unlink()
+            self.media_path.rmdir()
 
     def _crear_usuario(self, username, rol, password):
         from sicose.db import obtener_conexion
@@ -210,7 +218,7 @@ class AplicacionTestCase(unittest.TestCase):
             version = conexion.execute(
                 "SELECT valor FROM app_meta WHERE clave = ?", ("schema_version",)
             ).fetchone()[0]
-            self.assertEqual(version, "3")
+            self.assertEqual(version, "4")
             self.assertEqual(
                 conexion.execute("SELECT COUNT(*) FROM roles").fetchone()[0], 3
             )
@@ -236,6 +244,52 @@ class AplicacionTestCase(unittest.TestCase):
             self.assertEqual(usuario["estado"], "PENDIENTE")
             self.assertNotEqual(usuario["password_hash"], "Contraseña segura 123!")
             self.assertEqual(conexion.execute("SELECT COUNT(*) FROM solicitudes_registro").fetchone()[0], 1)
+
+    def _png_prueba(self):
+        def chunk(tipo, contenido):
+            crc = zlib.crc32(tipo + contenido) & 0xffffffff
+            return struct.pack(">I", len(contenido)) + tipo + contenido + struct.pack(">I", crc)
+        return (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0))
+                + chunk(b"IDAT", zlib.compress(b"\x00\x00\x00\x00")) + chunk(b"IEND", b""))
+
+    def test_registro_guarda_foto_en_instancia_y_la_sirve_solo_con_autorizacion(self):
+        import io
+        self.assertEqual(self.cliente.post("/api/registro/solicitudes", data={
+            "username": "foto.demo", "nombre": "Voluntaria Foto", "password": "Contraseña segura 123!",
+            "foto": (io.BytesIO(self._png_prueba()), "perfil.png"),
+        }, headers={"X-CSRFToken": self._csrf_token()}, content_type="multipart/form-data").status_code, 201)
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            conexion = obtener_conexion()
+            usuario_id, nombre_archivo = conexion.execute("SELECT id, foto_perfil FROM usuarios WHERE username='foto.demo'").fetchone()
+            archivo = Path(self.app.config["PERFIL_MEDIA_FOLDER"]) / nombre_archivo
+            self.assertTrue(archivo.is_file())
+        # El administrador puede revisar la imagen de un perfil pendiente.
+        self.assertEqual(self._login().status_code, 200)
+        imagen = self.cliente.get(f"/api/usuarios/{usuario_id}/foto")
+        self.assertEqual(imagen.status_code, 200)
+        self.assertEqual(imagen.mimetype, "image/png")
+        self.assertEqual(imagen.headers["X-Content-Type-Options"], "nosniff")
+        self.assertEqual(imagen.headers["Cache-Control"], "private, no-store")
+        imagen.close()
+
+    def test_admin_restablece_clave_e_invalida_sesion_anterior(self):
+        admin = self.app.test_client()
+        volunteer = self.app.test_client()
+        def login(client, username, password):
+            pagina = client.get("/registro")
+            csrf = re.search(rb'name="csrf_token" value="([^"]+)"', pagina.data).group(1).decode()
+            return client.post("/api/auth/login", json={"username": username, "password": password}, headers={"X-CSRFToken": csrf})
+        self.assertEqual(login(volunteer, "voluntario.demo", "Clave voluntario 123!").status_code, 200)
+        self.assertEqual(login(admin, "admin.demo", "Clave demo segura 123!").status_code, 200)
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            user_id = obtener_conexion().execute("SELECT id FROM usuarios WHERE username='voluntario.demo'").fetchone()[0]
+        csrf = re.search(rb'name="csrf_token" value="([^"]+)"', admin.get("/gestion/voluntarios").data).group(1).decode()
+        response = admin.post(f"/api/admin/usuarios/{user_id}/restablecer-clave", json={"password": "Nueva clave segura 456!"}, headers={"X-CSRFToken": csrf})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(volunteer.get("/api/auth/me").status_code, 401)
+        self.assertEqual(login(volunteer, "voluntario.demo", "Nueva clave segura 456!").status_code, 200)
 
     def test_paginas_registro_y_gestion_cargan(self):
         registro = self.cliente.get("/registro")
@@ -275,6 +329,20 @@ class AplicacionTestCase(unittest.TestCase):
         rechazo = self.cliente.post("/api/admin/instructores", json={}, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(rechazo.status_code, 403)
 
+    def test_admin_registra_instructor_con_foto(self):
+        import io
+        self.assertEqual(self._login().status_code, 200)
+        creada = self.cliente.post("/api/admin/instructores", data={
+            "username": "instructor.foto", "nombre": "Instructor con foto",
+            "password": "Contraseña inicial 123!",
+            "foto": (io.BytesIO(self._png_prueba()), "instructor.png"),
+        }, headers={"X-CSRFToken": self._csrf_token()}, content_type="multipart/form-data")
+        self.assertEqual(creada.status_code, 201)
+        imagen = self.cliente.get(f"/api/usuarios/{creada.json['id']}/foto")
+        self.assertEqual(imagen.status_code, 200)
+        self.assertEqual(imagen.mimetype, "image/png")
+        imagen.close()
+
     def test_admin_edita_y_desactiva_instructor_conservando_perfiles(self):
         self.assertEqual(self._login().status_code, 200)
         with self.app.app_context():
@@ -298,6 +366,97 @@ class AplicacionTestCase(unittest.TestCase):
             self.assertEqual(conexion.execute("SELECT estado FROM usuarios WHERE id=?", (instructor_id,)).fetchone()[0], "INACTIVO")
             self.assertIsNone(conexion.execute("SELECT instructor_id FROM voluntarios WHERE usuario_id=?", (voluntario_id,)).fetchone()[0])
             self.assertEqual(conexion.execute("SELECT COUNT(*) FROM instructores WHERE usuario_id=?", (instructor_id,)).fetchone()[0], 1)
+
+    def test_admin_crea_periodo_catalogo_y_asignacion(self):
+        self.assertEqual(self._login().status_code, 200)
+        periodo = self.cliente.post("/api/admin/periodos", json={
+            "nombre": "Ciclo demo", "fecha_inicio": "2026-01-01", "fecha_fin": "2026-12-31", "estado": "ACTIVO",
+        }, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(periodo.status_code, 201)
+        evaluacion = self.cliente.post("/api/admin/evaluaciones", json={
+            "codigo": "FIS-DEMO", "nombre": "Evaluación física", "categoria": "FISICA", "origen_nota": "INSTRUCTOR",
+        }, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(evaluacion.status_code, 201)
+        activada = self.cliente.patch(f"/api/admin/evaluaciones/{evaluacion.json['id']}", json={"activo": True}, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(activada.status_code, 200)
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            conexion = obtener_conexion()
+            usuario_id = conexion.execute("SELECT id FROM usuarios WHERE username='voluntario.demo'").fetchone()[0]
+            conexion.execute("INSERT INTO voluntarios(usuario_id) VALUES (?)", (usuario_id,))
+            conexion.commit()
+        asignacion = self.cliente.post("/api/admin/asignaciones", json={
+            "voluntario_id": usuario_id, "periodo_id": periodo.json["id"], "evaluacion_id": evaluacion.json["id"],
+        }, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(asignacion.status_code, 201)
+        self.assertEqual(asignacion.json["estado"], "NO_HABILITADA")
+        self.assertEqual(self.cliente.get("/gestion/evaluaciones").status_code, 200)
+
+    def test_instructor_registra_asistencia_y_nota_con_historial(self):
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            conexion = obtener_conexion()
+            instructor_id = conexion.execute("SELECT id FROM usuarios WHERE username='instructor.demo'").fetchone()[0]
+            volunteer_id = conexion.execute("SELECT id FROM usuarios WHERE username='voluntario.demo'").fetchone()[0]
+            conexion.execute("INSERT INTO instructores(usuario_id) VALUES (?)", (instructor_id,))
+            conexion.execute("INSERT INTO voluntarios(usuario_id,instructor_id) VALUES (?,?)", (volunteer_id,instructor_id))
+            period_id = conexion.execute("INSERT INTO periodos(nombre,fecha_inicio,fecha_fin,estado) VALUES ('Notas demo','2026-01-01','2026-12-31','ACTIVO')").lastrowid
+            evaluation_id = conexion.execute("INSERT INTO evaluaciones(codigo,nombre,categoria,origen_nota,activo) VALUES ('FIS-01','Prueba física','FISICA','INSTRUCTOR',1)").lastrowid
+            assignment_id = conexion.execute("INSERT INTO asignaciones_evaluacion(voluntario_id,periodo_id,evaluacion_id,estado) VALUES (?,?,?,'HABILITADA')", (volunteer_id,period_id,evaluation_id)).lastrowid
+            conexion.commit()
+        self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
+        headers = {"X-CSRFToken": self._csrf_token()}
+        asistencia = self.cliente.post("/api/instructor/asistencias", json={
+            "fecha": "2026-09-28", "actividad": "Entrenamiento", "asistencias": [{"voluntario_id": volunteer_id, "estado": "PRESENTE"}],
+        }, headers=headers)
+        self.assertEqual(asistencia.status_code, 200)
+        nota = self.cliente.post(f"/api/instructor/asignaciones/{assignment_id}/calificaciones", json={"nota_0_100": 75, "observacion": "Registro inicial"}, headers=headers)
+        self.assertEqual(nota.status_code, 201)
+        correccion = self.cliente.post(f"/api/instructor/asignaciones/{assignment_id}/calificaciones", json={"nota_0_100": 80, "corregida_de_id": nota.json["id"]}, headers=headers)
+        self.assertEqual(correccion.status_code, 201)
+        historial = self.cliente.get(f"/api/instructor/asignaciones/{assignment_id}/calificaciones")
+        self.assertEqual([item["nota_0_100"] for item in historial.json["historial"]], [75, 80])
+        self.assertEqual(self.cliente.get("/gestion/asistencias").status_code, 200)
+        self.assertEqual(self.cliente.get("/gestion/calificaciones").status_code, 200)
+
+    def test_evaluacion_psicometrica_pendiente_no_se_activa_ni_califica_manualmente(self):
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            conexion = obtener_conexion()
+            instructor_id = conexion.execute("SELECT id FROM usuarios WHERE username='instructor.demo'").fetchone()[0]
+            volunteer_id = conexion.execute("SELECT id FROM usuarios WHERE username='voluntario.demo'").fetchone()[0]
+            conexion.execute("INSERT INTO instructores(usuario_id) VALUES (?)", (instructor_id,))
+            conexion.execute("INSERT INTO voluntarios(usuario_id,instructor_id) VALUES (?,?)", (volunteer_id,instructor_id))
+            instrument_id = conexion.execute("INSERT INTO instrumentos(nombre,version,idioma) VALUES ('Candidato','1','es')").lastrowid
+            evaluation_id = conexion.execute("INSERT INTO evaluaciones(codigo,nombre,categoria,origen_nota,instrumento_id) VALUES ('PSI-01','Candidato psicométrico','PSICOMETRICA','VOLUNTARIO',?)", (instrument_id,)).lastrowid
+            period_id = conexion.execute("INSERT INTO periodos(nombre,fecha_inicio,fecha_fin,estado) VALUES ('Ciclo psi','2026-01-01','2026-12-31','ACTIVO')").lastrowid
+            assignment_id = conexion.execute("INSERT INTO asignaciones_evaluacion(voluntario_id,periodo_id,evaluacion_id) VALUES (?,?,?)", (volunteer_id,period_id,evaluation_id)).lastrowid
+            conexion.commit()
+        self.assertEqual(self._login().status_code, 200)
+        activate = self.cliente.patch(f"/api/admin/evaluaciones/{evaluation_id}", json={"activo": True}, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(activate.status_code, 409)
+        self.cliente.post("/api/auth/logout", headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
+        score = self.cliente.post(f"/api/instructor/asignaciones/{assignment_id}/calificaciones", json={"nota_0_100": 90}, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(score.status_code, 403)
+
+    def test_voluntario_ve_estado_de_evaluacion_sin_resultados(self):
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            conexion = obtener_conexion()
+            volunteer_id = conexion.execute("SELECT id FROM usuarios WHERE username='voluntario.demo'").fetchone()[0]
+            conexion.execute("INSERT INTO voluntarios(usuario_id) VALUES (?)", (volunteer_id,))
+            period_id = conexion.execute("INSERT INTO periodos(nombre,fecha_inicio,fecha_fin,estado) VALUES ('Panel demo','2026-01-01','2026-12-31','ACTIVO')").lastrowid
+            evaluation_id = conexion.execute("INSERT INTO evaluaciones(codigo,nombre,categoria,origen_nota,activo) VALUES ('FIS-02','Resistencia','FISICA','INSTRUCTOR',1)").lastrowid
+            assignment_id = conexion.execute("INSERT INTO asignaciones_evaluacion(voluntario_id,periodo_id,evaluacion_id,estado) VALUES (?,?,?,'COMPLETADA')", (volunteer_id,period_id,evaluation_id)).lastrowid
+            conexion.execute("INSERT INTO calificaciones(asignacion_id,registrada_por,nota_0_100,observacion) VALUES (?,?,99,'Texto privado')", (assignment_id,1))
+            conexion.commit()
+        self.assertEqual(self._login("voluntario.demo", "Clave voluntario 123!").status_code, 200)
+        respuesta = self.cliente.get("/api/voluntario/evaluaciones")
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(respuesta.json["evaluaciones"][0]["estado"], "COMPLETADA")
+        self.assertNotIn("nota_0_100", str(respuesta.json))
+        self.assertNotIn("observacion", str(respuesta.json))
 
     def test_admin_aprueba_solicitud_y_cuenta_puede_ingresar(self):
         creada = self.cliente.post("/api/registro/solicitudes", json={

@@ -1,0 +1,41 @@
+{% extends "_dashboard_base.html" %}
+{% block contenido %}
+<section class="seccion-panel">
+  <div class="titulo-seccion"><h2>Períodos</h2></div>
+  <form id="periodo-form" class="tarjeta-amplia formulario-inline">
+    <label>Nombre<input name="nombre" maxlength="120" required></label>
+    <label>Fecha de inicio<input name="fecha_inicio" type="date" required></label>
+    <label>Fecha de fin<input name="fecha_fin" type="date" required></label>
+    <label>Estado inicial<select name="estado"><option value="BORRADOR">Borrador</option><option value="ACTIVO">Activo</option></select></label>
+    <button type="submit">Crear período</button>
+  </form>
+  <p id="periodo-mensaje" class="mensaje" role="status"></p>
+  <div id="periodos-lista" class="rejilla-modulos"></div>
+</section>
+<section class="seccion-panel">
+  <div class="titulo-seccion"><h2>Catálogo</h2></div>
+  <div class="tarjeta-amplia"><div><p>Los registros psicométricos quedan inactivos mientras el instrumento no tenga licencia, versión, puntuación y revisión profesional aprobadas. No se cargan reactivos de candidatos pendientes.</p>
+    <form id="evaluacion-form" class="formulario-inline">
+      <label>Código<input name="codigo" maxlength="40" required></label>
+      <label>Nombre<input name="nombre" maxlength="160" required></label>
+      <label>Categoría<select name="categoria" required><option value="FISICA">Física</option><option value="ACADEMICA">Académica / cursos</option><option value="INSTRUCTOR">Desempeño del instructor</option></select></label>
+      <input type="hidden" name="origen_nota" value="INSTRUCTOR">
+      <button type="submit">Crear evaluación inactiva</button>
+    </form>
+    <p id="evaluacion-form-mensaje" class="mensaje" role="status"></p>
+  </div></div>
+  <div class="titulo-seccion"><h2>Evaluaciones</h2></div>
+  <div id="evaluaciones-lista" class="rejilla-modulos"></div>
+</section>
+<section class="seccion-panel">
+  <div class="titulo-seccion"><h2>Asignar a voluntario</h2></div>
+  <form id="asignacion-form" class="tarjeta-amplia formulario-inline">
+    <label>Voluntario<select name="voluntario_id" required></select></label>
+    <label>Período activo<select name="periodo_id" required></select></label>
+    <label>Evaluación activa<select name="evaluacion_id" required></select></label>
+    <button type="submit">Asignar</button>
+  </form>
+  <p id="asignacion-mensaje" class="mensaje" role="status"></p>
+</section>
+<section class="seccion-panel"><div class="titulo-seccion"><h2>Asignaciones</h2></div><div id="asignaciones-admin-lista" class="rejilla-modulos"></div></section>
+{% endblock %}

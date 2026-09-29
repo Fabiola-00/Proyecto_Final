@@ -12,7 +12,9 @@ const managementMessage = document.querySelector("#gestion-mensaje");
 
 async function apiJson(path, options = {}) {
   const headers = { "X-CSRFToken": csrfToken, ...(options.headers || {}) };
-  if (options.body && typeof options.body !== "string") {
+  if (options.body && typeof FormData !== "undefined" && options.body instanceof FormData) {
+    delete headers["Content-Type"];
+  } else if (options.body && typeof options.body !== "string") {
     headers["Content-Type"] = "application/json";
     options.body = JSON.stringify(options.body);
   }
@@ -114,8 +116,8 @@ if (registrationForm) {
   }
   registrationForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const data = Object.fromEntries(new FormData(registrationForm).entries());
-    delete data.csrf_token;
+    const data = new FormData(registrationForm);
+    data.delete("csrf_token");
     try {
       const endpoint = token ? `/api/registro/invitaciones/${encodeURIComponent(token)}` : "/api/registro/solicitudes";
       await apiJson(endpoint, { method: "POST", body: data });
@@ -140,10 +142,13 @@ if (volunteerList) {
     voluntarios.forEach((voluntario) => {
       const card = elemento("article", undefined, "tarjeta-modulo");
       const contenido = elemento("div");
+      if (voluntario.tiene_foto) {
+        const foto = elemento("img"); foto.src = `/api/usuarios/${voluntario.id}/foto`; foto.alt = `Foto de ${voluntario.nombre}`; foto.className = "foto-perfil"; contenido.append(foto);
+      }
       contenido.append(elemento("h3", voluntario.nombre), elemento("p", `${voluntario.username} · ${voluntario.correo || "Sin correo"} · ${voluntario.estado}`));
       if (voluntario.experiencia_operaciones) contenido.append(elemento("p", voluntario.experiencia_operaciones));
       card.append(contenido);
-      if (voluntario.estado === "ACTIVO") {
+      if (voluntario.estado === "ACTIVO" || esAdministrador) {
         const edit = elemento("details", undefined, "edicion-voluntario");
         edit.append(elemento("summary", "Editar perfil"));
         const form = elemento("form", undefined, "formulario-inline");
@@ -153,6 +158,8 @@ if (volunteerList) {
           if (name === "antiguedad_desde") input.type = "date";
           const caption = elemento("label", label); caption.append(input); form.append(caption);
         });
+        const photoCaption = elemento("label", "Foto de perfil (PNG/JPEG, máximo 3 MiB)");
+        const photoInput = elemento("input"); photoInput.type = "file"; photoInput.name = "foto"; photoInput.accept = "image/png,image/jpeg"; photoCaption.append(photoInput); form.append(photoCaption);
         if (esAdministrador) {
           const caption = elemento("label", "Instructor asignado");
           const select = elemento("select"); select.name = "instructor_id";
@@ -168,20 +175,33 @@ if (volunteerList) {
         form.addEventListener("submit", async (event) => {
           event.preventDefault();
           try {
-            const body = Object.fromEntries(new FormData(form).entries());
+            const formData = new FormData(form);
+            const body = Object.fromEntries(formData.entries());
+            const foto = formData.get("foto"); delete body.foto;
             if ("instructor_id" in body) body.instructor_id = body.instructor_id ? Number(body.instructor_id) : null;
-            await apiJson(`/api/voluntarios/${voluntario.id}`, { method: "PATCH", body }); await cargarVoluntarios();
+            await apiJson(`/api/voluntarios/${voluntario.id}`, { method: "PATCH", body });
+            if (foto?.size) { const carga = new FormData(); carga.append("foto", foto); await apiJson(`/api/usuarios/${voluntario.id}/foto`, { method: "PUT", body: carga }); }
+            await cargarVoluntarios();
           }
           catch (error) { managementMessage.textContent = error.message; }
         });
         edit.append(form); card.append(edit);
-        const deactivate = elemento("button", "Desactivar", "boton-secundario");
-        deactivate.addEventListener("click", async () => {
-          if (!window.confirm(`¿Desactivar a ${voluntario.nombre}?`)) return;
-          try { await apiJson(`/api/voluntarios/${voluntario.id}/desactivar`, { method: "POST" }); await cargarVoluntarios(); }
-          catch (error) { managementMessage.textContent = error.message; }
-        });
-        card.append(deactivate);
+        if (esAdministrador) {
+          const reset = elemento("details", undefined, "edicion-voluntario"); reset.append(elemento("summary", "Restablecer contraseña"));
+          const resetForm = elemento("form", undefined, "formulario-inline");
+          const field = elemento("label", "Nueva contraseña (mínimo 12 caracteres)"); const password = elemento("input"); password.type = "password"; password.name = "password"; password.minLength = 12; password.maxLength = 256; password.required = true; password.autocomplete = "new-password"; field.append(password); resetForm.append(field, elemento("button", "Restablecer clave"));
+          resetForm.addEventListener("submit", async (event) => { event.preventDefault(); try { await apiJson(`/api/admin/usuarios/${voluntario.id}/restablecer-clave`, { method: "POST", body: { password: password.value } }); resetForm.reset(); managementMessage.textContent = "Contraseña restablecida; las sesiones anteriores quedaron invalidadas."; } catch (error) { managementMessage.textContent = error.message; } });
+          reset.append(resetForm); card.append(reset);
+        }
+        if (voluntario.estado === "ACTIVO") {
+          const deactivate = elemento("button", "Desactivar", "boton-secundario");
+          deactivate.addEventListener("click", async () => {
+            if (!window.confirm(`¿Desactivar a ${voluntario.nombre}?`)) return;
+            try { await apiJson(`/api/voluntarios/${voluntario.id}/desactivar`, { method: "POST" }); await cargarVoluntarios(); }
+            catch (error) { managementMessage.textContent = error.message; }
+          });
+          card.append(deactivate);
+        }
       }
       volunteerList.append(card);
     });
@@ -194,6 +214,7 @@ if (volunteerList) {
     if (!solicitudes.length) solicitudesLista.append(elemento("p", "No hay solicitudes pendientes.", "nota-informativa"));
     solicitudes.forEach((solicitud) => {
       const card = elemento("article", undefined, "tarjeta-modulo");
+      if (instructor.tiene_foto) { const foto = elemento("img"); foto.src = `/api/usuarios/${instructor.id}/foto`; foto.alt = `Foto de ${instructor.nombre}`; foto.className = "foto-perfil"; card.append(foto); }
       card.append(elemento("h3", solicitud.nombre), elemento("p", `${solicitud.username} · ${solicitud.correo || "Sin correo"}`));
       const assign = elemento("select"); assign.name = "instructor_id";
       const none = elemento("option", "Sin instructor asignado"); none.value = ""; assign.append(none);
@@ -254,16 +275,22 @@ if (instructorForm && instructorList) {
         const input = elemento("input"); input.name = name; input.value = value;
         const caption = elemento("label", label); caption.append(input); form.append(caption);
       });
+      const photoCaption = elemento("label", "Foto de perfil (PNG/JPEG, máximo 3 MiB)"); const photoInput = elemento("input"); photoInput.type = "file"; photoInput.name = "foto"; photoInput.accept = "image/png,image/jpeg"; photoCaption.append(photoInput); form.append(photoCaption);
       form.append(elemento("button", "Guardar cambios"));
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
         try {
-          await apiJson(`/api/admin/instructores/${instructor.id}`, { method: "PATCH", body: Object.fromEntries(new FormData(form).entries()) });
+          const formData = new FormData(form); const body = Object.fromEntries(formData.entries()); const foto = formData.get("foto"); delete body.foto;
+          await apiJson(`/api/admin/instructores/${instructor.id}`, { method: "PATCH", body });
+          if (foto?.size) { const carga = new FormData(); carga.append("foto", foto); await apiJson(`/api/usuarios/${instructor.id}/foto`, { method: "PUT", body: carga }); }
           listMessage.textContent = "Perfil actualizado.";
           await cargarInstructoresAdmin();
         } catch (error) { listMessage.textContent = error.message; }
       });
       edit.append(form); card.append(edit);
+      const reset = elemento("details", undefined, "edicion-voluntario"); reset.append(elemento("summary", "Restablecer contraseña"));
+      const resetForm = elemento("form", undefined, "formulario-inline"); const passwordCaption = elemento("label", "Nueva contraseña (mínimo 12 caracteres)"); const password = elemento("input"); password.type = "password"; password.name = "password"; password.minLength = 12; password.maxLength = 256; password.required = true; password.autocomplete = "new-password"; passwordCaption.append(password); resetForm.append(passwordCaption, elemento("button", "Restablecer clave"));
+      resetForm.addEventListener("submit", async (event) => { event.preventDefault(); try { await apiJson(`/api/admin/usuarios/${instructor.id}/restablecer-clave`, { method: "POST", body: { password: password.value } }); resetForm.reset(); listMessage.textContent = "Contraseña restablecida; las sesiones anteriores quedaron invalidadas."; } catch (error) { listMessage.textContent = error.message; } }); reset.append(resetForm); card.append(reset);
       if (instructor.estado === "ACTIVO") {
         const deactivate = elemento("button", "Desactivar instructor", "boton-secundario");
         deactivate.addEventListener("click", async () => {
@@ -282,7 +309,7 @@ if (instructorForm && instructorList) {
 
   instructorForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const body = Object.fromEntries(new FormData(instructorForm).entries());
+    const body = new FormData(instructorForm); body.delete("csrf_token");
     try {
       await apiJson("/api/admin/instructores", { method: "POST", body });
       instructorForm.reset();
@@ -292,4 +319,217 @@ if (instructorForm && instructorList) {
   });
 
   cargarInstructoresAdmin().catch((error) => { listMessage.textContent = error.message; });
+}
+
+const evaluationForm = document.querySelector("#evaluacion-form");
+if (evaluationForm) {
+  const periodForm = document.querySelector("#periodo-form");
+  const periodMessage = document.querySelector("#periodo-mensaje");
+  const periodsList = document.querySelector("#periodos-lista");
+  const evaluationList = document.querySelector("#evaluaciones-lista");
+  const assignmentForm = document.querySelector("#asignacion-form");
+  const assignmentList = document.querySelector("#asignaciones-admin-lista");
+  const formMessage = document.querySelector("#evaluacion-form-mensaje");
+  const assignmentMessage = document.querySelector("#asignacion-mensaje");
+
+  async function cargarCatalogo() {
+    const { evaluaciones } = await apiJson("/api/admin/evaluaciones");
+    evaluationList.replaceChildren();
+    evaluaciones.forEach((item) => {
+      const card = elemento("article", undefined, "tarjeta-modulo");
+      card.append(elemento("h3", item.nombre), elemento("p", `${item.codigo} · ${item.categoria} · ${item.activo ? "Activa" : "Inactiva"}`));
+      if (item.categoria === "PSICOMETRICA") card.append(elemento("p", `Instrumento: ${item.estado_instrumento || "sin autorización"}`));
+      const editor = elemento("details", undefined, "edicion-voluntario"); editor.append(elemento("summary", "Editar nombre"));
+      const editForm = elemento("form", undefined, "formulario-inline");
+      const name = elemento("input"); name.name = "nombre"; name.value = item.nombre; name.maxLength = 160; name.required = true;
+      const label = elemento("label", "Nombre"); label.append(name); editForm.append(label, elemento("button", "Guardar"));
+      editForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        try { await apiJson(`/api/admin/evaluaciones/${item.id}`, { method: "PATCH", body: { nombre: name.value, activo: Boolean(item.activo) } }); await cargarCatalogo(); }
+        catch (error) { formMessage.textContent = error.message; }
+      });
+      editor.append(editForm); card.append(editor);
+      const button = elemento("button", item.activo ? "Desactivar" : "Activar", item.activo ? "boton-secundario" : "");
+      button.addEventListener("click", async () => {
+        try { await apiJson(`/api/admin/evaluaciones/${item.id}`, { method: "PATCH", body: { activo: !item.activo } }); await cargarCatalogo(); }
+        catch (error) { formMessage.textContent = error.message; }
+      });
+      card.append(button); evaluationList.append(card);
+    });
+    const active = evaluaciones.filter((item) => item.activo);
+    const select = assignmentForm.elements.evaluacion_id;
+    select.replaceChildren();
+    active.forEach((item) => { const option = elemento("option", `${item.nombre} · ${item.categoria}`); option.value = item.id; select.append(option); });
+  }
+
+  async function cargarAsignacionesAdmin() {
+    const { asignaciones } = await apiJson("/api/instructor/asignaciones");
+    assignmentList.replaceChildren();
+    asignaciones.forEach((item) => assignmentList.append(elemento("article", `${item.voluntario} · ${item.periodo} · ${item.evaluacion} · ${item.estado}`, "tarjeta-modulo")));
+  }
+
+  async function cargarPeriodos() {
+    const { periodos } = await apiJson("/api/admin/periodos"); periodsList.replaceChildren();
+    periodos.forEach((period) => periodsList.append(elemento("article", `${period.nombre} · ${period.fecha_inicio} – ${period.fecha_fin} · ${period.estado}`, "tarjeta-modulo")));
+    const select = assignmentForm.elements.periodo_id; select.replaceChildren();
+    periodos.filter((period) => period.estado === "ACTIVO").forEach((period) => { const option = elemento("option", period.nombre); option.value = period.id; select.append(option); });
+  }
+
+  periodForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    try {
+      await apiJson("/api/admin/periodos", { method: "POST", body: Object.fromEntries(new FormData(periodForm).entries()) });
+      periodForm.reset(); periodMessage.textContent = "Período creado.";
+      await cargarPeriodos();
+    } catch (error) { periodMessage.textContent = error.message; }
+  });
+
+  evaluationForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    try {
+      await apiJson("/api/admin/evaluaciones", { method: "POST", body: Object.fromEntries(new FormData(evaluationForm).entries()) });
+      evaluationForm.reset(); formMessage.textContent = "Evaluación creada inactiva.";
+      await cargarCatalogo();
+    } catch (error) { formMessage.textContent = error.message; }
+  });
+
+  assignmentForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const body = Object.fromEntries(new FormData(assignmentForm).entries());
+    ["voluntario_id", "periodo_id", "evaluacion_id"].forEach((key) => { body[key] = Number(body[key]); });
+    try { await apiJson("/api/admin/asignaciones", { method: "POST", body }); assignmentMessage.textContent = "Evaluación asignada (inicia deshabilitada)."; await cargarAsignacionesAdmin(); }
+    catch (error) { assignmentMessage.textContent = error.message; }
+  });
+
+  Promise.all([
+    cargarCatalogo(), cargarAsignacionesAdmin(),
+    apiJson("/api/admin/voluntarios-activos").then(({ voluntarios }) => {
+      const select = assignmentForm.elements.voluntario_id;
+      select.replaceChildren(); voluntarios.forEach((v) => { const option = elemento("option", v.nombre); option.value = v.id; select.append(option); });
+    }),
+    cargarPeriodos(),
+  ]).catch((error) => { assignmentMessage.textContent = error.message; });
+}
+
+const attendanceForm = document.querySelector("#asistencias-form");
+if (attendanceForm) {
+  const attendanceRows = document.querySelector("#asistencias-voluntarios");
+  const attendanceMessage = document.querySelector("#asistencias-mensaje");
+  const attendanceHistory = document.querySelector("#asistencias-historial");
+  const courseForm = document.querySelector("#capacitacion-form");
+  const courseMessage = document.querySelector("#capacitacion-mensaje");
+
+  async function cargarEquipoAsistencia() {
+    const { voluntarios } = await apiJson("/api/voluntarios");
+    const activos = voluntarios.filter((voluntario) => voluntario.estado === "ACTIVO");
+    attendanceRows.replaceChildren();
+    const courseSelect = courseForm.elements.voluntario_id; courseSelect.replaceChildren();
+    activos.forEach((voluntario) => {
+      const option = elemento("option", voluntario.nombre); option.value = voluntario.id; courseSelect.append(option);
+      const card = elemento("label", `${voluntario.nombre} · Asistencia`, "tarjeta-modulo");
+      const select = elemento("select"); select.name = "estado"; select.dataset.volunteerId = voluntario.id; select.required = true;
+      const prompt = elemento("option", "Selecciona el estado"); prompt.value = ""; prompt.selected = true; prompt.disabled = true; select.append(prompt);
+      [["PRESENTE", "Presente"], ["AUSENTE", "Ausente"], ["JUSTIFICADO", "Justificado"]].forEach(([value, label]) => { const opt = elemento("option", label); opt.value = value; select.append(opt); });
+      card.append(select); attendanceRows.append(card);
+    });
+  }
+
+  async function cargarHistorialAsistencia() {
+    const { asistencias } = await apiJson("/api/instructor/asistencias"); attendanceHistory.replaceChildren();
+    if (!asistencias.length) attendanceHistory.append(elemento("p", "Sin registros de asistencia.", "nota-informativa"));
+    asistencias.slice(0, 30).forEach((row) => attendanceHistory.append(elemento("article", `${row.fecha} · ${row.actividad} · ${row.voluntario}: ${row.estado}`, "tarjeta-modulo")));
+  }
+
+  attendanceForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const data = new FormData(attendanceForm);
+    const entries = [...attendanceRows.querySelectorAll("select")].map((select) => ({ voluntario_id: Number(select.dataset.volunteerId), estado: select.value }));
+    try {
+      const result = await apiJson("/api/instructor/asistencias", { method: "POST", body: { fecha: data.get("fecha"), actividad: data.get("actividad"), asistencias: entries } });
+      attendanceMessage.textContent = `Registros guardados: ${result.registrados}.`; await cargarHistorialAsistencia();
+    } catch (error) { attendanceMessage.textContent = error.message; }
+  });
+
+  courseForm.addEventListener("submit", async (event) => {
+    event.preventDefault(); const data = Object.fromEntries(new FormData(courseForm).entries());
+    const volunteerId = Number(data.voluntario_id); delete data.voluntario_id;
+    try { await apiJson(`/api/instructor/voluntarios/${volunteerId}/capacitaciones`, { method: "POST", body: data }); courseForm.reset(); courseMessage.textContent = "Capacitación registrada."; }
+    catch (error) { courseMessage.textContent = error.message; }
+  });
+
+  Promise.all([cargarEquipoAsistencia(), cargarHistorialAsistencia()]).catch((error) => { attendanceMessage.textContent = error.message; });
+}
+
+const gradeSelect = document.querySelector("#calificacion-asignacion");
+if (gradeSelect) {
+  const gradeForm = document.querySelector("#calificacion-form");
+  const gradeHistory = document.querySelector("#calificacion-historial");
+  const psychometricList = document.querySelector("#psicometricas-lista");
+  const gradeMessage = document.querySelector("#calificacion-mensaje");
+  let assignmentsById = new Map();
+  let historiesByAssignment = new Map();
+
+  async function cargarAsignacionesInstructor() {
+    const { asignaciones } = await apiJson("/api/instructor/asignaciones");
+    assignmentsById = new Map(asignaciones.map((item) => [String(item.id), item]));
+    gradeSelect.replaceChildren(elemento("option", "Selecciona una evaluación"));
+    psychometricList.replaceChildren();
+    asignaciones.filter((item) => item.categoria === "PSICOMETRICA").forEach((item) => {
+      const card = elemento("article", undefined, "tarjeta-modulo");
+      card.append(elemento("h3", `${item.voluntario} · ${item.evaluacion}`), elemento("p", `${item.periodo} · ${item.estado}`));
+      const results = elemento("div");
+      const viewResults = elemento("button", "Ver intentos y resultados", "boton-secundario");
+      viewResults.addEventListener("click", async () => {
+        try {
+          const { intentos } = await apiJson(`/api/instructor/asignaciones/${item.id}/resultados`);
+          results.replaceChildren();
+          if (!intentos.length) results.append(elemento("p", "Sin intentos registrados."));
+          intentos.forEach((attempt) => results.append(elemento("p", `Intento ${attempt.numero} · ${attempt.estado} · ${attempt.enviado_en || "Sin envío"} · ${attempt.nota_0_100 === null ? "Sin resultado" : `Resultado ${attempt.nota_0_100}`}`)));
+        } catch (error) { gradeMessage.textContent = error.message; }
+      });
+      card.append(viewResults, results);
+      const button = elemento("button", item.estado === "HABILITADA" ? "Desactivar prueba" : "Activar prueba", item.estado === "HABILITADA" ? "boton-secundario" : "");
+      button.addEventListener("click", async () => {
+        const estado = item.estado === "HABILITADA" ? "NO_HABILITADA" : "HABILITADA";
+        try { await apiJson(`/api/instructor/asignaciones/${item.id}/estado`, { method: "PATCH", body: { estado } }); await cargarAsignacionesInstructor(); }
+        catch (error) { gradeMessage.textContent = error.message; }
+      });
+      card.append(button); psychometricList.append(card);
+    });
+    asignaciones.filter((item) => item.categoria !== "PSICOMETRICA").forEach((item) => {
+      const option = elemento("option", `${item.voluntario} · ${item.evaluacion} · ${item.periodo}`); option.value = item.id; gradeSelect.append(option);
+    });
+  }
+
+  async function cargarHistorialNota(assignmentId) {
+    gradeHistory.replaceChildren();
+    const { historial } = await apiJson(`/api/instructor/asignaciones/${assignmentId}/calificaciones`);
+    historiesByAssignment.set(String(assignmentId), historial);
+    historial.forEach((record) => {
+      const detalle = `Nota ${record.nota_0_100} · ${record.registrada_en} · ${record.registrada_por}${record.corregida_de_id ? ` · corrección de #${record.corregida_de_id}` : ""}`;
+      gradeHistory.append(elemento("article", record.observacion ? `${detalle} · ${record.observacion}` : detalle, "tarjeta-modulo"));
+    });
+  }
+
+  gradeSelect.addEventListener("change", async () => {
+    gradeForm.hidden = !gradeSelect.value;
+    if (!gradeSelect.value) { gradeHistory.replaceChildren(); return; }
+    try { await cargarHistorialNota(gradeSelect.value); }
+    catch (error) { gradeMessage.textContent = error.message; }
+  });
+
+  gradeForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const history = historiesByAssignment.get(gradeSelect.value) || [];
+    const latest = history[history.length - 1];
+    const body = Object.fromEntries(new FormData(gradeForm).entries()); body.nota_0_100 = Number(body.nota_0_100);
+    if (latest) body.corregida_de_id = latest.id;
+    try {
+      await apiJson(`/api/instructor/asignaciones/${gradeSelect.value}/calificaciones`, { method: "POST", body });
+      gradeForm.reset(); gradeMessage.textContent = latest ? "Corrección guardada; se conservó la nota anterior." : "Nota guardada.";
+      await Promise.all([cargarHistorialNota(gradeSelect.value), cargarAsignacionesInstructor()]);
+    } catch (error) { gradeMessage.textContent = error.message; }
+  });
+
+  cargarAsignacionesInstructor().catch((error) => { gradeMessage.textContent = error.message; });
 }

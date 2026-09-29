@@ -26,15 +26,17 @@
           <p class="etiqueta-nav grupo-nav">ADMINISTRACIÓN</p>
           <a class="enlace-nav{% if nav_activo == 'voluntarios' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_voluntarios') }}"{% if nav_activo == 'voluntarios' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♙</span><span>Voluntarios</span></a>
           <a class="enlace-nav{% if nav_activo == 'instructores' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_instructores') }}"{% if nav_activo == 'instructores' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♟</span><span>Instructores</span></a>
+          <a class="enlace-nav{% if nav_activo == 'evaluaciones' %} activo{% endif %}" href="{{ url_for('evaluations.pagina_catalogo') }}"{% if nav_activo == 'evaluaciones' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">✓</span><span>Evaluaciones</span></a>
           <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">▦</span><span>Períodos</span><small>Próximamente</small></span>
           <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">◷</span><span>Configuración</span><small>Próximamente</small></span>
         {% elif current_user.rol == 'INSTRUCTOR' %}
           <p class="etiqueta-nav grupo-nav">SEGUIMIENTO</p>
           <a class="enlace-nav{% if nav_activo == 'voluntarios' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_voluntarios') }}"{% if nav_activo == 'voluntarios' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♙</span><span>Mis voluntarios</span></a>
-          <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">✓</span><span>Evaluaciones</span><small>Próximamente</small></span>
+          <a class="enlace-nav{% if nav_activo == 'asistencias' %} activo{% endif %}" href="{{ url_for('evaluations.pagina_asistencias') }}"><span class="nav-icono" aria-hidden="true">◷</span><span>Asistencias</span></a>
+          <a class="enlace-nav{% if nav_activo == 'calificaciones' %} activo{% endif %}" href="{{ url_for('evaluations.pagina_calificaciones') }}"><span class="nav-icono" aria-hidden="true">✓</span><span>Notas e historial</span></a>
         {% else %}
           <p class="etiqueta-nav grupo-nav">MI INFORMACIÓN</p>
-          <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">✓</span><span>Mis evaluaciones</span><small>Próximamente</small></span>
+          <a class="enlace-nav" href="{{ url_for('dashboard.voluntario') }}#mis-evaluaciones"><span class="nav-icono" aria-hidden="true">✓</span><span>Mis evaluaciones</span></a>
           <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">▤</span><span>Capacitaciones</span><small>Próximamente</small></span>
         {% endif %}
       </nav>

@@ -4,13 +4,14 @@ from flask_login import UserMixin
 
 
 class Usuario(UserMixin):
-    def __init__(self, id, username, nombre, correo, rol, estado):
+    def __init__(self, id, username, nombre, correo, rol, estado, password_version=1):
         self.id = id
         self.username = username
         self.nombre = nombre
         self.correo = correo
         self.rol = rol
         self.estado = estado
+        self.password_version = password_version
 
     @property
     def is_active(self):

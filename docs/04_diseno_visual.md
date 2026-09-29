@@ -27,7 +27,11 @@ Interfaz en español, clara, sobria y adaptable. Como inspiración funcional gen
 
 Se implementó una plantilla compartida con barra lateral condicionada por rol, encabezado, período actual, identidad de cuenta, estado activo de navegación y salida de sesión. Hay una página diferente para cada rol y el inicio redirige según el rol autenticado. Las tarjetas usan cifras leídas de SQLite: administrador ve perfiles activos, cuentas pendientes y períodos; instructor ve únicamente voluntarios asignados y sus asignaciones incompletas; voluntario ve sus propias asignaciones y capacitaciones. También están las primeras pantallas para administrar cuentas de instructor y perfiles/solicitudes de voluntario.
 
-Estas pantallas y contadores son una base, no la implementación completa de todos los permisos descritos arriba. Continúan pendientes las evaluaciones y resultados del instructor, el registro de notas no psicométricas, la activación de pruebas por voluntario y la edición del perfil y resumen de evaluaciones del voluntario. Las funciones todavía no disponibles deben mostrarse como pendientes y no aparentar estar activas.
+Estas pantallas y contadores son una base, no la implementación completa de todos los permisos descritos arriba. Con Fase 5 se agregan registros de asistencia, notas no psicométricas y estados de evaluaciones del voluntario. Continúan pendientes el autoservicio del perfil del voluntario y los formularios/intentros psicométricos, que permanecen bloqueados por falta de instrumentos autorizados. Las funciones no disponibles deben mostrarse como pendientes.
+
+## Implementación de Fase 5
+
+Administración cuenta con pantallas iniciales para períodos, catálogo y asignaciones. Instructor/admin pueden marcar asistencias, registrar capacitaciones y crear/corregir notas no psicométricas conservando versiones anteriores; instructor queda limitado a voluntarios activos asignados. Voluntario ve la lista de evaluaciones completadas/pendientes sin notas ni observaciones. Los candidatos psicométricos no están aprobados en `docs/06_pruebas_psicometricas.md`, por lo que se bloquea su activación y no se muestran formularios, intentos o reinicios operativos.
 
 La barra lateral se convierte en menú móvil con control accesible por teclado. En escritorio permanece visible. Se conservan los colores institucionales y los estados usan texto además de color.
 

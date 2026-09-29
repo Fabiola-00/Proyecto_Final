@@ -1,0 +1,20 @@
+{% extends "_dashboard_base.html" %}
+{% block contenido %}
+<section class="seccion-panel">
+  <div class="titulo-seccion"><h2>Calificaciones no psicométricas</h2></div>
+  <p class="nota-informativa">El instructor puede registrar o corregir notas físicas, académicas y de desempeño del equipo asignado. Las notas psicométricas no son editables desde este panel.</p>
+  <label>Asignación<select id="calificacion-asignacion"><option value="">Selecciona una evaluación</option></select></label>
+  <div id="calificacion-historial" class="rejilla-modulos"></div>
+  <form id="calificacion-form" class="tarjeta-amplia formulario-inline" hidden>
+    <label>Nota de 0 a 100<input name="nota_0_100" type="number" min="0" max="100" step="0.01" required></label>
+    <label>Observación autorizada<textarea name="observacion" maxlength="2000"></textarea></label>
+    <button type="submit">Guardar nota</button>
+  </form>
+  <p id="calificacion-mensaje" class="mensaje" role="status"></p>
+</section>
+<section class="seccion-panel">
+  <div class="titulo-seccion"><h2>Pruebas psicométricas asignadas</h2></div>
+  <div id="psicometricas-lista" class="rejilla-modulos"></div>
+  <p class="nota-informativa">Las pruebas de los candidatos documentados siguen pendientes de autorización, por lo que no hay formularios digitales disponibles.</p>
+</section>
+{% endblock %}

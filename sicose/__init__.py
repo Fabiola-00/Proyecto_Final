@@ -4,7 +4,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
 from flask_wtf.csrf import CSRFError
 
@@ -38,6 +38,8 @@ def create_app(test_config=None):
         PERMANENT_SESSION_LIFETIME=timedelta(hours=8),
         SESSION_REFRESH_EACH_REQUEST=False,
         WTF_CSRF_TIME_LIMIT=3600,
+        MAX_CONTENT_LENGTH=3 * 1024 * 1024 + 64 * 1024,
+        PERFIL_MEDIA_FOLDER=str(Path(app.instance_path) / "perfiles"),
     )
     if test_config is not None:
         app.config.update(test_config)
@@ -55,15 +57,20 @@ def create_app(test_config=None):
     from .auth import auth_bp
     from .dashboard import dashboard_bp
     from .management import management_bp
+    from .evaluations import evaluations_bp
 
     db.init_app(app)
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(management_bp)
+    app.register_blueprint(evaluations_bp)
 
     @login_manager.user_loader
     def cargar_usuario(user_id):
-        return db.obtener_usuario_por_id(user_id, solo_activo=True)
+        usuario = db.obtener_usuario_por_id(user_id, solo_activo=True)
+        if usuario is None or session.get("sicose_password_version") != usuario.password_version:
+            return None
+        return usuario
 
     @login_manager.unauthorized_handler
     def no_autorizado():
@@ -74,6 +81,12 @@ def create_app(test_config=None):
     @app.errorhandler(CSRFError)
     def error_csrf(_error):
         return jsonify(error="La solicitud expiró o no es válida.", codigo="csrf_invalido"), 400
+
+    @app.errorhandler(413)
+    def carga_demasiado_grande(_error):
+        if request.path.startswith("/api/"):
+            return jsonify(error="La imagen supera el tamaño máximo de 3 MiB.", codigo="archivo_demasiado_grande"), 413
+        return "La solicitud supera el tamaño máximo permitido.", 413
 
     @app.errorhandler(403)
     def acceso_denegado(_error):

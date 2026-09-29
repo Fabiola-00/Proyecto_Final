@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
     nombre_completo TEXT NOT NULL CHECK (length(nombre_completo) BETWEEN 1 AND 160),
     correo TEXT UNIQUE,
     password_hash TEXT NOT NULL,
+    password_version INTEGER NOT NULL DEFAULT 1 CHECK (password_version > 0),
+    foto_perfil TEXT,
     rol_id INTEGER NOT NULL REFERENCES roles(id) ON UPDATE RESTRICT ON DELETE RESTRICT,
     estado TEXT NOT NULL DEFAULT 'ACTIVO' CHECK (estado IN ('PENDIENTE', 'ACTIVO', 'INACTIVO', 'RECHAZADO')),
     creado_en TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
@@ -185,5 +187,5 @@ CREATE TABLE IF NOT EXISTS auditoria (
 );
 
 INSERT INTO app_meta (clave, valor)
-VALUES ('schema_version', '3')
+VALUES ('schema_version', '4')
 ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor;

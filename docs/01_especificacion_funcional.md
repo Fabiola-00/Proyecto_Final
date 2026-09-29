@@ -1,6 +1,6 @@
 # 01. Especificación funcional
 
-**Estado:** requerimientos funcionales aprobados para la separación por rol. Las fases 2 y 3 implementaron autenticación y tres paneles iniciales; las fases 4 y 4.1 agregaron flujos iniciales de voluntarios e instructores. Las capacidades descritas abajo son el comportamiento objetivo completo; aquello sin ruta o pantalla implementada continúa pendiente. No constituye política institucional de privacidad ni de uso psicométrico.
+**Estado:** requerimientos funcionales aprobados para separación por rol y Fase 5. Fase 5 añade asistencias, catálogo/asignación de evaluaciones y notas no psicométricas con historial. El sistema aún no incorpora formularios psicométricos: todos los candidatos documentados siguen pendientes de autorización profesional/institucional, versión exacta, derechos y regla de puntuación. Las capacidades sin ruta o pantalla continúan pendientes.
 
 ## Propósito y alcance
 
@@ -41,7 +41,7 @@ El resumen del voluntario muestra solamente estado y avance. No expone notas/cal
 
 ## Evaluaciones y calificaciones
 
-Seis componentes por período: psicométrica 1, 2 y 3 (autoinforme); física; rendimiento académico; criterio del instructor. Escala institucional propuesta de 0–100. Pesos iniciales configurables: 10%, 10%, 10%, 25%, 15%, 30%. La configuración es una hipótesis inicial para aprobar, no una ponderación validada científicamente.
+Seis componentes por período: psicométrica 1, 2 y 3 (autoinforme); física; rendimiento académico; criterio del instructor. Escala institucional propuesta de 0–100. Pesos iniciales configurables: 10%, 10%, 10%, 25%, 15%, 30%. La configuración es una hipótesis inicial para aprobar, no una ponderación validada científicamente. Fase 5 no carga reactivos, procesa respuestas ni habilita candidatos pendientes. El flujo manual rechaza calificaciones de categoría psicométrica.
 
 La nota 0 debe distinguirse de “sin evaluar”. Cada calificación guarda autor, fecha, período, evaluación y versión del peso aplicable. Los cambios de peso generan versión nueva, no reescriben resultados históricos. Intentos guardan inicio, envío, estado y puntuación oficial/normalizada si está aprobada.
 

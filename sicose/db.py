@@ -61,12 +61,13 @@ def _usuario_desde_fila(fila):
         correo=fila["correo"],
         rol=fila["rol"],
         estado=fila["estado"],
+        password_version=fila["password_version"],
     )
 
 
 def obtener_usuario_por_id(user_id, solo_activo=False):
     consulta = """SELECT u.id, u.username, u.nombre_completo, u.correo,
-                         r.nombre AS rol, u.estado
+                         r.nombre AS rol, u.estado, u.password_version
                   FROM usuarios u JOIN roles r ON r.id = u.rol_id
                   WHERE u.id = ?"""
     parametros = [user_id]
@@ -79,7 +80,7 @@ def obtener_usuario_por_id(user_id, solo_activo=False):
 def obtener_usuario_por_username(username):
     return obtener_conexion().execute(
         """SELECT u.id, u.username, u.nombre_completo, u.correo, u.password_hash,
-                         r.nombre AS rol, u.estado
+                         r.nombre AS rol, u.estado, u.password_version
            FROM usuarios u JOIN roles r ON r.id = u.rol_id
            WHERE u.username = ? COLLATE NOCASE""",
         (username,),
@@ -99,12 +100,17 @@ def inicializar_base_datos():
     conexion = obtener_conexion()
     esquema = Path(current_app.root_path) / "schema.sql"
     conexion.executescript(esquema.read_text(encoding="utf-8"))
+    columnas = {fila["name"] for fila in conexion.execute("PRAGMA table_info(usuarios)")}
+    if "password_version" not in columnas:
+        conexion.execute("ALTER TABLE usuarios ADD COLUMN password_version INTEGER NOT NULL DEFAULT 1")
+    if "foto_perfil" not in columnas:
+        conexion.execute("ALTER TABLE usuarios ADD COLUMN foto_perfil TEXT")
     conexion.executemany(
         "INSERT OR IGNORE INTO roles (nombre) VALUES (?)",
         ((rol,) for rol in ROLES),
     )
     conexion.execute(
-        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '3')
+        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '4')
            ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor"""
     )
     conexion.commit()
