@@ -15,9 +15,9 @@ Interfaz en español, clara, sobria y adaptable. Como inspiración funcional gen
 
 - Inicio de sesión y solicitud de registro/aprobación.
 - Cascarón autenticado: barra lateral colapsable, encabezado con período activo y menú de cuenta; navegación cambia según rol.
-- Dashboard de administrador: resumen de voluntarios, solicitudes pendientes, período y acceso a gestión/reportes.
-- Dashboard de instructor: voluntarios asignados, avance y tareas pendientes.
-- Dashboard de voluntario: evaluaciones habilitadas, avance personal e historial propio.
+- Dashboard de administrador: resumen general y acceso global para administrar todas las cuentas, instructores, voluntarios y evaluaciones.
+- Dashboard de instructor: solo su equipo de voluntarios registrados y activos, evaluaciones tomadas y resultados autorizados, notas no psicométricas y controles para habilitar/deshabilitar pruebas por voluntario.
+- Dashboard de voluntario: edición de sus datos personales, evaluaciones propias completadas y pendientes y resumen de estado/avance, sin notas, resultados individuales ni observaciones.
 - Perfil y detalle: datos, cursos, experiencia, asistencia, evaluaciones y observaciones según permiso.
 - Formularios de calificación con validación en línea y confirmación antes de guardar.
 - Tablas con búsqueda, filtros, paginación y vistas compactas para móvil.
@@ -25,7 +25,9 @@ Interfaz en español, clara, sobria y adaptable. Como inspiración funcional gen
 
 ## Implementación de Fase 3
 
-Se implementó una plantilla compartida con barra lateral por rol, encabezado, período actual, identidad de cuenta, estado activo de navegación y salida de sesión. Hay una página inicial para cada rol. Las tarjetas usan cifras leídas de SQLite: administrador ve perfiles activos, cuentas pendientes y períodos; instructor ve únicamente voluntarios asignados y sus asignaciones incompletas; voluntario ve sus propias asignaciones y capacitaciones. Cuando no hay datos, la cifra mostrada es cero. Las funciones aún no disponibles aparecen identificadas como próximas, sin enlaces falsos ni acciones simuladas.
+Se implementó una plantilla compartida con barra lateral condicionada por rol, encabezado, período actual, identidad de cuenta, estado activo de navegación y salida de sesión. Hay una página diferente para cada rol y el inicio redirige según el rol autenticado. Las tarjetas usan cifras leídas de SQLite: administrador ve perfiles activos, cuentas pendientes y períodos; instructor ve únicamente voluntarios asignados y sus asignaciones incompletas; voluntario ve sus propias asignaciones y capacitaciones. También están las primeras pantallas para administrar cuentas de instructor y perfiles/solicitudes de voluntario.
+
+Estas pantallas y contadores son una base, no la implementación completa de todos los permisos descritos arriba. Continúan pendientes las evaluaciones y resultados del instructor, el registro de notas no psicométricas, la activación de pruebas por voluntario y la edición del perfil y resumen de evaluaciones del voluntario. Las funciones todavía no disponibles deben mostrarse como pendientes y no aparentar estar activas.
 
 La barra lateral se convierte en menú móvil con control accesible por teclado. En escritorio permanece visible. Se conservan los colores institucionales y los estados usan texto además de color.
 
@@ -35,4 +37,4 @@ En pantalla pequeña, barra lateral pasa a menú accesible; tablas se convierten
 
 ## Confidencialidad en UI
 
-No incluir respuestas psicométricas en tarjetas o notificaciones. Evitar nombres/identificadores innecesarios en reportes consolidados. Ocultar acciones por rol mejora claridad, pero el backend mantiene el control real. Mostrar que los pesos y puntajes son una configuración institucional pendiente de aprobación; nunca rotularlos como baremos clínicos o científicamente validados.
+El panel de voluntario muestra únicamente estado y avance de sus evaluaciones; nunca calificaciones, resultados individuales, observaciones ni respuestas psicométricas. Instructor ve resultados solo de voluntarios bajo su ámbito, pero no puede modificar las calificaciones psicométricas; solo puede habilitar/deshabilitar pruebas específicas. Administración tiene alcance global. Evitar nombres/identificadores innecesarios en reportes consolidados. Ocultar acciones por rol mejora claridad, pero el backend mantiene el control real. Mostrar que los pesos y puntajes son una configuración institucional pendiente de aprobación; nunca rotularlos como baremos clínicos o científicamente validados.

@@ -35,6 +35,27 @@ CREATE TABLE IF NOT EXISTS voluntarios (
     creado_en TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );
 
+CREATE TABLE IF NOT EXISTS solicitudes_registro (
+    id INTEGER PRIMARY KEY,
+    usuario_id INTEGER NOT NULL UNIQUE REFERENCES usuarios(id) ON DELETE RESTRICT,
+    invitacion_id INTEGER REFERENCES invitaciones(id) ON DELETE RESTRICT,
+    estado TEXT NOT NULL DEFAULT 'PENDIENTE'
+        CHECK (estado IN ('PENDIENTE', 'APROBADA', 'RECHAZADA')),
+    revisada_por INTEGER REFERENCES usuarios(id) ON DELETE RESTRICT,
+    revisada_en TEXT,
+    creada_en TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+);
+
+CREATE TABLE IF NOT EXISTS invitaciones (
+    id INTEGER PRIMARY KEY,
+    token_hash TEXT NOT NULL UNIQUE,
+    correo TEXT,
+    creada_por INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+    expira_en TEXT NOT NULL,
+    utilizada_en TEXT,
+    creada_en TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+);
+
 CREATE TABLE IF NOT EXISTS periodos (
     id INTEGER PRIMARY KEY,
     nombre TEXT NOT NULL UNIQUE,
@@ -164,5 +185,5 @@ CREATE TABLE IF NOT EXISTS auditoria (
 );
 
 INSERT INTO app_meta (clave, valor)
-VALUES ('schema_version', '2')
+VALUES ('schema_version', '3')
 ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor;

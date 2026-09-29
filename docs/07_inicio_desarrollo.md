@@ -1,6 +1,6 @@
 # Inicio de desarrollo en Windows
 
-Guía para ejecutar localmente la base de Fase 3. Requiere Python 3.10 o posterior y PowerShell. Flask usa su servidor de desarrollo, por lo que se limita a la máquina local; no desplegarlo en producción.
+Guía para ejecutar localmente la base de Fase 4. Requiere Python 3.10 o posterior y PowerShell. Flask usa su servidor de desarrollo, por lo que se limita a la máquina local; no desplegarlo en producción.
 
 ## 1. Abrir el proyecto y crear entorno virtual
 
@@ -35,7 +35,9 @@ Copiar la salida a `SICOSE_SECRET_KEY` dentro de `.env`; define también la cont
 flask --app sicose init-db
 ```
 
-El comando crea o amplía `instance\sicose.sqlite3`; preserva los datos y la metadata existente, y crea las tablas del modelo inicial y tres roles.
+El comando crea o amplía `instance\sicose.sqlite3`; preserva los datos y la metadata existente, y crea las tablas del modelo actual y tres roles (versión 3).
+
+Después de actualizar el código a una fase nueva, detén el servidor y vuelve a ejecutar este comando antes de usar los módulos nuevos. Es aditivo e idempotente: añade las tablas faltantes y no reinicia ni borra los datos existentes.
 
 ## 4. Crear el administrador DEMO
 
@@ -51,7 +53,7 @@ El usuario es `admin.demo`, salvo que configures otro valor. El comando falla si
 flask --app sicose run --debug
 ```
 
-Abrir `http://127.0.0.1:5000/login`. API: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`; token CSRF se envía en `X-CSRFToken` desde la página de login. Detener el servidor con `Ctrl+C`.
+Abrir `http://127.0.0.1:5000/login`. Registro voluntario: `http://127.0.0.1:5000/registro`; las solicitudes quedan pendientes hasta aprobación administrativa. Se pueden crear invitaciones de un solo uso con siete días de vigencia para compartir manualmente. Tras iniciar como administrador, usa el menú **Instructores** para dar de alta/editar/desactivar cuentas y **Voluntarios** para solicitudes y perfiles. Instructores y voluntarios tienen paneles separados con datos según su rol. Las operaciones mutables requieren CSRF mediante `X-CSRFToken`. Detener el servidor con `Ctrl+C`.
 
 ## 6. Ejecutar pruebas
 
@@ -67,7 +69,7 @@ Las pruebas usan el cliente de Flask y una base SQLite en memoria; no requieren 
 
 ```text
 sicose/                 fábrica Flask, auth, permisos, dashboards, SQLite y esquema
-frontend/               login, base compartida, tres paneles iniciales, CSS y JS
+frontend/               login, registro, gestión de voluntarios, tres paneles, CSS y JS
 tests/                  pruebas HTTP de autenticación, autorización y datos
 instance/               base local ignorada por Git
 docs/07_inicio_desarrollo.md  instrucciones para Windows
@@ -77,4 +79,4 @@ docs/07_inicio_desarrollo.md  instrucciones para Windows
 
 La sesión dura ocho horas; cookies `HttpOnly`, `SameSite=Lax` y `Secure` configurable para HTTPS. Los endpoints JSON distinguen 401 y 403. Login y logout validan CSRF. Hay vistas iniciales protegidas por rol; los enlaces de gestión aparecen deshabilitados hasta que sus módulos se implementen. `/api/admin/estado` es solo una ruta breve de comprobación de autorización. La limitación de intentos de login y el despliegue con servidor WSGI/HTTPS están pendientes.
 
-El servidor incorporado de Flask es exclusivamente para desarrollo local; antes de un despliegue será necesario definir servidor WSGI, HTTPS, secretos y demás requisitos operativos.
+Las solicitudes guardan hash de contraseña y permanecen pendientes sin sesión. Las invitaciones no se envían por correo; administración comparte el enlace. Desactivar conserva historial. El servidor incorporado de Flask es exclusivamente para desarrollo local; antes de un despliegue será necesario definir servidor WSGI, HTTPS, secretos y demás requisitos operativos.

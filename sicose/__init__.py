@@ -54,10 +54,12 @@ def create_app(test_config=None):
     from . import db
     from .auth import auth_bp
     from .dashboard import dashboard_bp
+    from .management import management_bp
 
     db.init_app(app)
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(management_bp)
 
     @login_manager.user_loader
     def cargar_usuario(user_id):
@@ -78,6 +80,25 @@ def create_app(test_config=None):
         if request.path.startswith("/api/"):
             return jsonify(error="No tienes permiso para esta operación.", codigo="sin_permiso"), 403
         return render_template("error.html", codigo=403, mensaje="No tienes permiso para ver esta página."), 403
+
+    @app.errorhandler(404)
+    def no_encontrado(error):
+        if request.path.startswith("/api/"):
+            return jsonify(error="El recurso solicitado no existe.", codigo="no_encontrado"), 404
+        return error
+
+    @app.errorhandler(405)
+    def metodo_no_permitido(error):
+        if request.path.startswith("/api/"):
+            return jsonify(error="El método no está permitido para este recurso.", codigo="metodo_no_permitido"), 405
+        return error
+
+    @app.errorhandler(500)
+    def error_interno(error):
+        if request.path.startswith("/api/"):
+            app.logger.error("Error interno al procesar API %s", request.path)
+            return jsonify(error="Error interno al procesar la solicitud.", codigo="error_interno"), 500
+        return error
 
     @app.get("/")
     @login_required

@@ -10,7 +10,8 @@ Aplicación Flask monolítica modular: frontend HTML/CSS/JavaScript nativo en `f
 - `sicose.permissions`: decorador backend `role_required`.
 - `sicose.db`: SQLite, esquema aditivo, seed de roles/administrador y auditoría de auth.
 - `sicose.models`: objeto de sesión con proyección pública sin hash.
-- `sicose.dashboard`: tres rutas HTML protegidas, cada una por rol; consultas agregadas filtran asignaciones según instructor/voluntario autenticado.
+- `sicose.dashboard`: tres rutas HTML protegidas, cada una por rol; `/` redirige a la ruta que corresponde al rol activo. Las consultas filtran asignaciones según instructor/voluntario autenticado. Las vistas son iniciales; las funciones futuras deben respetar la matriz de permisos de `docs/01_especificacion_funcional.md`.
+- `sicose.management`: solicitudes públicas pendientes, invitaciones de un uso con token almacenado como hash, aprobación/rechazo administrativo, asignación a instructores activos, edición/desactivación lógica de voluntarios con ámbito de instructor comprobado en servidor, y gestión de cuentas de instructor (alta activa con contraseña inicial, edición y desactivación lógica) exclusiva del administrador. Al desactivar instructor, voluntarios activos quedan sin asignación y se conservan perfiles/historial.
 - `frontend/`: login, plantilla común de dashboards, vistas iniciales por rol, CSS responsivo y JS nativo para navegación móvil/sesión.
 - Evaluaciones, reportes e IA: solo tablas preparatorias o documentación; sin lógica de producto.
 
@@ -33,7 +34,7 @@ Separar rutas, servicios, persistencia y validadores. Las reglas de autorizació
 
 ## API y rutas presentes
 
-`GET /login`; `POST /api/auth/login`; `POST /api/auth/logout`; `GET /api/auth/me`; `GET /panel/administrador`; `GET /panel/instructor`; `GET /panel/voluntario`; `GET /api/admin/estado` (endpoint mínimo para demostrar autorización). La raíz `/` redirige al panel del rol autenticado. Gestión de usuarios, registro/invitaciones y acciones de los módulos siguen sin implementar.
+`GET /login`; `POST /api/auth/login`; `POST /api/auth/logout`; `GET /api/auth/me`; `GET /panel/administrador`; `GET /panel/instructor`; `GET /panel/voluntario`; `GET /api/admin/estado` (endpoint mínimo para demostrar autorización); `GET /registro`, `POST /api/registro/solicitudes`; `POST /api/admin/invitaciones`; `GET/POST /api/registro/invitaciones/<token>`; `GET /api/admin/solicitudes`, `GET/POST /api/admin/instructores`, `PATCH /api/admin/instructores/<id>`, `POST /api/admin/instructores/<id>/desactivar`, `POST /api/admin/solicitudes/<id>/aprobar|rechazar`; `GET/PATCH /api/voluntarios`; `POST /api/voluntarios/<id>/desactivar`; `GET /gestion/voluntarios`; `GET /gestion/instructores` (administración). La raíz `/` redirige al panel del rol autenticado.
 
 ## Dependencias y ejecución
 

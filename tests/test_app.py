@@ -96,6 +96,12 @@ class AplicacionTestCase(unittest.TestCase):
         respuesta = self.cliente.get("/api/admin/estado")
         self.assertEqual(respuesta.status_code, 401)
 
+    def test_ruta_api_inexistente_devuelve_json_y_no_html(self):
+        respuesta = self.cliente.get("/api/ruta-que-no-existe")
+        self.assertEqual(respuesta.status_code, 404)
+        self.assertEqual(respuesta.mimetype, "application/json")
+        self.assertEqual(respuesta.json["codigo"], "no_encontrado")
+
     def test_admin_puede_acceder_a_ruta_restringida(self):
         self.assertEqual(self._login().status_code, 200)
         respuesta = self.cliente.get("/api/admin/estado")
@@ -204,7 +210,7 @@ class AplicacionTestCase(unittest.TestCase):
             version = conexion.execute(
                 "SELECT valor FROM app_meta WHERE clave = ?", ("schema_version",)
             ).fetchone()[0]
-            self.assertEqual(version, "2")
+            self.assertEqual(version, "3")
             self.assertEqual(
                 conexion.execute("SELECT COUNT(*) FROM roles").fetchone()[0], 3
             )
@@ -215,6 +221,151 @@ class AplicacionTestCase(unittest.TestCase):
                        VALUES (?, ?, ?, ?)""",
                     ("sin.rol", "Sin rol", "hash-no-usado", 9999),
                 )
+
+    def test_solicitud_publica_crea_usuario_pendiente_sin_sesion(self):
+        respuesta = self.cliente.post("/api/registro/solicitudes", json={
+            "username": "nueva.demo", "nombre": "Nueva Voluntaria",
+            "correo": "nueva@example.org", "password": "Contraseña segura 123!",
+        }, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(respuesta.status_code, 201)
+        self.assertEqual(self.cliente.get("/api/auth/me").status_code, 401)
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            conexion = obtener_conexion()
+            usuario = conexion.execute("SELECT estado, password_hash FROM usuarios WHERE username='nueva.demo'").fetchone()
+            self.assertEqual(usuario["estado"], "PENDIENTE")
+            self.assertNotEqual(usuario["password_hash"], "Contraseña segura 123!")
+            self.assertEqual(conexion.execute("SELECT COUNT(*) FROM solicitudes_registro").fetchone()[0], 1)
+
+    def test_paginas_registro_y_gestion_cargan(self):
+        registro = self.cliente.get("/registro")
+        self.assertEqual(registro.status_code, 200)
+        self.assertIn(b"Solicitud de registro", registro.data)
+        self.assertEqual(self._login().status_code, 200)
+        gestion = self.cliente.get("/gestion/voluntarios")
+        self.assertEqual(gestion.status_code, 200)
+        self.assertIn(b"Solicitudes pendientes", gestion.data)
+        instructores = self.cliente.get("/gestion/instructores")
+        self.assertEqual(instructores.status_code, 200)
+        self.assertIn(b"Registrar instructor", instructores.data)
+        self.assertEqual(self.cliente.get("/api/admin/instructores").mimetype, "application/json")
+
+    def test_admin_crea_instructor_y_cuenta_accede_a_panel_diferenciado(self):
+        self.assertEqual(self._login().status_code, 200)
+        creada = self.cliente.post("/api/admin/instructores", json={
+            "username": "instructor.nuevo", "nombre": "Instructor Nuevo",
+            "correo": "nuevo@example.org", "especialidad": "Rescate",
+            "password": "Contraseña inicial 123!",
+        }, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(creada.status_code, 201)
+        instructor_id = creada.json["id"]
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            conexion = obtener_conexion()
+            self.assertEqual(conexion.execute("SELECT estado FROM usuarios WHERE id=?", (instructor_id,)).fetchone()[0], "ACTIVO")
+            self.assertEqual(conexion.execute("SELECT especialidad FROM instructores WHERE usuario_id=?", (instructor_id,)).fetchone()[0], "Rescate")
+            password_hash = conexion.execute("SELECT password_hash FROM usuarios WHERE id=?", (instructor_id,)).fetchone()[0]
+            self.assertNotEqual(password_hash, "Contraseña inicial 123!")
+        self.cliente.post("/api/auth/logout", headers={"X-CSRFToken": self._csrf_token()})
+        ingreso = self._login("instructor.nuevo", "Contraseña inicial 123!")
+        self.assertEqual(ingreso.status_code, 200)
+        inicio = self.cliente.get("/", follow_redirects=True)
+        self.assertIn(b"Panel del instructor", inicio.data)
+        self.assertNotIn(b"Panel de administraci", inicio.data)
+        rechazo = self.cliente.post("/api/admin/instructores", json={}, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(rechazo.status_code, 403)
+
+    def test_admin_edita_y_desactiva_instructor_conservando_perfiles(self):
+        self.assertEqual(self._login().status_code, 200)
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            conexion = obtener_conexion()
+            instructor_id = conexion.execute("SELECT id FROM usuarios WHERE username='instructor.demo'").fetchone()[0]
+            voluntario_id = conexion.execute("SELECT id FROM usuarios WHERE username='voluntario.demo'").fetchone()[0]
+            conexion.execute("INSERT INTO instructores (usuario_id, especialidad) VALUES (?, 'Inicial')", (instructor_id,))
+            conexion.execute("INSERT INTO voluntarios (usuario_id, instructor_id) VALUES (?, ?)", (voluntario_id, instructor_id))
+            conexion.commit()
+        editada = self.cliente.patch(f"/api/admin/instructores/{instructor_id}", json={
+            "nombre": "Instructor Editado", "especialidad": "Montaña",
+        }, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(editada.status_code, 200)
+        baja = self.cliente.post(f"/api/admin/instructores/{instructor_id}/desactivar", headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(baja.status_code, 200)
+        self.assertEqual(baja.json["voluntarios_desvinculados"], 1)
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            conexion = obtener_conexion()
+            self.assertEqual(conexion.execute("SELECT estado FROM usuarios WHERE id=?", (instructor_id,)).fetchone()[0], "INACTIVO")
+            self.assertIsNone(conexion.execute("SELECT instructor_id FROM voluntarios WHERE usuario_id=?", (voluntario_id,)).fetchone()[0])
+            self.assertEqual(conexion.execute("SELECT COUNT(*) FROM instructores WHERE usuario_id=?", (instructor_id,)).fetchone()[0], 1)
+
+    def test_admin_aprueba_solicitud_y_cuenta_puede_ingresar(self):
+        creada = self.cliente.post("/api/registro/solicitudes", json={
+            "username": "aprobada.demo", "nombre": "Voluntaria Aprobada",
+            "password": "Contraseña segura 123!",
+        }, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(creada.status_code, 201)
+        self.assertEqual(self._login().status_code, 200)
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            conexion = obtener_conexion()
+            instructor_id = conexion.execute("SELECT id FROM usuarios WHERE username='instructor.demo'").fetchone()[0]
+            conexion.execute("INSERT INTO instructores (usuario_id) VALUES (?)", (instructor_id,))
+            conexion.commit()
+        solicitud_id = self.cliente.get("/api/admin/solicitudes").json["solicitudes"][0]["id"]
+        aprobada = self.cliente.post(f"/api/admin/solicitudes/{solicitud_id}/aprobar", json={"instructor_id": instructor_id}, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(aprobada.status_code, 200)
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            asignado = obtener_conexion().execute("SELECT instructor_id FROM voluntarios JOIN usuarios ON usuarios.id=voluntarios.usuario_id WHERE username='aprobada.demo'").fetchone()[0]
+            self.assertEqual(asignado, instructor_id)
+        self.cliente.post("/api/auth/logout", headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(self._login("aprobada.demo", "Contraseña segura 123!").status_code, 200)
+
+    def test_invitacion_es_de_un_solo_uso_y_requiere_aprobacion(self):
+        self.assertEqual(self._login().status_code, 200)
+        creada = self.cliente.post("/api/admin/invitaciones", json={"correo": "invitada@example.org"}, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(creada.status_code, 201)
+        token = creada.json["invitacion_url"].rsplit("/", 1)[1]
+        respuesta = self.cliente.post(f"/api/registro/invitaciones/{token}", json={
+            "username": "invitada.demo", "nombre": "Invitada", "correo": "invitada@example.org",
+            "password": "Contraseña segura 123!",
+        }, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(respuesta.status_code, 201)
+        repetida = self.cliente.post(f"/api/registro/invitaciones/{token}", json={
+            "username": "otra.demo", "nombre": "Otra", "correo": "invitada@example.org",
+            "password": "Contraseña segura 123!",
+        }, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(repetida.status_code, 404)
+
+    def test_instructor_solo_lista_y_desactiva_su_equipo(self):
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            conexion = obtener_conexion()
+            instructor_id = conexion.execute("SELECT id FROM usuarios WHERE username='instructor.demo'").fetchone()[0]
+            conexion.execute("INSERT INTO instructores (usuario_id) VALUES (?)", (instructor_id,))
+            voluntario_id = conexion.execute("SELECT id FROM usuarios WHERE username='voluntario.demo'").fetchone()[0]
+            conexion.execute("INSERT INTO voluntarios (usuario_id, instructor_id) VALUES (?, ?)", (voluntario_id, instructor_id))
+            conexion.commit()
+        self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
+        listado = self.cliente.get("/api/voluntarios")
+        self.assertEqual([v["username"] for v in listado.json["voluntarios"]], ["voluntario.demo"])
+        desactivado = self.cliente.post("/api/voluntarios/3/desactivar", headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(desactivado.status_code, 200)
+
+    def test_instructor_no_puede_editar_voluntario_de_otro(self):
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            conexion = obtener_conexion()
+            instructor_id = conexion.execute("SELECT id FROM usuarios WHERE username='instructor.demo'").fetchone()[0]
+            conexion.execute("INSERT INTO instructores (usuario_id) VALUES (?)", (instructor_id,))
+            otro_id = conexion.execute("SELECT id FROM usuarios WHERE username='admin.demo'").fetchone()[0]
+            # Perfil voluntario distinto al ámbito asignado.
+            conexion.execute("INSERT INTO voluntarios (usuario_id) VALUES (?)", (otro_id,))
+            conexion.commit()
+        self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
+        respuesta = self.cliente.patch("/api/voluntarios/1", json={"nombre": "Cambio"}, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(respuesta.status_code, 404)
 
     def test_csrf_rechaza_post_sin_token(self):
         csrf_db = Path(".tmp") / f"csrf-{uuid.uuid4().hex}.sqlite3"

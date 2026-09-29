@@ -1,0 +1,20 @@
+{% extends "_dashboard_base.html" %}
+{% block contenido %}
+<section class="seccion-panel" aria-labelledby="instructores-titulo">
+  <div class="titulo-seccion"><div><p class="sobrelinea">ADMINISTRACIÓN</p><h2 id="instructores-titulo">Cuentas de instructor</h2></div></div>
+  <div class="tarjeta-amplia"><div><h3>Registrar instructor</h3><p>La cuenta se activa al crearla. Comparte la contraseña inicial por un canal seguro; el cambio de contraseña estará disponible en una fase posterior.</p>
+    <form id="instructor-form" class="formulario-inline">
+      <label>Nombre completo<input name="nombre" maxlength="160" required></label>
+      <label>Nombre de usuario<input name="username" maxlength="80" required></label>
+      <label>Correo<input name="correo" type="email" maxlength="254"></label>
+      <label>Especialidad<input name="especialidad" maxlength="160"></label>
+      <label>Contraseña inicial (mínimo 12 caracteres)<input name="password" type="password" minlength="12" maxlength="256" required></label>
+      <button type="submit">Crear instructor</button>
+    </form>
+    <p id="instructor-form-mensaje" class="mensaje" role="status" aria-live="polite"></p>
+  </div></div>
+  <div class="titulo-seccion"><h2>Instructores registrados</h2></div>
+  <div id="instructores-lista" class="rejilla-modulos" aria-live="polite"></div>
+  <p id="instructores-mensaje" class="mensaje" role="status" aria-live="polite"></p>
+</section>
+{% endblock %}

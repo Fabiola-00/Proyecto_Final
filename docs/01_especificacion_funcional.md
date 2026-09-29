@@ -1,6 +1,6 @@
 # 01. Especificación funcional
 
-**Estado:** especificación de producto. En Fase 2 quedaron implementados el esquema base, login/sesión y comprobación de roles; en Fase 3 se agregaron las vistas iniciales por rol con indicadores consultados desde la base existente. Los demás flujos son objetivos pendientes. No constituye política institucional aprobada.
+**Estado:** requerimientos funcionales aprobados para la separación por rol. Las fases 2 y 3 implementaron autenticación y tres paneles iniciales; las fases 4 y 4.1 agregaron flujos iniciales de voluntarios e instructores. Las capacidades descritas abajo son el comportamiento objetivo completo; aquello sin ruta o pantalla implementada continúa pendiente. No constituye política institucional de privacidad ni de uso psicométrico.
 
 ## Propósito y alcance
 
@@ -10,26 +10,34 @@ SICOSE apoyará el seguimiento, capacitación y evaluación periódica de volunt
 
 | Capacidad | Administrador | Instructor autorizado | Voluntario |
 |---|---:|---:|---:|
-| Gestionar usuarios, instructores, períodos y ponderaciones | Sí | No | No |
-| Crear, editar, desactivar y reasignar voluntarios | Sí | Sí, dentro de su ámbito | No |
-| Eliminar definitivamente voluntarios | No como operación ordinaria; preservar historial | No | No |
-| Habilitar, deshabilitar y reiniciar pruebas | Sí | Sí, según asignación | No |
-| Registrar notas físicas, académicas y de criterio | Sí | Sí, según asignación | No |
-| Ver sus evaluaciones y resultados | Sí, con auditoría | Sí, según asignación | Solo propios |
-| Ver resultados psicométricos | Sí, con acceso auditado | Solo voluntarios autorizados | Solo propios |
-| Solicitar informe de análisis IA | Futuro | Futuro y explícito | No |
+| Iniciar sesión y abrir su dashboard por rol | Sí | Sí | Sí |
+| Administrar todas las cuentas y evaluaciones | Sí | No | No |
+| CRUD de voluntarios activos de su ámbito | Todos los voluntarios | Sí, solo voluntarios asignados; baja lógica, sin borrado físico | No |
+| Editar datos personales | Todas las cuentas | Perfil de voluntario dentro de su ámbito | Solo su propio perfil |
+| Ver estado/avance de evaluaciones | Todos | Voluntarios de su ámbito | Evaluaciones propias completadas y pendientes |
+| Ver resultados psicométricos de voluntarios | Sí, administración global | Sí, solo voluntarios autorizados | No |
+| Modificar notas/resultados psicométricos | Gestión administrativa global, con auditoría | No | No |
+| Activar/desactivar una prueba psicométrica por voluntario | Sí | Sí, dentro de su ámbito | No |
+| Registrar notas de evaluación física, cursos y desempeño | Sí | Sí, para su ámbito | No |
+| Editar calificaciones u observaciones | Sí, sujeto a historial y auditoría | Solo calificaciones no psicométricas de su ámbito; psicométricas no | No |
+| Ver notas u observaciones individuales | Sí, según autorización institucional | Sí, para voluntarios de su ámbito | No |
 
-Una solicitud de registro o usuario invitado se mantiene `pendiente` hasta aprobación. Las rutas API deben denegar datos protegidos y evaluaciones antes de esa aprobación. La autorización se aplica en backend a cada recurso, no solo ocultando controles.
+Una solicitud de registro o usuario invitado se mantiene `pendiente` hasta aprobación. Las rutas API deben denegar datos protegidos y evaluaciones antes de esa aprobación. La autorización se aplica en backend a cada recurso, no solo ocultando controles. Tras autenticarse, cada cuenta se dirige al dashboard correspondiente a su rol: administrador, instructor o voluntario; no se comparte un dashboard con contenido intercambiado por URL.
+
+El dashboard administrativo ofrece control global de cuentas y evaluaciones. El dashboard del instructor se limita a sus voluntarios activos asignados, sus evaluaciones y resultados autorizados y el registro de notas no psicométricas. El dashboard voluntario permite actualizar sus datos personales, consultar qué evaluaciones propias están completadas o pendientes y ver un resumen limitado, sin editar calificaciones.
+
+El resumen del voluntario muestra solamente estado y avance. No expone notas/calificaciones, resultados individuales ni observaciones.
 
 ## Flujos principales
 
 1. Administrador crea un período, confirma pesos que suman 100% y administra usuarios/instructores.
 2. Un voluntario solicita alta o ingresa con código de invitación; el administrador aprueba o rechaza. No se concede sesión protegida al estado pendiente.
-3. Instructor autorizado crea/edita/desactiva/reasigna voluntarios y habilita evaluaciones psicométricas aprobadas.
-4. El voluntario completa cada prueba habilitada. Reiniciar crea intento nuevo y conserva el anterior.
-5. Instructor registra notas y observaciones de evaluación física, rendimiento académico y criterio del instructor.
-6. El sistema calcula avance y promedio ponderado solo con una regla de datos faltantes previamente aprobada; hasta entonces el promedio aparece como no disponible si no están todas las notas requeridas.
-7. Usuarios autorizados descargan reportes PDF individuales/consolidados y Excel según permisos.
+3. Una cuenta autenticada es redirigida al dashboard exclusivo de su rol. Administración gestiona globalmente las cuentas y evaluaciones.
+4. Instructor autorizado da de alta/edita/desactiva voluntarios activos de su ámbito, consulta evaluaciones/resultados permitidos, registra notas físicas, de cursos y desempeño, y activa/desactiva pruebas psicométricas por voluntario sin poder alterar sus notas.
+5. El voluntario puede editar sus propios datos personales, ve evaluaciones completadas/pendientes y resumen permitido, pero no edita calificaciones.
+6. El voluntario completa cada prueba habilitada. Reiniciar crea intento nuevo y conserva el anterior.
+7. El sistema calcula avance y promedio ponderado solo con una regla de datos faltantes previamente aprobada; hasta entonces el promedio aparece como no disponible si no están todas las notas requeridas.
+8. Usuarios autorizados descargan reportes PDF individuales/consolidados y Excel según permisos.
 
 ## Evaluaciones y calificaciones
 
@@ -51,6 +59,9 @@ Aplicación de instrumentos no aprobados, diagnóstico, decisión automática de
 
 ## Criterios funcionales de aceptación futuros
 
+- Después de autenticarse, cada usuario llega a su dashboard correspondiente; no puede abrir dashboards o datos de otro rol.
+- Instructor solo consulta y opera voluntarios activos asignados; puede registrar notas no psicométricas y activar/desactivar pruebas, pero no modificar resultados psicométricos.
+- Voluntario edita únicamente su perfil personal, consulta estados/avance propios y nunca accede a notas, resultados individuales u observaciones.
 - Un usuario pendiente no obtiene datos privados ni puede iniciar evaluaciones.
 - Un voluntario no puede leer/alterar recursos de otra persona mediante URL o API.
 - Reintentar una evaluación conserva todos los intentos previos.

@@ -4,7 +4,7 @@ Sistema de Control y Evaluación de Personal. Prototipo académico para seguimie
 
 ## Estado
 
-Fase 3 — dashboards iniciales para administrador, instructor y voluntario, con navegación compartida e indicadores consultados desde SQLite. La aplicación sigue siendo un prototipo local, no un sistema listo para producción.
+Fase 4.1 — paneles diferenciados por rol, administración inicial de cuentas de instructores y flujos iniciales de registro/gestión de voluntarios. Las operaciones de evaluaciones y la vista personal de resultados/avance siguen pendientes. La aplicación sigue siendo un prototipo local, no un sistema listo para producción.
 
 ## Documentación
 

@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
   <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
 </head>
-<body class="pagina-panel">
+<body class="pagina-panel" data-rol="{{ current_user.rol }}">
   <div class="app-shell">
     <aside class="barra-lateral" id="barra-lateral" aria-label="Navegación principal">
       <a class="marca-panel" href="/" aria-label="SICOSE, ir al inicio">
@@ -24,12 +24,13 @@
         </a>
         {% if current_user.rol == 'ADMINISTRADOR' %}
           <p class="etiqueta-nav grupo-nav">ADMINISTRACIÓN</p>
-          <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">♙</span><span>Usuarios</span><small>Próximamente</small></span>
+          <a class="enlace-nav{% if nav_activo == 'voluntarios' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_voluntarios') }}"{% if nav_activo == 'voluntarios' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♙</span><span>Voluntarios</span></a>
+          <a class="enlace-nav{% if nav_activo == 'instructores' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_instructores') }}"{% if nav_activo == 'instructores' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♟</span><span>Instructores</span></a>
           <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">▦</span><span>Períodos</span><small>Próximamente</small></span>
           <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">◷</span><span>Configuración</span><small>Próximamente</small></span>
         {% elif current_user.rol == 'INSTRUCTOR' %}
           <p class="etiqueta-nav grupo-nav">SEGUIMIENTO</p>
-          <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">♙</span><span>Mis voluntarios</span><small>Próximamente</small></span>
+          <a class="enlace-nav{% if nav_activo == 'voluntarios' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_voluntarios') }}"{% if nav_activo == 'voluntarios' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♙</span><span>Mis voluntarios</span></a>
           <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">✓</span><span>Evaluaciones</span><small>Próximamente</small></span>
         {% else %}
           <p class="etiqueta-nav grupo-nav">MI INFORMACIÓN</p>

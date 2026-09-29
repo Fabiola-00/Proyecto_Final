@@ -2,12 +2,14 @@
 
 ## Esquema implementado
 
-SQLite usa `PRAGMA foreign_keys = ON`. El esquema `sicose/schema.sql` es aditivo e idempotente (`CREATE TABLE IF NOT EXISTS`) y actualiza `app_meta.schema_version` a 2. La base local de Fase 1 contenía solo esa metadata; se preservó y amplió. No se eliminan tablas/filas durante `init-db`. Fechas técnicas se expresan en UTC; claves numéricas son internas.
+SQLite usa `PRAGMA foreign_keys = ON`. El esquema `sicose/schema.sql` es aditivo e idempotente (`CREATE TABLE IF NOT EXISTS`) y actualiza `app_meta.schema_version` a 3. La base local de Fase 1 contenía solo esa metadata; se preservó y amplió. No se eliminan tablas/filas durante `init-db`. Fechas técnicas se expresan en UTC; claves numéricas son internas.
 
 | Tabla | Uso y restricciones principales |
 |---|---|
 | `roles` | Catálogo restringido a ADMINISTRADOR, INSTRUCTOR y VOLUNTARIO; seed repetible. |
 | `usuarios` | `username` único sin distinguir mayúsculas; `password_hash` obligatorio; FK restrictiva a rol; estado PENDIENTE/ACTIVO/INACTIVO/RECHAZADO; timestamps y último acceso. |
+| `solicitudes_registro` | Historial de alta 1:1 con usuario; estado PENDIENTE/APROBADA/RECHAZADA, revisor y fecha. |
+| `invitaciones` | Hash SHA-256 de token aleatorio, correo opcional, expiración y uso único; el token claro solo se devuelve al crearla. |
 | `instructores` | Perfil 1:1 con usuario, FK restrictiva. |
 | `voluntarios` | Perfil 1:1 con usuario; instructor asignado opcional referenciado a perfil de instructor. |
 | `periodos` | Nombre único, rango de fechas validado y estados BORRADOR/ACTIVO/CERRADO. |
@@ -25,12 +27,14 @@ SQLite usa `PRAGMA foreign_keys = ON`. El esquema `sicose/schema.sql` es aditivo
 
 ## Relaciones
 
-`usuarios` N:1 `roles`; los perfiles `instructores` y `voluntarios` tienen FK 1:1 a `usuarios`. Un voluntario puede referir su instructor. `periodos` 1:N versiones de peso; `versiones_ponderacion` N:M `evaluaciones`; asignación conecta voluntario/período/evaluación; una asignación agrupa intentos, respuestas y calificaciones; voluntarios agrupan capacitación y asistencia. Auditoría refiere al actor cuando existe. Las restricciones de borrado conservan historial con `RESTRICT` o `SET NULL`, nunca cascada para resultados.
+`usuarios` N:1 `roles`; los perfiles `instructores` y `voluntarios` tienen FK 1:1 a `usuarios`. Una solicitud se vincula al usuario y, opcionalmente, a una invitación. Un voluntario puede referir su instructor. `periodos` 1:N versiones de peso; `versiones_ponderacion` N:M `evaluaciones`; asignación conecta voluntario/período/evaluación; una asignación agrupa intentos, respuestas y calificaciones; voluntarios agrupan capacitación y asistencia. Auditoría refiere al actor cuando existe. Las restricciones de borrado conservan historial con `RESTRICT` o `SET NULL`, nunca cascada para resultados.
 
 ## Autenticación y roles
 
 La cuenta guarda el nombre de rol por FK y un hash generado por Werkzeug (scrypt predeterminado de la versión instalada), nunca la contraseña original. Solo estado ACTIVO puede completar login; cuentas pendientes/inactivas no obtienen sesión. El seed inserta únicamente ADMINISTRADOR y no modifica una cuenta existente. No se crean cuentas de instructor o voluntario demo automáticamente.
 
 ## Decisiones y límites
+
+El registro público crea usuario y perfil en estado PENDIENTE con contraseña hasheada y sin sesión. Un administrador aprueba o rechaza la solicitud. Las invitaciones duran siete días, son de un solo uso, guardan solo el hash del token y no se envían por correo: el administrador comparte manualmente el enlace mostrado al crearlas. Administración crea directamente las cuentas de instructor en estado ACTIVO con hash de contraseña y perfil asociado; puede editar o desactivar. Desactivar un instructor conserva su cuenta/perfil y desvincula los voluntarios activos para evitar nuevas operaciones bajo una asignación inactiva. Instructores solo consultan, editan y desactivan perfiles asignados a su cuenta.
 
 IDs numéricos son internos y no autorizan por sí mismos acceso a un recurso. Campos de respuestas son sensibles; aún no se almacenan. Los instrumentos permanecen pendientes y sin reactivos. El modelo de tablas futuras no significa que APIs o cálculos estén implementados. Reglas de retención, privacidad, faltantes, pesos y publicación necesitan aprobación institucional antes de operar evaluaciones.

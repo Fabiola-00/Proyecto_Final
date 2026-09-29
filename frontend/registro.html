@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Solicitud de registro | SICOSE</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body>
+  <main class="contenedor acceso">
+    <p class="marca">SICOSE</p><h1>Solicitud de registro</h1>
+    <p class="subtitulo">La cuenta permanecerá pendiente hasta que administración revise la solicitud.</p>
+    <form id="registro-form" data-token="{{ token or '' }}" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label for="reg-nombre">Nombre completo</label><input id="reg-nombre" name="nombre" maxlength="160" required>
+      <label for="reg-username">Nombre de usuario</label><input id="reg-username" name="username" maxlength="80" autocomplete="username" required>
+      <label for="reg-correo">Correo electrónico</label><input id="reg-correo" name="correo" type="email" maxlength="254">
+      <label for="reg-password">Contraseña (mínimo 12 caracteres)</label><input id="reg-password" name="password" type="password" minlength="12" maxlength="256" autocomplete="new-password" required>
+      <button id="registro-button" type="submit">Enviar solicitud</button>
+      <p id="auth-message" class="mensaje" role="status" aria-live="polite"></p>
+    </form>
+    <p><a href="/login">Volver al inicio de sesión</a></p>
+  </main>
+</body>
+</html>
