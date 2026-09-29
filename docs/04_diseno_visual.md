@@ -6,9 +6,10 @@ Interfaz en español, clara, sobria y adaptable. Como inspiración funcional gen
 
 ## Identidad
 
-- Azul primario: `#1F1ABC` para navegación, títulos activos y acciones principales.
-- Naranja: `#FA9648` para acentos y estados que requieran atención, no como único indicador.
+- Azul primario institucional: `#1D1BBE` para navegación y acciones principales.
+- Naranja institucional: `#F57B1A` para acentos y estados que requieran atención, no como único indicador.
 - Neutros: fondo gris muy claro, superficies blancas, texto carbón y bordes suaves.
+- El emblema SBRAB proporcionado se muestra en la parte superior de la barra lateral junto a la identificación SICOSE.
 - Tipografía de sistema; jerarquía por tamaño, peso y espaciado. Contraste y foco visible accesibles.
 
 ## Estructura de pantallas
@@ -31,13 +32,13 @@ El bloque de perfil de la barra lateral muestra la foto privada de la cuenta par
 
 El panel inicial de administración incluye tarjetas de Jefes de Personal e Instructores Voluntarios con sus fotos, estado e inicial de respaldo cuando aún no hay imagen. La navegación de Configuración abre la edición del nombre, foto y contraseña del administrador; al cambiar la contraseña solicita la clave actual y termina la sesión para volver a ingresar.
 
-Estas pantallas y contadores son una base, no la implementación completa de todos los permisos descritos arriba. Con Fase 5 se agregan registros de asistencia, notas no psicométricas y estados de evaluaciones del Instructor Voluntario. Continúan pendientes el autoservicio del perfil del voluntario y los formularios/intentros psicométricos, que permanecen bloqueados por falta de instrumentos autorizados. Las funciones no disponibles deben mostrarse como pendientes.
+Estas pantallas y contadores son una base, no la implementación completa de todos los permisos descritos arriba. Con Fase 5 se agregan registros de asistencia, notas no psicométricas y estados de evaluaciones del Instructor Voluntario. Continúan pendientes el autoservicio del perfil del voluntario y los formularios/intentos psicométricos, que permanecen bloqueados por falta de instrumentos autorizados. Las funciones no disponibles deben mostrarse como pendientes.
 
 ## Implementación de Fase 5
 
 Administración cuenta con pantallas iniciales para períodos, catálogo y asignaciones. Jefe de Personal/Administrador pueden marcar asistencias, registrar capacitaciones y crear/corregir notas no psicométricas conservando versiones anteriores; Jefe de Personal queda limitado a Instructores Voluntarios activos asignados. Instructor Voluntario ve la lista de evaluaciones completadas/pendientes sin notas ni observaciones. Los candidatos psicométricos no están aprobados en `docs/06_pruebas_psicometricas.md`, por lo que se bloquea su activación y no se muestran formularios, intentos o reinicios operativos.
 
-La barra lateral se convierte en menú móvil con control accesible por teclado. En escritorio permanece visible. Se conservan los colores institucionales y los estados usan texto además de color.
+La barra lateral se convierte en menú móvil con control accesible por teclado y también puede plegarse en escritorio para liberar espacio. El estado plegado se recuerda en el navegador; la navegación sigue identificable mediante nombres accesibles. El selector de tema permite cambiar entre modo claro y oscuro y conserva la preferencia local. Ambos temas mantienen contraste, foco visible y los colores institucionales como identidad de las acciones y acentos. Los estados usan texto además de color.
 
 ## Responsividad e interacción
 

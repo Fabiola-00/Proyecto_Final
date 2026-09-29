@@ -32,7 +32,7 @@ def pagina_registro_invitacion(token):
 def pagina_gestion_voluntarios():
     return render_template("gestion_instructores_voluntarios.html", titulo_pagina="Gestión de Instructores Voluntarios",
                            nav_activo="voluntarios", indicadores=[],
-                           descripcion="Solicitudes, perfiles y asignación de Jefes de Personal.",
+                           descripcion="Alta manual, solicitudes pendientes y administración integral de perfiles.",
                            periodo_actual="Sin período activo")
 
 
@@ -233,12 +233,99 @@ def usar_invitacion(token):
 @role_required("ADMINISTRADOR")
 def listar_solicitudes():
     filas = db.obtener_conexion().execute(
-        """SELECT s.id, u.username, u.nombre_completo AS nombre, u.correo,
+        """SELECT s.id, u.id AS usuario_id, u.username, u.nombre_completo AS nombre, u.correo,
+                  (u.foto_perfil IS NOT NULL) AS tiene_foto,
                   s.estado, s.creada_en, s.invitacion_id
            FROM solicitudes_registro s JOIN usuarios u ON u.id = s.usuario_id
            WHERE s.estado = 'PENDIENTE' ORDER BY s.creada_en, s.id"""
     ).fetchall()
     return jsonify(solicitudes=[dict(fila) for fila in filas]), 200
+
+
+@management_bp.post("/api/admin/instructores-voluntarios")
+@role_required("ADMINISTRADOR")
+def crear_instructor_voluntario():
+    """Crea desde administración una cuenta activa sin pasar por solicitudes."""
+    datos = _datos_form_o_json()
+    if datos is None:
+        return _fallo("Solicitud no válida.", "solicitud_invalida", 400)
+    try:
+        username = _texto(datos, "username", 80, True)
+        nombre = _texto(datos, "nombre", 160, True)
+        correo = _texto(datos, "correo", 254)
+        if correo:
+            correo = correo.casefold()
+        password = datos.get("password")
+        if not USERNAME_RE.fullmatch(username):
+            raise ValueError("El nombre de usuario debe tener entre 3 y 80 caracteres válidos.")
+        if correo and ("@" not in correo or any(char.isspace() for char in correo)):
+            raise ValueError("El correo no es válido.")
+        if not isinstance(password, str) or not 12 <= len(password) <= 256:
+            raise ValueError("La contraseña inicial debe tener entre 12 y 256 caracteres.")
+        experiencia = _texto(datos, "experiencia_operaciones", 2000)
+        antiguedad = _texto(datos, "antiguedad_desde", 10)
+        if antiguedad:
+            datetime.strptime(antiguedad, "%Y-%m-%d")
+        jefe_dato = datos.get("instructor_id")
+        if jefe_dato in (None, ""):
+            jefe_id = None
+        elif isinstance(jefe_dato, int) and not isinstance(jefe_dato, bool):
+            jefe_id = jefe_dato
+        elif isinstance(jefe_dato, str) and jefe_dato.isdecimal():
+            jefe_id = int(jefe_dato)
+        else:
+            raise ValueError("El Jefe de Personal asignado no es válido.")
+    except (ValueError, TypeError) as error:
+        return _fallo(str(error), "datos_invalidos", 400)
+
+    conexion = db.obtener_conexion()
+    if jefe_id is not None and not conexion.execute(
+        """SELECT 1 FROM instructores i JOIN usuarios u ON u.id=i.usuario_id
+           JOIN roles r ON r.id=u.rol_id
+           WHERE i.usuario_id=? AND u.estado='ACTIVO' AND r.nombre='JEFE_PERSONAL'""",
+        (jefe_id,),
+    ).fetchone():
+        return _fallo("El Jefe de Personal asignado no existe o no está activo.", "jefe_personal_no_valido", 400)
+
+    from .profile_media import guardar_foto
+
+    try:
+        foto = guardar_foto(request.files.get("foto"))
+    except ValueError as error:
+        return _fallo(str(error), "foto_invalida", 400)
+
+    rol = conexion.execute(
+        "SELECT id FROM roles WHERE nombre='INSTRUCTOR_VOLUNTARIO'"
+    ).fetchone()
+    if rol is None:
+        return _fallo("Falta el rol Instructor Voluntario en la base de datos.", "rol_no_configurado", 500)
+
+    try:
+        cursor = conexion.execute(
+            """INSERT INTO usuarios (username, nombre_completo, correo, password_hash,
+                                     rol_id, estado, foto_perfil)
+               VALUES (?, ?, ?, ?, ?, 'ACTIVO', ?)""",
+            (username, nombre, correo, generate_password_hash(password), rol["id"], foto),
+        )
+        usuario_id = cursor.lastrowid
+        conexion.execute(
+            """INSERT INTO voluntarios
+               (usuario_id, instructor_id, experiencia_operaciones, antiguedad_desde)
+               VALUES (?, ?, ?, ?)""",
+            (usuario_id, jefe_id, experiencia, antiguedad),
+        )
+        _auditar(conexion, "INSTRUCTOR_VOLUNTARIO_CREADO_MANUALMENTE")
+        conexion.commit()
+    except Exception as error:
+        conexion.rollback()
+        if foto:
+            from pathlib import Path
+            (Path(current_app.config["PERFIL_MEDIA_FOLDER"]) / foto).unlink(missing_ok=True)
+        if error.__class__.__name__ == "IntegrityError":
+            return _fallo("El nombre de usuario o correo ya está asociado a otra cuenta.", "cuenta_duplicada", 409)
+        raise
+    return jsonify(ok=True, id=usuario_id, estado="ACTIVO",
+                   mensaje="Instructor Voluntario creado y activado."), 201
 
 
 @management_bp.get("/api/admin/instructores")

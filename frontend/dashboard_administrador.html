@@ -4,7 +4,7 @@
 <section class="seccion-panel" aria-labelledby="gestion-titulo">
   <div class="titulo-seccion"><div><p class="sobrelinea">GESTIÓN GENERAL</p><h2 id="gestion-titulo">Administración del sistema</h2></div><span class="estado-fase">Vista inicial</span></div>
   <div class="rejilla-modulos">
-    <article class="tarjeta-modulo"><span class="modulo-icono violeta" aria-hidden="true">♙</span><div><h3>Instructores Voluntarios y registro</h3><p>Revisa solicitudes, crea invitaciones y administra perfiles.</p></div><a class="modulo-estado" href="{{ url_for('management.pagina_gestion_voluntarios') }}">Gestionar</a></article>
+    <article class="tarjeta-modulo tarjeta-modulo-amplia"><span class="modulo-icono violeta" aria-hidden="true">♙</span><div><h3>Instructores Voluntarios</h3><p>Registra cuentas manualmente, revisa solicitudes pendientes y administra perfiles.</p></div><div class="acciones-tarjeta"><a class="boton-enlace" href="{{ url_for('management.pagina_gestion_voluntarios') }}#agregar-instructor-voluntario">Agregar manualmente</a><a class="boton-enlace boton-enlace-secundario" href="{{ url_for('management.pagina_gestion_voluntarios') }}#perfiles-registrados">Ver todos los perfiles</a></div></article>
     <article class="tarjeta-modulo"><span class="modulo-icono azul" aria-hidden="true">♟</span><div><h3>Jefes de Personal</h3><p>Registra cuentas, actualiza perfiles y administra su acceso.</p></div><a class="modulo-estado" href="{{ url_for('management.pagina_gestion_instructores') }}">Gestionar</a></article>
     <article class="tarjeta-modulo"><span class="modulo-icono naranja" aria-hidden="true">✓</span><div><h3>Catálogo de evaluaciones</h3><p>Configura el catálogo y asigna evaluaciones a voluntarios.</p></div><a class="modulo-estado" href="{{ url_for('evaluations.pagina_catalogo') }}">Gestionar</a></article>
     <article class="tarjeta-modulo"><span class="modulo-icono naranja" aria-hidden="true">▦</span><div><h3>Períodos y ponderaciones</h3><p>Los indicadores muestran el estado actual de la base de datos.</p></div><span class="modulo-estado">Próximamente</span></article>
@@ -12,7 +12,7 @@
   </div>
 </section>
 <section class="seccion-panel" aria-labelledby="perfiles-voluntarios-titulo">
-  <div class="titulo-seccion"><div><p class="sobrelinea">CUENTAS REGISTRADAS</p><h2 id="perfiles-voluntarios-titulo">Instructores Voluntarios</h2></div><a href="{{ url_for('management.pagina_gestion_voluntarios') }}">Administrar</a></div>
+  <div class="titulo-seccion titulo-accion"><div><p class="sobrelinea">CUENTAS REGISTRADAS</p><h2 id="perfiles-voluntarios-titulo">Instructores Voluntarios</h2></div><a class="boton-enlace boton-enlace-secundario" href="{{ url_for('management.pagina_gestion_voluntarios') }}#perfiles-registrados">Ver todos los Instructores Voluntarios</a></div>
   {% if perfiles_voluntarios %}<div class="rejilla-perfiles">
     {% for perfil in perfiles_voluntarios %}<article class="tarjeta-perfil">
       {% if perfil.tiene_foto %}<img class="foto-perfil" src="{{ url_for('management.foto_perfil', usuario_id=perfil.id) }}" alt="Foto de {{ perfil.nombre }}">{% else %}<span class="avatar avatar-perfil" aria-hidden="true">{{ perfil.nombre[:1]|upper }}</span>{% endif %}

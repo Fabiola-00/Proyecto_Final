@@ -8,7 +8,7 @@ SICOSE significa **Sistema de Control y Evaluación de Personal**. Es un prototi
 - Backend: Python y Flask; comunicación de interfaz mediante API REST JSON.
 - Persistencia: SQLite con consultas parametrizadas, claves foráneas activadas y cambios de esquema aditivos.
 - Mantener módulos pequeños y nombres consistentes en español. No agregar frameworks/servicios sin necesidad y autorización.
-- Identidad visual: azul `#1F1ABC`, naranja `#FA9648`; usar Evaluar.com solo como referencia general, sin copiar marca o interfaz.
+- Identidad visual aprobada: azul `#1D1BBE`, naranja `#F57B1A`; incorporar el emblema institucional SBRAB proporcionado en la cabecera de la barra lateral. Usar Evaluar.com solo como referencia general, sin copiar marca o interfaz.
 
 ## Roles y datos
 

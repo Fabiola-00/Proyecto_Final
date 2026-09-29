@@ -6,10 +6,60 @@ const authMessage = document.querySelector("#auth-message");
 const csrfToken = document.querySelector('[name="csrf_token"]')?.value;
 const appShell = document.querySelector(".app-shell");
 const menuButton = document.querySelector("#boton-menu");
+const sidebarButton = document.querySelector("#boton-sidebar");
+const themeButton = document.querySelector("#boton-tema");
+const themeIcon = document.querySelector("#tema-icono");
+const themeLabel = document.querySelector("#tema-etiqueta");
 const mobileBackdrop = document.querySelector("#fondo-movil");
 const registrationForm = document.querySelector("#registro-form");
 const managementMessage = document.querySelector("#gestion-mensaje");
 const adminProfileForm = document.querySelector("#admin-profile-form");
+
+function leerPreferencia(clave, predeterminado) {
+  try { return window.localStorage.getItem(clave) ?? predeterminado; }
+  catch { return predeterminado; }
+}
+
+function guardarPreferencia(clave, valor) {
+  try { window.localStorage.setItem(clave, valor); }
+  catch { /* El panel sigue siendo usable aunque el navegador bloquee el almacenamiento local. */ }
+}
+
+function aplicarTema(tema) {
+  const oscuro = tema === "dark";
+  document.documentElement.dataset.theme = oscuro ? "dark" : "light";
+  document.documentElement.style.colorScheme = oscuro ? "dark" : "light";
+  if (themeButton) {
+    themeButton.setAttribute("aria-pressed", String(oscuro));
+    themeButton.setAttribute("aria-label", oscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
+    if (themeIcon) themeIcon.textContent = oscuro ? "☀" : "◐";
+    if (themeLabel) themeLabel.textContent = oscuro ? "Modo claro" : "Modo oscuro";
+  }
+}
+
+aplicarTema(appShell ? leerPreferencia("sicose-tema", "light") : "light");
+if (themeButton) {
+  themeButton.addEventListener("click", () => {
+    const nuevoTema = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    aplicarTema(nuevoTema);
+    guardarPreferencia("sicose-tema", nuevoTema);
+  });
+}
+
+if (appShell && sidebarButton) {
+  const plegado = leerPreferencia("sicose-menu-plegado", "false") === "true";
+  appShell.classList.toggle("sidebar-plegado", plegado);
+  sidebarButton.setAttribute("aria-expanded", String(!plegado));
+  sidebarButton.setAttribute("aria-label", plegado ? "Expandir menú lateral" : "Plegar menú lateral");
+  sidebarButton.title = plegado ? "Expandir menú lateral" : "Plegar menú lateral";
+  sidebarButton.addEventListener("click", () => {
+    const estaPlegado = appShell.classList.toggle("sidebar-plegado");
+    sidebarButton.setAttribute("aria-expanded", String(!estaPlegado));
+    sidebarButton.setAttribute("aria-label", estaPlegado ? "Expandir menú lateral" : "Plegar menú lateral");
+    sidebarButton.title = estaPlegado ? "Expandir menú lateral" : "Plegar menú lateral";
+    guardarPreferencia("sicose-menu-plegado", String(estaPlegado));
+  });
+}
 
 async function apiJson(path, options = {}) {
   const headers = { "X-CSRFToken": csrfToken, ...(options.headers || {}) };
@@ -152,8 +202,8 @@ if (adminProfileForm) {
 const volunteerList = document.querySelector("#voluntarios-lista");
 if (volunteerList) {
   const solicitudesLista = document.querySelector("#solicitudes-lista");
-  const invitacionForm = document.querySelector("#invitacion-form");
-  const invitacionResultado = document.querySelector("#invitacion-resultado");
+  const altaManualForm = document.querySelector("#instructor-voluntario-form");
+  const altaManualMensaje = document.querySelector("#instructor-voluntario-form-mensaje");
   let instructoresActivos = [];
   const esAdministrador = document.body.dataset.rol === "ADMINISTRADOR";
 
@@ -236,7 +286,7 @@ if (volunteerList) {
     if (!solicitudes.length) solicitudesLista.append(elemento("p", "No hay solicitudes pendientes.", "nota-informativa"));
     solicitudes.forEach((solicitud) => {
       const card = elemento("article", undefined, "tarjeta-modulo");
-      if (instructor.tiene_foto) { const foto = elemento("img"); foto.src = `/api/usuarios/${instructor.id}/foto`; foto.alt = `Foto de ${instructor.nombre}`; foto.className = "foto-perfil"; card.append(foto); }
+      if (solicitud.tiene_foto) { const foto = elemento("img"); foto.src = `/api/usuarios/${solicitud.usuario_id}/foto`; foto.alt = `Foto de ${solicitud.nombre}`; foto.className = "foto-perfil"; card.append(foto); }
       card.append(elemento("h3", solicitud.nombre), elemento("p", `${solicitud.username} · ${solicitud.correo || "Sin correo"}`));
       const assign = elemento("select"); assign.name = "instructor_id";
       const none = elemento("option", "Sin Jefe de Personal asignado"); none.value = ""; assign.append(none);
@@ -257,17 +307,28 @@ if (volunteerList) {
     });
   }
 
-  if (invitacionForm) invitacionForm.addEventListener("submit", async (event) => {
+  if (altaManualForm) altaManualForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     try {
-      const data = await apiJson("/api/admin/invitaciones", { method: "POST", body: { correo: invitacionForm.elements.correo.value } });
-      invitacionResultado.textContent = `Enlace de un solo uso (expira ${data.expira_en}): ${new URL(data.invitacion_url, window.location.origin).href}`;
-      invitacionForm.reset();
-    } catch (error) { invitacionResultado.textContent = error.message; }
+      const data = await apiJson("/api/admin/instructores-voluntarios", { method: "POST", body: new FormData(altaManualForm) });
+      altaManualForm.reset();
+      altaManualMensaje.textContent = data.mensaje || "Instructor Voluntario creado y activado.";
+      await cargarVoluntarios();
+    } catch (error) { altaManualMensaje.textContent = error.message; }
   });
 
   const cargarInstructores = esAdministrador
-    ? apiJson("/api/admin/jefes-personal").then((data) => { instructoresActivos = data.instructores; })
+    ? apiJson("/api/admin/jefes-personal").then((data) => {
+      instructoresActivos = data.instructores.filter((instructor) => instructor.estado === "ACTIVO");
+      const asignado = altaManualForm?.elements.instructor_id;
+      if (asignado) {
+        asignado.replaceChildren(elemento("option", "Sin asignar"));
+        asignado.options[0].value = "";
+        instructoresActivos.forEach((instructor) => {
+          const option = elemento("option", instructor.nombre); option.value = instructor.id; asignado.append(option);
+        });
+      }
+    })
     : Promise.resolve();
   cargarInstructores.then(() => Promise.all([cargarVoluntarios(), cargarSolicitudes()]))
     .catch((error) => { managementMessage.textContent = error.message; });

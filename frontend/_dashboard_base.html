@@ -12,32 +12,32 @@
   <div class="app-shell">
     <aside class="barra-lateral" id="barra-lateral" aria-label="Navegación principal">
       <a class="marca-panel" href="/" aria-label="SICOSE, ir al inicio">
-        <span class="marca-simbolo" aria-hidden="true">S</span>
-        <span><strong>SICOSE</strong><small>Control y Evaluación</small></span>
+        <img class="logo-institucional" src="{{ url_for('static', filename='images/sbrab-logo.png') }}" alt="Emblema institucional SBRAB">
+        <span><strong>SICOSE</strong><small>Sistema de Control y Evaluación</small></span>
       </a>
 
       <div class="separador-lateral"></div>
       <p class="etiqueta-nav">ESPACIO DE TRABAJO</p>
       <nav class="navegacion">
-        <a class="enlace-nav{% if nav_activo == 'inicio' %} activo{% endif %}" href="/"{% if nav_activo == 'inicio' %} aria-current="page"{% endif %}>
+        <a class="enlace-nav{% if nav_activo == 'inicio' %} activo{% endif %}" href="/" aria-label="Inicio" title="Inicio"{% if nav_activo == 'inicio' %} aria-current="page"{% endif %}>
           <span class="nav-icono" aria-hidden="true">⌂</span><span>Inicio</span>
         </a>
         {% if current_user.rol == 'ADMINISTRADOR' %}
           <p class="etiqueta-nav grupo-nav">ADMINISTRACIÓN</p>
-          <a class="enlace-nav{% if nav_activo == 'voluntarios' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_voluntarios') }}"{% if nav_activo == 'voluntarios' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♙</span><span>Instructores Voluntarios</span></a>
-          <a class="enlace-nav{% if nav_activo == 'instructores' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_instructores') }}"{% if nav_activo == 'instructores' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♟</span><span>Jefes de Personal</span></a>
-          <a class="enlace-nav{% if nav_activo == 'evaluaciones' %} activo{% endif %}" href="{{ url_for('evaluations.pagina_catalogo') }}"{% if nav_activo == 'evaluaciones' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">✓</span><span>Evaluaciones</span></a>
-          <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">▦</span><span>Períodos</span><small>Próximamente</small></span>
-          <a class="enlace-nav{% if nav_activo == 'configuracion' %} activo{% endif %}" href="{{ url_for('management.pagina_configuracion') }}"{% if nav_activo == 'configuracion' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">⚙</span><span>Configuración</span></a>
+          <a class="enlace-nav{% if nav_activo == 'voluntarios' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_voluntarios') }}" aria-label="Instructores Voluntarios" title="Instructores Voluntarios"{% if nav_activo == 'voluntarios' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♙</span><span>Instructores Voluntarios</span></a>
+          <a class="enlace-nav{% if nav_activo == 'instructores' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_instructores') }}" aria-label="Jefes de Personal" title="Jefes de Personal"{% if nav_activo == 'instructores' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♟</span><span>Jefes de Personal</span></a>
+          <a class="enlace-nav{% if nav_activo == 'evaluaciones' %} activo{% endif %}" href="{{ url_for('evaluations.pagina_catalogo') }}" aria-label="Evaluaciones" title="Evaluaciones"{% if nav_activo == 'evaluaciones' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">✓</span><span>Evaluaciones</span></a>
+          <span class="enlace-nav deshabilitado" aria-disabled="true" aria-label="Períodos, próximamente" title="Períodos, próximamente"><span class="nav-icono" aria-hidden="true">▦</span><span>Períodos</span><small>Próximamente</small></span>
+          <a class="enlace-nav{% if nav_activo == 'configuracion' %} activo{% endif %}" href="{{ url_for('management.pagina_configuracion') }}" aria-label="Configuración" title="Configuración"{% if nav_activo == 'configuracion' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">⚙</span><span>Configuración</span></a>
         {% elif current_user.rol == 'JEFE_PERSONAL' %}
           <p class="etiqueta-nav grupo-nav">SEGUIMIENTO</p>
-          <a class="enlace-nav{% if nav_activo == 'voluntarios' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_voluntarios') }}"{% if nav_activo == 'voluntarios' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♙</span><span>Mis Instructores Voluntarios</span></a>
-          <a class="enlace-nav{% if nav_activo == 'asistencias' %} activo{% endif %}" href="{{ url_for('evaluations.pagina_asistencias') }}"><span class="nav-icono" aria-hidden="true">◷</span><span>Asistencias</span></a>
-          <a class="enlace-nav{% if nav_activo == 'calificaciones' %} activo{% endif %}" href="{{ url_for('evaluations.pagina_calificaciones') }}"><span class="nav-icono" aria-hidden="true">✓</span><span>Notas e historial</span></a>
+          <a class="enlace-nav{% if nav_activo == 'voluntarios' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_voluntarios') }}" aria-label="Mis Instructores Voluntarios" title="Mis Instructores Voluntarios"{% if nav_activo == 'voluntarios' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♙</span><span>Mis Instructores Voluntarios</span></a>
+          <a class="enlace-nav{% if nav_activo == 'asistencias' %} activo{% endif %}" href="{{ url_for('evaluations.pagina_asistencias') }}" aria-label="Asistencias" title="Asistencias"><span class="nav-icono" aria-hidden="true">◷</span><span>Asistencias</span></a>
+          <a class="enlace-nav{% if nav_activo == 'calificaciones' %} activo{% endif %}" href="{{ url_for('evaluations.pagina_calificaciones') }}" aria-label="Notas e historial" title="Notas e historial"><span class="nav-icono" aria-hidden="true">✓</span><span>Notas e historial</span></a>
         {% else %}
           <p class="etiqueta-nav grupo-nav">MI INFORMACIÓN</p>
-          <a class="enlace-nav" href="{{ url_for('dashboard.instructor_voluntario') }}#mis-evaluaciones"><span class="nav-icono" aria-hidden="true">✓</span><span>Mis evaluaciones</span></a>
-          <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">▤</span><span>Capacitaciones</span><small>Próximamente</small></span>
+          <a class="enlace-nav" href="{{ url_for('dashboard.instructor_voluntario') }}#mis-evaluaciones" aria-label="Mis evaluaciones" title="Mis evaluaciones"><span class="nav-icono" aria-hidden="true">✓</span><span>Mis evaluaciones</span></a>
+          <span class="enlace-nav deshabilitado" aria-disabled="true" aria-label="Capacitaciones, próximamente" title="Capacitaciones, próximamente"><span class="nav-icono" aria-hidden="true">▤</span><span>Capacitaciones</span><small>Próximamente</small></span>
         {% endif %}
       </nav>
 
@@ -52,7 +52,7 @@
           <span class="usuario-datos"><strong>{{ current_user.nombre }}</strong><small>{{ current_user.rol_etiqueta }}</small></span>
         </div>
         <input class="token-csrf" type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button class="boton-salir" id="logout-button" type="button"><span aria-hidden="true">↪</span> Cerrar sesión</button>
+        <button class="boton-salir" id="logout-button" type="button" aria-label="Cerrar sesión"><span aria-hidden="true">↪</span><span class="boton-salir-texto">Cerrar sesión</span></button>
       </div>
     </aside>
 
@@ -60,8 +60,12 @@
     <main class="contenido-principal">
       <header class="barra-superior">
         <button class="boton-menu" id="boton-menu" type="button" aria-label="Abrir menú de navegación" aria-controls="barra-lateral" aria-expanded="false">☰</button>
+        <button class="boton-sidebar" id="boton-sidebar" type="button" aria-label="Plegar menú lateral" aria-controls="barra-lateral" aria-expanded="true" title="Plegar menú lateral">‹</button>
         <div class="miga"><span>SICOSE</span><span aria-hidden="true">/</span><strong>{{ titulo_pagina }}</strong></div>
         <span class="rol-chip">{{ current_user.rol_etiqueta }}</span>
+        <button class="boton-tema" id="boton-tema" type="button" aria-label="Cambiar a modo oscuro" aria-pressed="false">
+          <span class="tema-icono" id="tema-icono" aria-hidden="true">◐</span><span class="tema-etiqueta" id="tema-etiqueta">Modo oscuro</span>
+        </button>
       </header>
       <div class="contenido-pagina">
         <div class="encabezado-pagina">

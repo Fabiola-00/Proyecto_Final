@@ -3,12 +3,26 @@
 <section class="seccion-panel" aria-labelledby="voluntarios-titulo">
   <div class="titulo-seccion"><div><p class="sobrelinea">GESTIÓN DE PERSONAL</p><h2 id="voluntarios-titulo">Instructores Voluntarios</h2></div></div>
   {% if current_user.rol == 'ADMINISTRADOR' %}
-  <div class="tarjeta-amplia"><div><h3>Invitar a un Instructor Voluntario</h3><p>El enlace expira en siete días y puede utilizarse una sola vez. La cuenta resultante requiere aprobación.</p>
-    <form id="invitacion-form" class="formulario-inline"><label for="invitacion-correo">Correo (opcional)</label><input id="invitacion-correo" name="correo" type="email" maxlength="254"><button type="submit">Crear invitación</button></form>
-    <p id="invitacion-resultado" class="mensaje" role="status" aria-live="polite"></p></div></div>
+  <section id="agregar-instructor-voluntario" class="tarjeta-amplia bloque-alta-manual" aria-labelledby="alta-instructor-voluntario-titulo">
+    <div class="icono-amplio" aria-hidden="true">＋</div>
+    <div class="alta-manual-contenido"><h3 id="alta-instructor-voluntario-titulo">Agregar Instructor Voluntario</h3><p>Registra la cuenta desde administración. Quedará activa; comparte el usuario y la contraseña inicial directamente por un canal seguro.</p>
+      <form id="instructor-voluntario-form" class="formulario-inline" enctype="multipart/form-data">
+        <label>Nombre completo<input name="nombre" maxlength="160" required></label>
+        <label>Nombre de usuario<input name="username" maxlength="80" autocomplete="username" required></label>
+        <label>Correo electrónico (opcional)<input name="correo" type="email" maxlength="254"></label>
+        <label>Contraseña inicial (mínimo 12 caracteres)<input name="password" type="password" minlength="12" maxlength="256" autocomplete="new-password" required></label>
+        <label>Experiencia en operaciones (opcional)<input name="experiencia_operaciones" maxlength="2000"></label>
+        <label>Antigüedad desde (opcional)<input name="antiguedad_desde" type="date"></label>
+        <label>Jefe de Personal asignado (opcional)<select name="instructor_id"><option value="">Sin asignar</option></select></label>
+        <label>Foto de perfil (PNG/JPEG, máximo 3 MiB)<input name="foto" type="file" accept="image/png,image/jpeg"></label>
+        <button type="submit">Crear Instructor Voluntario</button>
+      </form>
+      <p id="instructor-voluntario-form-mensaje" class="mensaje" role="status" aria-live="polite"></p>
+    </div>
+  </section>
   <section class="seccion-panel"><div class="titulo-seccion"><h2>Solicitudes pendientes</h2></div><div id="solicitudes-lista" class="rejilla-modulos"></div></section>
   {% endif %}
-  <div class="titulo-seccion"><h2 id="lista-voluntarios-titulo">Perfiles registrados</h2></div>
+  <div id="perfiles-registrados" class="titulo-seccion"><div><p class="sobrelinea">DIRECTORIO</p><h2 id="lista-voluntarios-titulo">Perfiles registrados</h2></div></div>
   <div id="voluntarios-lista" class="rejilla-modulos" aria-live="polite"></div>
   <p id="gestion-mensaje" class="mensaje" role="status" aria-live="polite"></p>
 </section>

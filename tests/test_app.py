@@ -130,7 +130,16 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertEqual(respuesta.status_code, 200)
         self.assertIn(b"Panel de administraci\xc3\xb3n", respuesta.data)
         self.assertIn(b"Voluntarios activos", respuesta.data)
+        self.assertIn(b'id="boton-tema"', respuesta.data)
+        self.assertIn(b'id="boton-sidebar"', respuesta.data)
+        self.assertIn(b"images/sbrab-logo.png", respuesta.data)
         self.assertIn(b"SICOSE", respuesta.data)
+
+    def test_logo_institucional_esta_disponible_como_imagen(self):
+        respuesta = self.cliente.get("/static/images/sbrab-logo.png")
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(respuesta.mimetype, "image/png")
+        respuesta.close()
 
     def test_inicio_instructor_muestra_solo_su_panel(self):
         self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
@@ -353,6 +362,9 @@ class AplicacionTestCase(unittest.TestCase):
         gestion = self.cliente.get("/gestion/instructores-voluntarios")
         self.assertEqual(gestion.status_code, 200)
         self.assertIn(b"Solicitudes pendientes", gestion.data)
+        self.assertIn(b"Agregar Instructor Voluntario", gestion.data)
+        self.assertIn(b"Perfiles registrados", gestion.data)
+        self.assertNotIn(b'id="invitacion-form"', gestion.data)
         instructores = self.cliente.get("/gestion/jefes-personal")
         self.assertEqual(instructores.status_code, 200)
         self.assertIn(b"Registrar Jefe de Personal", instructores.data)
@@ -382,6 +394,60 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertNotIn(b"Panel de administraci", inicio.data)
         rechazo = self.cliente.post("/api/admin/jefes-personal", json={}, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(rechazo.status_code, 403)
+
+    def test_admin_crea_instructor_voluntario_manualmente_con_foto(self):
+        import io
+
+        self.assertEqual(self._login().status_code, 200)
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            conexion = obtener_conexion()
+            jefe_id = conexion.execute("SELECT id FROM usuarios WHERE username='instructor.demo'").fetchone()[0]
+            conexion.execute("INSERT INTO instructores (usuario_id, especialidad) VALUES (?, 'Rescate')", (jefe_id,))
+            conexion.commit()
+
+        creada = self.cliente.post("/api/admin/instructores-voluntarios", data={
+            "username": "iv.manual",
+            "nombre": "Instructor Voluntario Manual",
+            "correo": "iv.manual@example.org",
+            "password": "Clave inicial manual 123!",
+            "experiencia_operaciones": "Rescate urbano",
+            "antiguedad_desde": "2024-01-15",
+            "instructor_id": str(jefe_id),
+            "foto": (io.BytesIO(self._png_prueba()), "perfil.png"),
+        }, headers={"X-CSRFToken": self._csrf_token()}, content_type="multipart/form-data")
+        self.assertEqual(creada.status_code, 201)
+        user_id = creada.json["id"]
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            conexion = obtener_conexion()
+            cuenta = conexion.execute(
+                "SELECT u.estado, r.nombre AS rol, u.password_hash FROM usuarios u JOIN roles r ON r.id=u.rol_id WHERE u.id=?",
+                (user_id,),
+            ).fetchone()
+            perfil = conexion.execute(
+                "SELECT instructor_id, experiencia_operaciones, antiguedad_desde FROM voluntarios WHERE usuario_id=?",
+                (user_id,),
+            ).fetchone()
+            solicitudes = conexion.execute(
+                "SELECT COUNT(*) FROM solicitudes_registro WHERE usuario_id=?", (user_id,)
+            ).fetchone()[0]
+        self.assertEqual(cuenta["estado"], "ACTIVO")
+        self.assertEqual(cuenta["rol"], "INSTRUCTOR_VOLUNTARIO")
+        self.assertNotEqual(cuenta["password_hash"], "Clave inicial manual 123!")
+        self.assertEqual(perfil["instructor_id"], jefe_id)
+        self.assertEqual(perfil["experiencia_operaciones"], "Rescate urbano")
+        self.assertEqual(perfil["antiguedad_desde"], "2024-01-15")
+        self.assertEqual(solicitudes, 0)
+        self.assertTrue(any(item["id"] == user_id for item in self.cliente.get("/api/instructores-voluntarios").json["voluntarios"]))
+        foto = self.cliente.get(f"/api/usuarios/{user_id}/foto")
+        self.assertEqual(foto.status_code, 200)
+        self.assertEqual(foto.mimetype, "image/png")
+        foto.close()
+        self.cliente.post("/api/auth/logout", headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
+        denegada = self.cliente.post("/api/admin/instructores-voluntarios", json={}, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(denegada.status_code, 403)
 
     def test_admin_registra_instructor_con_foto(self):
         import io
