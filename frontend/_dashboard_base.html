@@ -24,19 +24,19 @@
         </a>
         {% if current_user.rol == 'ADMINISTRADOR' %}
           <p class="etiqueta-nav grupo-nav">ADMINISTRACIÓN</p>
-          <a class="enlace-nav{% if nav_activo == 'voluntarios' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_voluntarios') }}"{% if nav_activo == 'voluntarios' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♙</span><span>Voluntarios</span></a>
-          <a class="enlace-nav{% if nav_activo == 'instructores' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_instructores') }}"{% if nav_activo == 'instructores' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♟</span><span>Instructores</span></a>
+          <a class="enlace-nav{% if nav_activo == 'voluntarios' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_voluntarios') }}"{% if nav_activo == 'voluntarios' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♙</span><span>Instructores Voluntarios</span></a>
+          <a class="enlace-nav{% if nav_activo == 'instructores' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_instructores') }}"{% if nav_activo == 'instructores' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♟</span><span>Jefes de Personal</span></a>
           <a class="enlace-nav{% if nav_activo == 'evaluaciones' %} activo{% endif %}" href="{{ url_for('evaluations.pagina_catalogo') }}"{% if nav_activo == 'evaluaciones' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">✓</span><span>Evaluaciones</span></a>
           <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">▦</span><span>Períodos</span><small>Próximamente</small></span>
-          <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">◷</span><span>Configuración</span><small>Próximamente</small></span>
-        {% elif current_user.rol == 'INSTRUCTOR' %}
+          <a class="enlace-nav{% if nav_activo == 'configuracion' %} activo{% endif %}" href="{{ url_for('management.pagina_configuracion') }}"{% if nav_activo == 'configuracion' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">⚙</span><span>Configuración</span></a>
+        {% elif current_user.rol == 'JEFE_PERSONAL' %}
           <p class="etiqueta-nav grupo-nav">SEGUIMIENTO</p>
-          <a class="enlace-nav{% if nav_activo == 'voluntarios' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_voluntarios') }}"{% if nav_activo == 'voluntarios' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♙</span><span>Mis voluntarios</span></a>
+          <a class="enlace-nav{% if nav_activo == 'voluntarios' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_voluntarios') }}"{% if nav_activo == 'voluntarios' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♙</span><span>Mis Instructores Voluntarios</span></a>
           <a class="enlace-nav{% if nav_activo == 'asistencias' %} activo{% endif %}" href="{{ url_for('evaluations.pagina_asistencias') }}"><span class="nav-icono" aria-hidden="true">◷</span><span>Asistencias</span></a>
           <a class="enlace-nav{% if nav_activo == 'calificaciones' %} activo{% endif %}" href="{{ url_for('evaluations.pagina_calificaciones') }}"><span class="nav-icono" aria-hidden="true">✓</span><span>Notas e historial</span></a>
         {% else %}
           <p class="etiqueta-nav grupo-nav">MI INFORMACIÓN</p>
-          <a class="enlace-nav" href="{{ url_for('dashboard.voluntario') }}#mis-evaluaciones"><span class="nav-icono" aria-hidden="true">✓</span><span>Mis evaluaciones</span></a>
+          <a class="enlace-nav" href="{{ url_for('dashboard.instructor_voluntario') }}#mis-evaluaciones"><span class="nav-icono" aria-hidden="true">✓</span><span>Mis evaluaciones</span></a>
           <span class="enlace-nav deshabilitado" aria-disabled="true"><span class="nav-icono" aria-hidden="true">▤</span><span>Capacitaciones</span><small>Próximamente</small></span>
         {% endif %}
       </nav>
@@ -49,7 +49,7 @@
           {% else %}
             <span class="avatar" aria-hidden="true">{{ current_user.nombre[:1]|upper }}</span>
           {% endif %}
-          <span class="usuario-datos"><strong>{{ current_user.nombre }}</strong><small>{{ current_user.rol|capitalize }}</small></span>
+          <span class="usuario-datos"><strong>{{ current_user.nombre }}</strong><small>{{ current_user.rol_etiqueta }}</small></span>
         </div>
         <input class="token-csrf" type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button class="boton-salir" id="logout-button" type="button"><span aria-hidden="true">↪</span> Cerrar sesión</button>
@@ -61,7 +61,7 @@
       <header class="barra-superior">
         <button class="boton-menu" id="boton-menu" type="button" aria-label="Abrir menú de navegación" aria-controls="barra-lateral" aria-expanded="false">☰</button>
         <div class="miga"><span>SICOSE</span><span aria-hidden="true">/</span><strong>{{ titulo_pagina }}</strong></div>
-        <span class="rol-chip">{{ current_user.rol|capitalize }}</span>
+        <span class="rol-chip">{{ current_user.rol_etiqueta }}</span>
       </header>
       <div class="contenido-pagina">
         <div class="encabezado-pagina">

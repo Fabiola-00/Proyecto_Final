@@ -35,7 +35,7 @@ Copiar la salida a `SICOSE_SECRET_KEY` dentro de `.env`; define también la cont
 flask --app sicose init-db
 ```
 
-El comando crea o amplía `instance\sicose.sqlite3`; preserva los datos, aplica migraciones aditivas y crea las tablas/columnas del modelo actual y tres roles (versión 4).
+El comando crea o amplía `instance\sicose.sqlite3`; preserva los datos, aplica migraciones aditivas y crea las tablas/columnas del modelo actual y tres roles (`ADMINISTRADOR`, `JEFE_PERSONAL` e `INSTRUCTOR_VOLUNTARIO`, esquema versión 5).
 
 Después de actualizar el código a una fase nueva, detén el servidor y vuelve a ejecutar este comando antes de usar los módulos nuevos. Es aditivo e idempotente: añade las tablas faltantes y no reinicia ni borra los datos existentes.
 
@@ -53,7 +53,7 @@ El usuario es `admin.demo`, salvo que configures otro valor. El comando falla si
 flask --app sicose run --debug
 ```
 
-Abrir `http://127.0.0.1:5000/login`. Administración puede registrar y editar perfiles de instructores/voluntarios, cargar fotos PNG/JPEG (máximo 3 MiB) y restablecer sus contraseñas; comunica la nueva clave al usuario por un canal seguro. Las fotos se almacenan localmente en `instance\perfiles`. Administración usa **Evaluaciones** para crear períodos, catálogo no psicométrico y asignaciones. Instructor usa **Asistencias** y **Notas e historial**. Voluntario ve estados de evaluaciones sin notas ni observaciones. Las operaciones mutables requieren CSRF mediante `X-CSRFToken`. Detener el servidor con `Ctrl+C`.
+Abrir `http://127.0.0.1:5000/login`. Administración puede registrar y editar perfiles de Jefes de Personal e Instructores Voluntarios, cargar fotos PNG/JPEG (máximo 3 MiB) y restablecer sus contraseñas; comunica la nueva clave al usuario por un canal seguro. En su dashboard ve las fotos de los perfiles registrados. Desde **Configuración** puede editar su propio nombre y foto; para cambiar su contraseña debe ingresar la actual y volver a iniciar sesión después. Las fotos se almacenan localmente en `instance\perfiles`. Administración usa **Evaluaciones** para catálogo y asignaciones. Jefe de Personal usa **Asistencias** y **Notas e historial**. Instructor Voluntario ve estados de evaluaciones sin notas ni observaciones. Las operaciones mutables requieren CSRF mediante `X-CSRFToken`. Detener el servidor con `Ctrl+C`.
 
 ## 6. Ejecutar pruebas
 
@@ -69,7 +69,7 @@ Las pruebas usan el cliente de Flask y una base SQLite en memoria; no requieren 
 
 ```text
 sicose/                 fábrica Flask, auth, permisos, dashboards, SQLite y esquema
-frontend/               login, registro, gestión de voluntarios, tres paneles, CSS y JS
+frontend/               login, registro, gestión por rol, tres paneles, CSS y JS
 tests/                  pruebas HTTP de autenticación, autorización y datos
 instance/               base local ignorada por Git
 docs/07_inicio_desarrollo.md  instrucciones para Windows

@@ -9,6 +9,7 @@ const menuButton = document.querySelector("#boton-menu");
 const mobileBackdrop = document.querySelector("#fondo-movil");
 const registrationForm = document.querySelector("#registro-form");
 const managementMessage = document.querySelector("#gestion-mensaje");
+const adminProfileForm = document.querySelector("#admin-profile-form");
 
 async function apiJson(path, options = {}) {
   const headers = { "X-CSRFToken": csrfToken, ...(options.headers || {}) };
@@ -127,6 +128,27 @@ if (registrationForm) {
   });
 }
 
+if (adminProfileForm) {
+  const profileMessage = document.querySelector("#admin-profile-message");
+  adminProfileForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(adminProfileForm);
+    const nueva = formData.get("nueva_clave");
+    const confirmar = formData.get("confirmar_clave");
+    const foto = formData.get("foto");
+    if (nueva !== confirmar) { profileMessage.textContent = "La confirmación no coincide con la nueva contraseña."; return; }
+    if (!foto?.size) formData.delete("foto");
+    formData.delete("confirmar_clave");
+    try {
+      const result = await apiJson("/api/admin/perfil", { method: "PATCH", body: formData });
+      profileMessage.textContent = result.requiere_nuevo_login
+        ? "Contraseña actualizada. Volverás al inicio de sesión."
+        : "Perfil actualizado.";
+      window.setTimeout(() => window.location.assign(result.requiere_nuevo_login ? "/login" : window.location.pathname), 1000);
+    } catch (error) { profileMessage.textContent = error.message; }
+  });
+}
+
 const volunteerList = document.querySelector("#voluntarios-lista");
 if (volunteerList) {
   const solicitudesLista = document.querySelector("#solicitudes-lista");
@@ -137,8 +159,8 @@ if (volunteerList) {
 
   async function cargarVoluntarios() {
     volunteerList.replaceChildren();
-    const { voluntarios } = await apiJson("/api/voluntarios");
-    if (!voluntarios.length) volunteerList.append(elemento("p", "No hay voluntarios registrados.", "nota-informativa"));
+    const { voluntarios } = await apiJson("/api/instructores-voluntarios");
+    if (!voluntarios.length) volunteerList.append(elemento("p", "No hay Instructores Voluntarios registrados.", "nota-informativa"));
     voluntarios.forEach((voluntario) => {
       const card = elemento("article", undefined, "tarjeta-modulo");
       const contenido = elemento("div");
@@ -161,7 +183,7 @@ if (volunteerList) {
         const photoCaption = elemento("label", "Foto de perfil (PNG/JPEG, máximo 3 MiB)");
         const photoInput = elemento("input"); photoInput.type = "file"; photoInput.name = "foto"; photoInput.accept = "image/png,image/jpeg"; photoCaption.append(photoInput); form.append(photoCaption);
         if (esAdministrador) {
-          const caption = elemento("label", "Instructor asignado");
+          const caption = elemento("label", "Jefe de Personal asignado");
           const select = elemento("select"); select.name = "instructor_id";
           const none = elemento("option", "Sin asignar"); none.value = ""; select.append(none);
           instructoresActivos.forEach((instructor) => {
@@ -179,7 +201,7 @@ if (volunteerList) {
             const body = Object.fromEntries(formData.entries());
             const foto = formData.get("foto"); delete body.foto;
             if ("instructor_id" in body) body.instructor_id = body.instructor_id ? Number(body.instructor_id) : null;
-            await apiJson(`/api/voluntarios/${voluntario.id}`, { method: "PATCH", body });
+            await apiJson(`/api/instructores-voluntarios/${voluntario.id}`, { method: "PATCH", body });
             if (foto?.size) { const carga = new FormData(); carga.append("foto", foto); await apiJson(`/api/usuarios/${voluntario.id}/foto`, { method: "PUT", body: carga }); }
             await cargarVoluntarios();
           }
@@ -197,7 +219,7 @@ if (volunteerList) {
           const deactivate = elemento("button", "Desactivar", "boton-secundario");
           deactivate.addEventListener("click", async () => {
             if (!window.confirm(`¿Desactivar a ${voluntario.nombre}?`)) return;
-            try { await apiJson(`/api/voluntarios/${voluntario.id}/desactivar`, { method: "POST" }); await cargarVoluntarios(); }
+            try { await apiJson(`/api/instructores-voluntarios/${voluntario.id}/desactivar`, { method: "POST" }); await cargarVoluntarios(); }
             catch (error) { managementMessage.textContent = error.message; }
           });
           card.append(deactivate);
@@ -217,7 +239,7 @@ if (volunteerList) {
       if (instructor.tiene_foto) { const foto = elemento("img"); foto.src = `/api/usuarios/${instructor.id}/foto`; foto.alt = `Foto de ${instructor.nombre}`; foto.className = "foto-perfil"; card.append(foto); }
       card.append(elemento("h3", solicitud.nombre), elemento("p", `${solicitud.username} · ${solicitud.correo || "Sin correo"}`));
       const assign = elemento("select"); assign.name = "instructor_id";
-      const none = elemento("option", "Sin instructor asignado"); none.value = ""; assign.append(none);
+      const none = elemento("option", "Sin Jefe de Personal asignado"); none.value = ""; assign.append(none);
       instructoresActivos.forEach((instructor) => { const option = elemento("option", instructor.nombre); option.value = instructor.id; assign.append(option); });
       card.append(assign);
       [["aprobar", "Aprobar"], ["rechazar", "Rechazar"]].forEach(([accion, texto]) => {
@@ -245,7 +267,7 @@ if (volunteerList) {
   });
 
   const cargarInstructores = esAdministrador
-    ? apiJson("/api/admin/instructores").then((data) => { instructoresActivos = data.instructores; })
+    ? apiJson("/api/admin/jefes-personal").then((data) => { instructoresActivos = data.instructores; })
     : Promise.resolve();
   cargarInstructores.then(() => Promise.all([cargarVoluntarios(), cargarSolicitudes()]))
     .catch((error) => { managementMessage.textContent = error.message; });
@@ -259,14 +281,14 @@ if (instructorForm && instructorList) {
 
   async function cargarInstructoresAdmin() {
     instructorList.replaceChildren();
-    const { instructores } = await apiJson("/api/admin/instructores");
-    if (!instructores.length) instructorList.append(elemento("p", "No hay instructores registrados.", "nota-informativa"));
+    const { instructores } = await apiJson("/api/admin/jefes-personal");
+    if (!instructores.length) instructorList.append(elemento("p", "No hay Jefes de Personal registrados.", "nota-informativa"));
     instructores.forEach((instructor) => {
       const card = elemento("article", undefined, "tarjeta-modulo");
       card.append(
         elemento("h3", instructor.nombre),
         elemento("p", `${instructor.username} · ${instructor.correo || "Sin correo"}`),
-        elemento("p", `${instructor.especialidad || "Sin especialidad"} · ${instructor.voluntarios_activos} voluntarios activos · ${instructor.estado}`),
+        elemento("p", `${instructor.especialidad || "Sin especialidad"} · ${instructor.voluntarios_activos} Instructores Voluntarios activos · ${instructor.estado}`),
       );
       const edit = elemento("details", undefined, "edicion-voluntario");
       edit.append(elemento("summary", "Editar perfil"));
@@ -281,7 +303,7 @@ if (instructorForm && instructorList) {
         event.preventDefault();
         try {
           const formData = new FormData(form); const body = Object.fromEntries(formData.entries()); const foto = formData.get("foto"); delete body.foto;
-          await apiJson(`/api/admin/instructores/${instructor.id}`, { method: "PATCH", body });
+          await apiJson(`/api/admin/jefes-personal/${instructor.id}`, { method: "PATCH", body });
           if (foto?.size) { const carga = new FormData(); carga.append("foto", foto); await apiJson(`/api/usuarios/${instructor.id}/foto`, { method: "PUT", body: carga }); }
           listMessage.textContent = "Perfil actualizado.";
           await cargarInstructoresAdmin();
@@ -292,12 +314,12 @@ if (instructorForm && instructorList) {
       const resetForm = elemento("form", undefined, "formulario-inline"); const passwordCaption = elemento("label", "Nueva contraseña (mínimo 12 caracteres)"); const password = elemento("input"); password.type = "password"; password.name = "password"; password.minLength = 12; password.maxLength = 256; password.required = true; password.autocomplete = "new-password"; passwordCaption.append(password); resetForm.append(passwordCaption, elemento("button", "Restablecer clave"));
       resetForm.addEventListener("submit", async (event) => { event.preventDefault(); try { await apiJson(`/api/admin/usuarios/${instructor.id}/restablecer-clave`, { method: "POST", body: { password: password.value } }); resetForm.reset(); listMessage.textContent = "Contraseña restablecida; las sesiones anteriores quedaron invalidadas."; } catch (error) { listMessage.textContent = error.message; } }); reset.append(resetForm); card.append(reset);
       if (instructor.estado === "ACTIVO") {
-        const deactivate = elemento("button", "Desactivar instructor", "boton-secundario");
+        const deactivate = elemento("button", "Desactivar Jefe de Personal", "boton-secundario");
         deactivate.addEventListener("click", async () => {
-          if (!window.confirm(`¿Desactivar a ${instructor.nombre}? Sus voluntarios quedarán sin instructor asignado.`)) return;
+          if (!window.confirm(`¿Desactivar a ${instructor.nombre}? Sus Instructores Voluntarios quedarán sin Jefe de Personal asignado.`)) return;
           try {
-            const result = await apiJson(`/api/admin/instructores/${instructor.id}/desactivar`, { method: "POST" });
-            listMessage.textContent = `Instructor desactivado. Voluntarios desvinculados: ${result.voluntarios_desvinculados}.`;
+            const result = await apiJson(`/api/admin/jefes-personal/${instructor.id}/desactivar`, { method: "POST" });
+            listMessage.textContent = `Jefe de Personal desactivado. Instructores Voluntarios desvinculados: ${result.voluntarios_desvinculados}.`;
             await cargarInstructoresAdmin();
           } catch (error) { listMessage.textContent = error.message; }
         });
@@ -311,9 +333,9 @@ if (instructorForm && instructorList) {
     event.preventDefault();
     const body = new FormData(instructorForm); body.delete("csrf_token");
     try {
-      await apiJson("/api/admin/instructores", { method: "POST", body });
+      await apiJson("/api/admin/jefes-personal", { method: "POST", body });
       instructorForm.reset();
-      formMessage.textContent = "Cuenta de instructor creada y activada.";
+      formMessage.textContent = "Cuenta de Jefe de Personal creada y activada.";
       await cargarInstructoresAdmin();
     } catch (error) { formMessage.textContent = error.message; }
   });
@@ -363,7 +385,7 @@ if (evaluationForm) {
   }
 
   async function cargarAsignacionesAdmin() {
-    const { asignaciones } = await apiJson("/api/instructor/asignaciones");
+    const { asignaciones } = await apiJson("/api/jefe-personal/asignaciones");
     assignmentList.replaceChildren();
     asignaciones.forEach((item) => assignmentList.append(elemento("article", `${item.voluntario} · ${item.periodo} · ${item.evaluacion} · ${item.estado}`, "tarjeta-modulo")));
   }
@@ -403,7 +425,7 @@ if (evaluationForm) {
 
   Promise.all([
     cargarCatalogo(), cargarAsignacionesAdmin(),
-    apiJson("/api/admin/voluntarios-activos").then(({ voluntarios }) => {
+    apiJson("/api/admin/instructores-voluntarios-activos").then(({ voluntarios }) => {
       const select = assignmentForm.elements.voluntario_id;
       select.replaceChildren(); voluntarios.forEach((v) => { const option = elemento("option", v.nombre); option.value = v.id; select.append(option); });
     }),
@@ -420,7 +442,7 @@ if (attendanceForm) {
   const courseMessage = document.querySelector("#capacitacion-mensaje");
 
   async function cargarEquipoAsistencia() {
-    const { voluntarios } = await apiJson("/api/voluntarios");
+    const { voluntarios } = await apiJson("/api/instructores-voluntarios");
     const activos = voluntarios.filter((voluntario) => voluntario.estado === "ACTIVO");
     attendanceRows.replaceChildren();
     const courseSelect = courseForm.elements.voluntario_id; courseSelect.replaceChildren();
@@ -435,7 +457,7 @@ if (attendanceForm) {
   }
 
   async function cargarHistorialAsistencia() {
-    const { asistencias } = await apiJson("/api/instructor/asistencias"); attendanceHistory.replaceChildren();
+    const { asistencias } = await apiJson("/api/jefe-personal/asistencias"); attendanceHistory.replaceChildren();
     if (!asistencias.length) attendanceHistory.append(elemento("p", "Sin registros de asistencia.", "nota-informativa"));
     asistencias.slice(0, 30).forEach((row) => attendanceHistory.append(elemento("article", `${row.fecha} · ${row.actividad} · ${row.voluntario}: ${row.estado}`, "tarjeta-modulo")));
   }
@@ -445,7 +467,7 @@ if (attendanceForm) {
     const data = new FormData(attendanceForm);
     const entries = [...attendanceRows.querySelectorAll("select")].map((select) => ({ voluntario_id: Number(select.dataset.volunteerId), estado: select.value }));
     try {
-      const result = await apiJson("/api/instructor/asistencias", { method: "POST", body: { fecha: data.get("fecha"), actividad: data.get("actividad"), asistencias: entries } });
+      const result = await apiJson("/api/jefe-personal/asistencias", { method: "POST", body: { fecha: data.get("fecha"), actividad: data.get("actividad"), asistencias: entries } });
       attendanceMessage.textContent = `Registros guardados: ${result.registrados}.`; await cargarHistorialAsistencia();
     } catch (error) { attendanceMessage.textContent = error.message; }
   });
@@ -453,7 +475,7 @@ if (attendanceForm) {
   courseForm.addEventListener("submit", async (event) => {
     event.preventDefault(); const data = Object.fromEntries(new FormData(courseForm).entries());
     const volunteerId = Number(data.voluntario_id); delete data.voluntario_id;
-    try { await apiJson(`/api/instructor/voluntarios/${volunteerId}/capacitaciones`, { method: "POST", body: data }); courseForm.reset(); courseMessage.textContent = "Capacitación registrada."; }
+    try { await apiJson(`/api/jefe-personal/instructores-voluntarios/${volunteerId}/capacitaciones`, { method: "POST", body: data }); courseForm.reset(); courseMessage.textContent = "Capacitación registrada."; }
     catch (error) { courseMessage.textContent = error.message; }
   });
 
@@ -470,7 +492,7 @@ if (gradeSelect) {
   let historiesByAssignment = new Map();
 
   async function cargarAsignacionesInstructor() {
-    const { asignaciones } = await apiJson("/api/instructor/asignaciones");
+    const { asignaciones } = await apiJson("/api/jefe-personal/asignaciones");
     assignmentsById = new Map(asignaciones.map((item) => [String(item.id), item]));
     gradeSelect.replaceChildren(elemento("option", "Selecciona una evaluación"));
     psychometricList.replaceChildren();
@@ -481,7 +503,7 @@ if (gradeSelect) {
       const viewResults = elemento("button", "Ver intentos y resultados", "boton-secundario");
       viewResults.addEventListener("click", async () => {
         try {
-          const { intentos } = await apiJson(`/api/instructor/asignaciones/${item.id}/resultados`);
+          const { intentos } = await apiJson(`/api/jefe-personal/asignaciones/${item.id}/resultados`);
           results.replaceChildren();
           if (!intentos.length) results.append(elemento("p", "Sin intentos registrados."));
           intentos.forEach((attempt) => results.append(elemento("p", `Intento ${attempt.numero} · ${attempt.estado} · ${attempt.enviado_en || "Sin envío"} · ${attempt.nota_0_100 === null ? "Sin resultado" : `Resultado ${attempt.nota_0_100}`}`)));
@@ -491,7 +513,7 @@ if (gradeSelect) {
       const button = elemento("button", item.estado === "HABILITADA" ? "Desactivar prueba" : "Activar prueba", item.estado === "HABILITADA" ? "boton-secundario" : "");
       button.addEventListener("click", async () => {
         const estado = item.estado === "HABILITADA" ? "NO_HABILITADA" : "HABILITADA";
-        try { await apiJson(`/api/instructor/asignaciones/${item.id}/estado`, { method: "PATCH", body: { estado } }); await cargarAsignacionesInstructor(); }
+        try { await apiJson(`/api/jefe-personal/asignaciones/${item.id}/estado`, { method: "PATCH", body: { estado } }); await cargarAsignacionesInstructor(); }
         catch (error) { gradeMessage.textContent = error.message; }
       });
       card.append(button); psychometricList.append(card);
@@ -503,7 +525,7 @@ if (gradeSelect) {
 
   async function cargarHistorialNota(assignmentId) {
     gradeHistory.replaceChildren();
-    const { historial } = await apiJson(`/api/instructor/asignaciones/${assignmentId}/calificaciones`);
+    const { historial } = await apiJson(`/api/jefe-personal/asignaciones/${assignmentId}/calificaciones`);
     historiesByAssignment.set(String(assignmentId), historial);
     historial.forEach((record) => {
       const detalle = `Nota ${record.nota_0_100} · ${record.registrada_en} · ${record.registrada_por}${record.corregida_de_id ? ` · corrección de #${record.corregida_de_id}` : ""}`;
@@ -525,7 +547,7 @@ if (gradeSelect) {
     const body = Object.fromEntries(new FormData(gradeForm).entries()); body.nota_0_100 = Number(body.nota_0_100);
     if (latest) body.corregida_de_id = latest.id;
     try {
-      await apiJson(`/api/instructor/asignaciones/${gradeSelect.value}/calificaciones`, { method: "POST", body });
+      await apiJson(`/api/jefe-personal/asignaciones/${gradeSelect.value}/calificaciones`, { method: "POST", body });
       gradeForm.reset(); gradeMessage.textContent = latest ? "Corrección guardada; se conservó la nota anterior." : "Nota guardada.";
       await Promise.all([cargarHistorialNota(gradeSelect.value), cargarAsignacionesInstructor()]);
     } catch (error) { gradeMessage.textContent = error.message; }

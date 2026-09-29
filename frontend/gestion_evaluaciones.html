@@ -18,8 +18,8 @@
     <form id="evaluacion-form" class="formulario-inline">
       <label>Código<input name="codigo" maxlength="40" required></label>
       <label>Nombre<input name="nombre" maxlength="160" required></label>
-      <label>Categoría<select name="categoria" required><option value="FISICA">Física</option><option value="ACADEMICA">Académica / cursos</option><option value="INSTRUCTOR">Desempeño del instructor</option></select></label>
-      <input type="hidden" name="origen_nota" value="INSTRUCTOR">
+      <label>Categoría<select name="categoria" required><option value="FISICA">Física</option><option value="ACADEMICA">Académica / cursos</option><option value="JEFE_PERSONAL">Desempeño del Jefe de Personal</option></select></label>
+      <input type="hidden" name="origen_nota" value="JEFE_PERSONAL">
       <button type="submit">Crear evaluación inactiva</button>
     </form>
     <p id="evaluacion-form-mensaje" class="mensaje" role="status"></p>
@@ -28,9 +28,9 @@
   <div id="evaluaciones-lista" class="rejilla-modulos"></div>
 </section>
 <section class="seccion-panel">
-  <div class="titulo-seccion"><h2>Asignar a voluntario</h2></div>
+  <div class="titulo-seccion"><h2>Asignar a Instructor Voluntario</h2></div>
   <form id="asignacion-form" class="tarjeta-amplia formulario-inline">
-    <label>Voluntario<select name="voluntario_id" required></select></label>
+    <label>Instructor Voluntario<select name="voluntario_id" required></select></label>
     <label>Período activo<select name="periodo_id" required></select></label>
     <label>Evaluación activa<select name="evaluacion_id" required></select></label>
     <button type="submit">Asignar</button>

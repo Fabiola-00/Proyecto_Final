@@ -4,12 +4,30 @@
 <section class="seccion-panel" aria-labelledby="gestion-titulo">
   <div class="titulo-seccion"><div><p class="sobrelinea">GESTIÓN GENERAL</p><h2 id="gestion-titulo">Administración del sistema</h2></div><span class="estado-fase">Vista inicial</span></div>
   <div class="rejilla-modulos">
-    <article class="tarjeta-modulo"><span class="modulo-icono violeta" aria-hidden="true">♙</span><div><h3>Voluntarios y registro</h3><p>Revisa solicitudes, crea invitaciones y administra perfiles.</p></div><a class="modulo-estado" href="{{ url_for('management.pagina_gestion_voluntarios') }}">Gestionar</a></article>
-    <article class="tarjeta-modulo"><span class="modulo-icono azul" aria-hidden="true">♟</span><div><h3>Instructores</h3><p>Registra cuentas, actualiza perfiles y administra su acceso.</p></div><a class="modulo-estado" href="{{ url_for('management.pagina_gestion_instructores') }}">Gestionar</a></article>
+    <article class="tarjeta-modulo"><span class="modulo-icono violeta" aria-hidden="true">♙</span><div><h3>Instructores Voluntarios y registro</h3><p>Revisa solicitudes, crea invitaciones y administra perfiles.</p></div><a class="modulo-estado" href="{{ url_for('management.pagina_gestion_voluntarios') }}">Gestionar</a></article>
+    <article class="tarjeta-modulo"><span class="modulo-icono azul" aria-hidden="true">♟</span><div><h3>Jefes de Personal</h3><p>Registra cuentas, actualiza perfiles y administra su acceso.</p></div><a class="modulo-estado" href="{{ url_for('management.pagina_gestion_instructores') }}">Gestionar</a></article>
     <article class="tarjeta-modulo"><span class="modulo-icono naranja" aria-hidden="true">✓</span><div><h3>Catálogo de evaluaciones</h3><p>Configura el catálogo y asigna evaluaciones a voluntarios.</p></div><a class="modulo-estado" href="{{ url_for('evaluations.pagina_catalogo') }}">Gestionar</a></article>
     <article class="tarjeta-modulo"><span class="modulo-icono naranja" aria-hidden="true">▦</span><div><h3>Períodos y ponderaciones</h3><p>Los indicadores muestran el estado actual de la base de datos.</p></div><span class="modulo-estado">Próximamente</span></article>
     <article class="tarjeta-modulo"><span class="modulo-icono azul" aria-hidden="true">▤</span><div><h3>Reportes</h3><p>La exportación individual y consolidada se habilitará en una fase posterior.</p></div><span class="modulo-estado">Próximamente</span></article>
   </div>
+</section>
+<section class="seccion-panel" aria-labelledby="perfiles-voluntarios-titulo">
+  <div class="titulo-seccion"><div><p class="sobrelinea">CUENTAS REGISTRADAS</p><h2 id="perfiles-voluntarios-titulo">Instructores Voluntarios</h2></div><a href="{{ url_for('management.pagina_gestion_voluntarios') }}">Administrar</a></div>
+  {% if perfiles_voluntarios %}<div class="rejilla-perfiles">
+    {% for perfil in perfiles_voluntarios %}<article class="tarjeta-perfil">
+      {% if perfil.tiene_foto %}<img class="foto-perfil" src="{{ url_for('management.foto_perfil', usuario_id=perfil.id) }}" alt="Foto de {{ perfil.nombre }}">{% else %}<span class="avatar avatar-perfil" aria-hidden="true">{{ perfil.nombre[:1]|upper }}</span>{% endif %}
+      <div><h3>{{ perfil.nombre }}</h3><p>Instructor Voluntario · {{ perfil.estado|capitalize }}</p></div>
+    </article>{% endfor %}
+  </div>{% else %}<p class="nota-informativa">Aún no hay perfiles de Instructor Voluntario.</p>{% endif %}
+</section>
+<section class="seccion-panel" aria-labelledby="perfiles-instructores-titulo">
+  <div class="titulo-seccion"><div><p class="sobrelinea">CUENTAS REGISTRADAS</p><h2 id="perfiles-instructores-titulo">Jefes de Personal</h2></div><a href="{{ url_for('management.pagina_gestion_instructores') }}">Administrar</a></div>
+  {% if perfiles_instructores %}<div class="rejilla-perfiles">
+    {% for perfil in perfiles_instructores %}<article class="tarjeta-perfil">
+      {% if perfil.tiene_foto %}<img class="foto-perfil" src="{{ url_for('management.foto_perfil', usuario_id=perfil.id) }}" alt="Foto de {{ perfil.nombre }}">{% else %}<span class="avatar avatar-perfil" aria-hidden="true">{{ perfil.nombre[:1]|upper }}</span>{% endif %}
+      <div><h3>{{ perfil.nombre }}</h3><p>Jefe de Personal · {{ perfil.estado|capitalize }}</p></div>
+    </article>{% endfor %}
+  </div>{% else %}<p class="nota-informativa">Aún no hay perfiles de Jefe de Personal.</p>{% endif %}
 </section>
 <aside class="nota-informativa"><span class="nota-icono" aria-hidden="true">i</span><p><strong>Datos actuales.</strong> Los contadores reflejan únicamente perfiles, cuentas y períodos registrados. SICOSE no genera datos de demostración automáticamente.</p></aside>
 {% endblock %}

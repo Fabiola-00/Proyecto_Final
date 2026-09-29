@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS app_meta (
 
 CREATE TABLE IF NOT EXISTS roles (
     id INTEGER PRIMARY KEY,
-    nombre TEXT NOT NULL UNIQUE CHECK (nombre IN ('ADMINISTRADOR', 'INSTRUCTOR', 'VOLUNTARIO'))
+    nombre TEXT NOT NULL UNIQUE CHECK (nombre IN ('ADMINISTRADOR', 'JEFE_PERSONAL', 'INSTRUCTOR_VOLUNTARIO'))
 );
 
 CREATE TABLE IF NOT EXISTS usuarios (
@@ -88,8 +88,8 @@ CREATE TABLE IF NOT EXISTS evaluaciones (
     id INTEGER PRIMARY KEY,
     codigo TEXT NOT NULL UNIQUE,
     nombre TEXT NOT NULL,
-    categoria TEXT NOT NULL CHECK (categoria IN ('PSICOMETRICA', 'FISICA', 'ACADEMICA', 'INSTRUCTOR')),
-    origen_nota TEXT NOT NULL CHECK (origen_nota IN ('VOLUNTARIO', 'INSTRUCTOR')),
+    categoria TEXT NOT NULL CHECK (categoria IN ('PSICOMETRICA', 'FISICA', 'ACADEMICA', 'JEFE_PERSONAL')),
+    origen_nota TEXT NOT NULL CHECK (origen_nota IN ('INSTRUCTOR_VOLUNTARIO', 'JEFE_PERSONAL')),
     instrumento_id INTEGER REFERENCES instrumentos(id) ON DELETE RESTRICT,
     activo INTEGER NOT NULL DEFAULT 0 CHECK (activo IN (0, 1)),
     creado_en TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
@@ -187,5 +187,5 @@ CREATE TABLE IF NOT EXISTS auditoria (
 );
 
 INSERT INTO app_meta (clave, valor)
-VALUES ('schema_version', '4')
+VALUES ('schema_version', '5')
 ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor;

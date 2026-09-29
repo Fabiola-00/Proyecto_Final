@@ -31,8 +31,8 @@ class AplicacionTestCase(unittest.TestCase):
         with self.app.app_context():
             inicializar_base_datos()
             self._crear_usuario("admin.demo", "ADMINISTRADOR", "Clave demo segura 123!")
-            self._crear_usuario("instructor.demo", "INSTRUCTOR", "Clave instructor 123!")
-            self._crear_usuario("voluntario.demo", "VOLUNTARIO", "Clave voluntario 123!")
+            self._crear_usuario("instructor.demo", "JEFE_PERSONAL", "Clave instructor 123!")
+            self._crear_usuario("voluntario.demo", "INSTRUCTOR_VOLUNTARIO", "Clave voluntario 123!")
 
     def tearDown(self):
         self.cliente = None
@@ -91,7 +91,7 @@ class AplicacionTestCase(unittest.TestCase):
         with self.app.app_context():
             from sicose.db import obtener_conexion
 
-            self._crear_usuario("pendiente.demo", "VOLUNTARIO", "Clave pendiente 123!")
+            self._crear_usuario("pendiente.demo", "INSTRUCTOR_VOLUNTARIO", "Clave pendiente 123!")
             obtener_conexion().execute(
                 "UPDATE usuarios SET estado = 'PENDIENTE' WHERE username = ?",
                 ("pendiente.demo",),
@@ -136,7 +136,8 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
         respuesta = self.cliente.get("/", follow_redirects=True)
         self.assertEqual(respuesta.status_code, 200)
-        self.assertIn(b"Panel del instructor", respuesta.data)
+        self.assertEqual(self.cliente.get("/panel/jefe-personal").status_code, 200)
+        self.assertIn(b"Panel del Jefe de Personal", respuesta.data)
         self.assertIn(b"Seguimiento asignado", respuesta.data)
         self.assertNotIn(b"Panel de administraci\xc3\xb3n", respuesta.data)
 
@@ -144,9 +145,10 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertEqual(self._login("voluntario.demo", "Clave voluntario 123!").status_code, 200)
         respuesta = self.cliente.get("/", follow_redirects=True)
         self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(self.cliente.get("/panel/instructor-voluntario").status_code, 200)
         self.assertIn(b"Mi seguimiento", respuesta.data)
         self.assertIn(b"Privacidad personal", respuesta.data)
-        self.assertNotIn(b"Panel del instructor", respuesta.data)
+        self.assertNotIn(b"Panel del Jefe de Personal", respuesta.data)
 
     def test_ruta_panel_de_otro_rol_retorna_403(self):
         self.assertEqual(self._login("voluntario.demo", "Clave voluntario 123!").status_code, 200)
@@ -218,7 +220,7 @@ class AplicacionTestCase(unittest.TestCase):
             version = conexion.execute(
                 "SELECT valor FROM app_meta WHERE clave = ?", ("schema_version",)
             ).fetchone()[0]
-            self.assertEqual(version, "4")
+            self.assertEqual(version, "5")
             self.assertEqual(
                 conexion.execute("SELECT COUNT(*) FROM roles").fetchone()[0], 3
             )
@@ -229,6 +231,58 @@ class AplicacionTestCase(unittest.TestCase):
                        VALUES (?, ?, ?, ?)""",
                     ("sin.rol", "Sin rol", "hash-no-usado", 9999),
                 )
+
+    def test_migracion_renombra_roles_sin_perder_perfiles_ni_evaluaciones(self):
+        legacy_path = Path(".tmp") / f"legacy-{uuid.uuid4().hex}.sqlite3"
+        old_schema = (Path("sicose") / "schema.sql").read_text(encoding="utf-8")
+        old_schema = old_schema.replace(
+            "('ADMINISTRADOR', 'JEFE_PERSONAL', 'INSTRUCTOR_VOLUNTARIO')",
+            "('ADMINISTRADOR', 'INSTRUCTOR', 'VOLUNTARIO')",
+        ).replace(
+            "('PSICOMETRICA', 'FISICA', 'ACADEMICA', 'JEFE_PERSONAL')",
+            "('PSICOMETRICA', 'FISICA', 'ACADEMICA', 'INSTRUCTOR')",
+        ).replace(
+            "('INSTRUCTOR_VOLUNTARIO', 'JEFE_PERSONAL')",
+            "('VOLUNTARIO', 'INSTRUCTOR')",
+        ).replace("('schema_version', '5')", "('schema_version', '4')")
+        legacy = sqlite3.connect(legacy_path)
+        legacy.execute("PRAGMA foreign_keys=ON")
+        legacy.executescript(old_schema)
+        legacy.executemany("INSERT INTO roles(nombre) VALUES (?)", [("ADMINISTRADOR",), ("INSTRUCTOR",), ("VOLUNTARIO",)])
+        roles = {name: role_id for role_id, name in legacy.execute("SELECT id,nombre FROM roles")}
+        legacy.execute("INSERT INTO usuarios(username,nombre_completo,password_hash,rol_id) VALUES ('jefe.demo','Jefe demo','hash',?)", (roles["INSTRUCTOR"],))
+        jefe_id = legacy.execute("SELECT id FROM usuarios WHERE username='jefe.demo'").fetchone()[0]
+        legacy.execute("INSERT INTO instructores(usuario_id) VALUES (?)", (jefe_id,))
+        legacy.execute("INSERT INTO usuarios(username,nombre_completo,password_hash,rol_id) VALUES ('iv.demo','IV demo','hash',?)", (roles["VOLUNTARIO"],))
+        iv_id = legacy.execute("SELECT id FROM usuarios WHERE username='iv.demo'").fetchone()[0]
+        legacy.execute("INSERT INTO voluntarios(usuario_id,instructor_id) VALUES (?,?)", (iv_id, jefe_id))
+        period_id = legacy.execute("INSERT INTO periodos(nombre,fecha_inicio,fecha_fin) VALUES ('Migración','2026-01-01','2026-12-31')").lastrowid
+        eval_id = legacy.execute("INSERT INTO evaluaciones(codigo,nombre,categoria,origen_nota) VALUES ('JEF-OLD','Registro previo','INSTRUCTOR','INSTRUCTOR')").lastrowid
+        legacy.execute("INSERT INTO asignaciones_evaluacion(voluntario_id,periodo_id,evaluacion_id) VALUES (?,?,?)", (iv_id, period_id, eval_id))
+        legacy.commit()
+        legacy.close()
+
+        legacy_app = create_app({
+            "TESTING": True,
+            "SECRET_KEY": "clave-de-prueba-migracion",
+            "DATABASE": str(legacy_path.resolve()),
+            "PERFIL_MEDIA_FOLDER": str(self.media_path.resolve()),
+        })
+        try:
+            with legacy_app.app_context():
+                inicializar_base_datos()
+                from sicose.db import obtener_conexion
+                conexion = obtener_conexion()
+                migrated_roles = {fila["nombre"]: fila["id"] for fila in conexion.execute("SELECT id,nombre FROM roles")}
+                self.assertEqual(migrated_roles["JEFE_PERSONAL"], roles["INSTRUCTOR"])
+                self.assertEqual(migrated_roles["INSTRUCTOR_VOLUNTARIO"], roles["VOLUNTARIO"])
+                self.assertEqual(conexion.execute("SELECT instructor_id FROM voluntarios WHERE usuario_id=?", (iv_id,)).fetchone()[0], jefe_id)
+                self.assertEqual(tuple(conexion.execute("SELECT categoria,origen_nota FROM evaluaciones WHERE id=?", (eval_id,)).fetchone()), ("JEFE_PERSONAL", "JEFE_PERSONAL"))
+                self.assertEqual(conexion.execute("SELECT COUNT(*) FROM asignaciones_evaluacion WHERE voluntario_id=? AND evaluacion_id=?", (iv_id, eval_id)).fetchone()[0], 1)
+                self.assertEqual(conexion.execute("PRAGMA foreign_key_check").fetchall(), [])
+        finally:
+            if legacy_path.exists():
+                legacy_path.unlink()
 
     def test_solicitud_publica_crea_usuario_pendiente_sin_sesion(self):
         respuesta = self.cliente.post("/api/registro/solicitudes", json={
@@ -285,7 +339,7 @@ class AplicacionTestCase(unittest.TestCase):
         with self.app.app_context():
             from sicose.db import obtener_conexion
             user_id = obtener_conexion().execute("SELECT id FROM usuarios WHERE username='voluntario.demo'").fetchone()[0]
-        csrf = re.search(rb'name="csrf_token" value="([^"]+)"', admin.get("/gestion/voluntarios").data).group(1).decode()
+        csrf = re.search(rb'name="csrf_token" value="([^"]+)"', admin.get("/gestion/instructores-voluntarios").data).group(1).decode()
         response = admin.post(f"/api/admin/usuarios/{user_id}/restablecer-clave", json={"password": "Nueva clave segura 456!"}, headers={"X-CSRFToken": csrf})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(volunteer.get("/api/auth/me").status_code, 401)
@@ -296,17 +350,17 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertEqual(registro.status_code, 200)
         self.assertIn(b"Solicitud de registro", registro.data)
         self.assertEqual(self._login().status_code, 200)
-        gestion = self.cliente.get("/gestion/voluntarios")
+        gestion = self.cliente.get("/gestion/instructores-voluntarios")
         self.assertEqual(gestion.status_code, 200)
         self.assertIn(b"Solicitudes pendientes", gestion.data)
-        instructores = self.cliente.get("/gestion/instructores")
+        instructores = self.cliente.get("/gestion/jefes-personal")
         self.assertEqual(instructores.status_code, 200)
-        self.assertIn(b"Registrar instructor", instructores.data)
-        self.assertEqual(self.cliente.get("/api/admin/instructores").mimetype, "application/json")
+        self.assertIn(b"Registrar Jefe de Personal", instructores.data)
+        self.assertEqual(self.cliente.get("/api/admin/jefes-personal").mimetype, "application/json")
 
     def test_admin_crea_instructor_y_cuenta_accede_a_panel_diferenciado(self):
         self.assertEqual(self._login().status_code, 200)
-        creada = self.cliente.post("/api/admin/instructores", json={
+        creada = self.cliente.post("/api/admin/jefes-personal", json={
             "username": "instructor.nuevo", "nombre": "Instructor Nuevo",
             "correo": "nuevo@example.org", "especialidad": "Rescate",
             "password": "Contraseña inicial 123!",
@@ -324,15 +378,15 @@ class AplicacionTestCase(unittest.TestCase):
         ingreso = self._login("instructor.nuevo", "Contraseña inicial 123!")
         self.assertEqual(ingreso.status_code, 200)
         inicio = self.cliente.get("/", follow_redirects=True)
-        self.assertIn(b"Panel del instructor", inicio.data)
+        self.assertIn(b"Panel del Jefe de Personal", inicio.data)
         self.assertNotIn(b"Panel de administraci", inicio.data)
-        rechazo = self.cliente.post("/api/admin/instructores", json={}, headers={"X-CSRFToken": self._csrf_token()})
+        rechazo = self.cliente.post("/api/admin/jefes-personal", json={}, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(rechazo.status_code, 403)
 
     def test_admin_registra_instructor_con_foto(self):
         import io
         self.assertEqual(self._login().status_code, 200)
-        creada = self.cliente.post("/api/admin/instructores", data={
+        creada = self.cliente.post("/api/admin/jefes-personal", data={
             "username": "instructor.foto", "nombre": "Instructor con foto",
             "password": "Contraseña inicial 123!",
             "foto": (io.BytesIO(self._png_prueba()), "instructor.png"),
@@ -353,11 +407,11 @@ class AplicacionTestCase(unittest.TestCase):
             conexion.execute("INSERT INTO instructores (usuario_id, especialidad) VALUES (?, 'Inicial')", (instructor_id,))
             conexion.execute("INSERT INTO voluntarios (usuario_id, instructor_id) VALUES (?, ?)", (voluntario_id, instructor_id))
             conexion.commit()
-        editada = self.cliente.patch(f"/api/admin/instructores/{instructor_id}", json={
+        editada = self.cliente.patch(f"/api/admin/jefes-personal/{instructor_id}", json={
             "nombre": "Instructor Editado", "especialidad": "Montaña",
         }, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(editada.status_code, 200)
-        baja = self.cliente.post(f"/api/admin/instructores/{instructor_id}/desactivar", headers={"X-CSRFToken": self._csrf_token()})
+        baja = self.cliente.post(f"/api/admin/jefes-personal/{instructor_id}/desactivar", headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(baja.status_code, 200)
         self.assertEqual(baja.json["voluntarios_desvinculados"], 1)
         with self.app.app_context():
@@ -374,7 +428,7 @@ class AplicacionTestCase(unittest.TestCase):
         }, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(periodo.status_code, 201)
         evaluacion = self.cliente.post("/api/admin/evaluaciones", json={
-            "codigo": "FIS-DEMO", "nombre": "Evaluación física", "categoria": "FISICA", "origen_nota": "INSTRUCTOR",
+            "codigo": "FIS-DEMO", "nombre": "Evaluación física", "categoria": "FISICA", "origen_nota": "JEFE_PERSONAL",
         }, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(evaluacion.status_code, 201)
         activada = self.cliente.patch(f"/api/admin/evaluaciones/{evaluacion.json['id']}", json={"activo": True}, headers={"X-CSRFToken": self._csrf_token()})
@@ -401,20 +455,20 @@ class AplicacionTestCase(unittest.TestCase):
             conexion.execute("INSERT INTO instructores(usuario_id) VALUES (?)", (instructor_id,))
             conexion.execute("INSERT INTO voluntarios(usuario_id,instructor_id) VALUES (?,?)", (volunteer_id,instructor_id))
             period_id = conexion.execute("INSERT INTO periodos(nombre,fecha_inicio,fecha_fin,estado) VALUES ('Notas demo','2026-01-01','2026-12-31','ACTIVO')").lastrowid
-            evaluation_id = conexion.execute("INSERT INTO evaluaciones(codigo,nombre,categoria,origen_nota,activo) VALUES ('FIS-01','Prueba física','FISICA','INSTRUCTOR',1)").lastrowid
+            evaluation_id = conexion.execute("INSERT INTO evaluaciones(codigo,nombre,categoria,origen_nota,activo) VALUES ('FIS-01','Prueba física','FISICA','JEFE_PERSONAL',1)").lastrowid
             assignment_id = conexion.execute("INSERT INTO asignaciones_evaluacion(voluntario_id,periodo_id,evaluacion_id,estado) VALUES (?,?,?,'HABILITADA')", (volunteer_id,period_id,evaluation_id)).lastrowid
             conexion.commit()
         self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
         headers = {"X-CSRFToken": self._csrf_token()}
-        asistencia = self.cliente.post("/api/instructor/asistencias", json={
+        asistencia = self.cliente.post("/api/jefe-personal/asistencias", json={
             "fecha": "2026-09-28", "actividad": "Entrenamiento", "asistencias": [{"voluntario_id": volunteer_id, "estado": "PRESENTE"}],
         }, headers=headers)
         self.assertEqual(asistencia.status_code, 200)
-        nota = self.cliente.post(f"/api/instructor/asignaciones/{assignment_id}/calificaciones", json={"nota_0_100": 75, "observacion": "Registro inicial"}, headers=headers)
+        nota = self.cliente.post(f"/api/jefe-personal/asignaciones/{assignment_id}/calificaciones", json={"nota_0_100": 75, "observacion": "Registro inicial"}, headers=headers)
         self.assertEqual(nota.status_code, 201)
-        correccion = self.cliente.post(f"/api/instructor/asignaciones/{assignment_id}/calificaciones", json={"nota_0_100": 80, "corregida_de_id": nota.json["id"]}, headers=headers)
+        correccion = self.cliente.post(f"/api/jefe-personal/asignaciones/{assignment_id}/calificaciones", json={"nota_0_100": 80, "corregida_de_id": nota.json["id"]}, headers=headers)
         self.assertEqual(correccion.status_code, 201)
-        historial = self.cliente.get(f"/api/instructor/asignaciones/{assignment_id}/calificaciones")
+        historial = self.cliente.get(f"/api/jefe-personal/asignaciones/{assignment_id}/calificaciones")
         self.assertEqual([item["nota_0_100"] for item in historial.json["historial"]], [75, 80])
         self.assertEqual(self.cliente.get("/gestion/asistencias").status_code, 200)
         self.assertEqual(self.cliente.get("/gestion/calificaciones").status_code, 200)
@@ -428,7 +482,7 @@ class AplicacionTestCase(unittest.TestCase):
             conexion.execute("INSERT INTO instructores(usuario_id) VALUES (?)", (instructor_id,))
             conexion.execute("INSERT INTO voluntarios(usuario_id,instructor_id) VALUES (?,?)", (volunteer_id,instructor_id))
             instrument_id = conexion.execute("INSERT INTO instrumentos(nombre,version,idioma) VALUES ('Candidato','1','es')").lastrowid
-            evaluation_id = conexion.execute("INSERT INTO evaluaciones(codigo,nombre,categoria,origen_nota,instrumento_id) VALUES ('PSI-01','Candidato psicométrico','PSICOMETRICA','VOLUNTARIO',?)", (instrument_id,)).lastrowid
+            evaluation_id = conexion.execute("INSERT INTO evaluaciones(codigo,nombre,categoria,origen_nota,instrumento_id) VALUES ('PSI-01','Candidato psicométrico','PSICOMETRICA','INSTRUCTOR_VOLUNTARIO',?)", (instrument_id,)).lastrowid
             period_id = conexion.execute("INSERT INTO periodos(nombre,fecha_inicio,fecha_fin,estado) VALUES ('Ciclo psi','2026-01-01','2026-12-31','ACTIVO')").lastrowid
             assignment_id = conexion.execute("INSERT INTO asignaciones_evaluacion(voluntario_id,periodo_id,evaluacion_id) VALUES (?,?,?)", (volunteer_id,period_id,evaluation_id)).lastrowid
             conexion.commit()
@@ -437,7 +491,7 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertEqual(activate.status_code, 409)
         self.cliente.post("/api/auth/logout", headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
-        score = self.cliente.post(f"/api/instructor/asignaciones/{assignment_id}/calificaciones", json={"nota_0_100": 90}, headers={"X-CSRFToken": self._csrf_token()})
+        score = self.cliente.post(f"/api/jefe-personal/asignaciones/{assignment_id}/calificaciones", json={"nota_0_100": 90}, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(score.status_code, 403)
 
     def test_voluntario_ve_estado_de_evaluacion_sin_resultados(self):
@@ -447,12 +501,12 @@ class AplicacionTestCase(unittest.TestCase):
             volunteer_id = conexion.execute("SELECT id FROM usuarios WHERE username='voluntario.demo'").fetchone()[0]
             conexion.execute("INSERT INTO voluntarios(usuario_id) VALUES (?)", (volunteer_id,))
             period_id = conexion.execute("INSERT INTO periodos(nombre,fecha_inicio,fecha_fin,estado) VALUES ('Panel demo','2026-01-01','2026-12-31','ACTIVO')").lastrowid
-            evaluation_id = conexion.execute("INSERT INTO evaluaciones(codigo,nombre,categoria,origen_nota,activo) VALUES ('FIS-02','Resistencia','FISICA','INSTRUCTOR',1)").lastrowid
+            evaluation_id = conexion.execute("INSERT INTO evaluaciones(codigo,nombre,categoria,origen_nota,activo) VALUES ('FIS-02','Resistencia','FISICA','JEFE_PERSONAL',1)").lastrowid
             assignment_id = conexion.execute("INSERT INTO asignaciones_evaluacion(voluntario_id,periodo_id,evaluacion_id,estado) VALUES (?,?,?,'COMPLETADA')", (volunteer_id,period_id,evaluation_id)).lastrowid
             conexion.execute("INSERT INTO calificaciones(asignacion_id,registrada_por,nota_0_100,observacion) VALUES (?,?,99,'Texto privado')", (assignment_id,1))
             conexion.commit()
         self.assertEqual(self._login("voluntario.demo", "Clave voluntario 123!").status_code, 200)
-        respuesta = self.cliente.get("/api/voluntario/evaluaciones")
+        respuesta = self.cliente.get("/api/instructor-voluntario/evaluaciones")
         self.assertEqual(respuesta.status_code, 200)
         self.assertEqual(respuesta.json["evaluaciones"][0]["estado"], "COMPLETADA")
         self.assertNotIn("nota_0_100", str(respuesta.json))
@@ -507,9 +561,9 @@ class AplicacionTestCase(unittest.TestCase):
             conexion.execute("INSERT INTO voluntarios (usuario_id, instructor_id) VALUES (?, ?)", (voluntario_id, instructor_id))
             conexion.commit()
         self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
-        listado = self.cliente.get("/api/voluntarios")
+        listado = self.cliente.get("/api/instructores-voluntarios")
         self.assertEqual([v["username"] for v in listado.json["voluntarios"]], ["voluntario.demo"])
-        desactivado = self.cliente.post("/api/voluntarios/3/desactivar", headers={"X-CSRFToken": self._csrf_token()})
+        desactivado = self.cliente.post("/api/instructores-voluntarios/3/desactivar", headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(desactivado.status_code, 200)
 
     def test_instructor_no_puede_editar_voluntario_de_otro(self):
@@ -523,7 +577,7 @@ class AplicacionTestCase(unittest.TestCase):
             conexion.execute("INSERT INTO voluntarios (usuario_id) VALUES (?)", (otro_id,))
             conexion.commit()
         self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
-        respuesta = self.cliente.patch("/api/voluntarios/1", json={"nombre": "Cambio"}, headers={"X-CSRFToken": self._csrf_token()})
+        respuesta = self.cliente.patch("/api/instructores-voluntarios/1", json={"nombre": "Cambio"}, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(respuesta.status_code, 404)
 
     def test_csrf_rechaza_post_sin_token(self):

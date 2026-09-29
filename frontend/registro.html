@@ -8,8 +8,8 @@
 </head>
 <body>
   <main class="contenedor acceso">
-    <p class="marca">SICOSE</p><h1>Solicitud de registro</h1>
-    <p class="subtitulo">La cuenta permanecerá pendiente hasta que administración revise la solicitud.</p>
+    <p class="marca">SICOSE</p><h1>Solicitud de registro como Instructor Voluntario</h1>
+    <p class="subtitulo">La cuenta de Instructor Voluntario permanecerá pendiente hasta que administración revise la solicitud.</p>
     <form id="registro-form" data-token="{{ token or '' }}" enctype="multipart/form-data" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <label for="reg-nombre">Nombre completo</label><input id="reg-nombre" name="nombre" maxlength="160" required>

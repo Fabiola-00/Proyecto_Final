@@ -118,8 +118,8 @@ def create_app(test_config=None):
     def inicio():
         paneles = {
             "ADMINISTRADOR": "dashboard.administrador",
-            "INSTRUCTOR": "dashboard.instructor",
-            "VOLUNTARIO": "dashboard.voluntario",
+            "JEFE_PERSONAL": "dashboard.jefe_personal",
+            "INSTRUCTOR_VOLUNTARIO": "dashboard.instructor_voluntario",
         }
         endpoint = paneles.get(current_user.rol)
         if endpoint is None:

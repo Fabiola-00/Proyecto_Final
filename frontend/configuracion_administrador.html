@@ -1,0 +1,20 @@
+{% extends "_dashboard_base.html" %}
+{% block contenido %}
+<section class="seccion-panel" aria-labelledby="configuracion-titulo">
+  <div class="titulo-seccion"><div><p class="sobrelinea">CUENTA ADMINISTRADORA</p><h2 id="configuracion-titulo">Configuración del perfil</h2></div></div>
+  <article class="tarjeta-amplia">
+    {% if current_user.foto_perfil %}<img class="foto-perfil" src="{{ url_for('management.foto_perfil', usuario_id=current_user.id) }}" alt="Foto actual de {{ current_user.nombre }}">{% else %}<span class="avatar avatar-perfil" aria-hidden="true">{{ current_user.nombre[:1]|upper }}</span>{% endif %}
+    <form id="admin-profile-form" class="formulario-inline" enctype="multipart/form-data">
+      <label>Nombre del administrador<input name="nombre" maxlength="160" value="{{ current_user.nombre }}" required></label>
+      <label>Foto (PNG/JPEG, máximo 3 MiB)<input name="foto" type="file" accept="image/png,image/jpeg"></label>
+      <h3>Cambiar contraseña</h3>
+      <p>Deja estos campos vacíos si no deseas cambiarla. Al actualizarla, se cerrará esta sesión.</p>
+      <label>Contraseña actual<input name="clave_actual" type="password" maxlength="256" autocomplete="current-password"></label>
+      <label>Nueva contraseña (mínimo 12 caracteres)<input name="nueva_clave" type="password" minlength="12" maxlength="256" autocomplete="new-password"></label>
+      <label>Confirmar nueva contraseña<input name="confirmar_clave" type="password" minlength="12" maxlength="256" autocomplete="new-password"></label>
+      <button type="submit">Guardar perfil</button>
+    </form>
+    <p id="admin-profile-message" class="mensaje" role="status" aria-live="polite"></p>
+  </article>
+</section>
+{% endblock %}

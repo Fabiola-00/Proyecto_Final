@@ -8,7 +8,7 @@ SICOSE apoyará el seguimiento, capacitación y evaluación periódica de volunt
 
 ## Roles y permisos
 
-| Capacidad | Administrador | Instructor autorizado | Voluntario |
+| Capacidad | Administrador | Jefe de Personal | Instructor Voluntario |
 |---|---:|---:|---:|
 | Iniciar sesión y abrir su dashboard por rol | Sí | Sí | Sí |
 | Administrar todas las cuentas y evaluaciones | Sí | No | No |
@@ -22,20 +22,20 @@ SICOSE apoyará el seguimiento, capacitación y evaluación periódica de volunt
 | Editar calificaciones u observaciones | Sí, sujeto a historial y auditoría | Solo calificaciones no psicométricas de su ámbito; psicométricas no | No |
 | Ver notas u observaciones individuales | Sí, según autorización institucional | Sí, para voluntarios de su ámbito | No |
 
-Una solicitud de registro o usuario invitado se mantiene `pendiente` hasta aprobación. Las rutas API deben denegar datos protegidos y evaluaciones antes de esa aprobación. La autorización se aplica en backend a cada recurso, no solo ocultando controles. Tras autenticarse, cada cuenta se dirige al dashboard correspondiente a su rol: administrador, instructor o voluntario; no se comparte un dashboard con contenido intercambiado por URL.
+Una solicitud de registro o usuario invitado se mantiene `pendiente` hasta aprobación. Las rutas API deben denegar datos protegidos y evaluaciones antes de esa aprobación. La autorización se aplica en backend a cada recurso, no solo ocultando controles. Tras autenticarse, cada cuenta se dirige al dashboard correspondiente a su rol: Administrador, Jefe de Personal o Instructor Voluntario; no se comparte un dashboard con contenido intercambiado por URL.
 
-El dashboard administrativo ofrece control global de cuentas y evaluaciones. El dashboard del instructor se limita a sus voluntarios activos asignados, sus evaluaciones y resultados autorizados y el registro de notas no psicométricas. El dashboard voluntario permite actualizar sus datos personales, consultar qué evaluaciones propias están completadas o pendientes y ver un resumen limitado, sin editar calificaciones.
+El dashboard administrativo ofrece control global de cuentas y evaluaciones. El dashboard del Jefe de Personal se limita a sus voluntarios activos asignados, sus evaluaciones y resultados autorizados y el registro de notas no psicométricas. El dashboard del Instructor Voluntario permite actualizar sus datos personales, consultar qué evaluaciones propias están completadas o pendientes y ver un resumen limitado, sin editar calificaciones.
 
-El resumen del voluntario muestra solamente estado y avance. No expone notas/calificaciones, resultados individuales ni observaciones.
+El resumen del Instructor Voluntario muestra solamente estado y avance. No expone notas/calificaciones, resultados individuales ni observaciones.
 
 ## Flujos principales
 
-1. Administrador crea un período, confirma pesos que suman 100% y administra usuarios/instructores.
-2. Un voluntario solicita alta o ingresa con código de invitación; el administrador aprueba o rechaza. No se concede sesión protegida al estado pendiente.
+1. Administrador crea un período, confirma pesos que suman 100% y administra usuarios y Jefes de Personal.
+2. Un Instructor Voluntario solicita alta o ingresa con código de invitación; el administrador aprueba o rechaza. No se concede sesión protegida al estado pendiente.
 3. Una cuenta autenticada es redirigida al dashboard exclusivo de su rol. Administración gestiona globalmente las cuentas y evaluaciones.
-4. Instructor autorizado da de alta/edita/desactiva voluntarios activos de su ámbito, consulta evaluaciones/resultados permitidos, registra notas físicas, de cursos y desempeño, y activa/desactiva pruebas psicométricas por voluntario sin poder alterar sus notas.
-5. El voluntario puede editar sus propios datos personales, ve evaluaciones completadas/pendientes y resumen permitido, pero no edita calificaciones.
-6. El voluntario completa cada prueba habilitada. Reiniciar crea intento nuevo y conserva el anterior.
+4. Jefe de Personal da de alta/edita/desactiva voluntarios activos de su ámbito, consulta evaluaciones/resultados permitidos, registra notas físicas, de cursos y desempeño, y activa/desactiva pruebas psicométricas por voluntario sin poder alterar sus notas.
+5. El Instructor Voluntario puede editar sus propios datos personales, ve evaluaciones completadas/pendientes y resumen permitido, pero no edita calificaciones.
+6. El Instructor Voluntario completa cada prueba habilitada. Reiniciar crea intento nuevo y conserva el anterior.
 7. El sistema calcula avance y promedio ponderado solo con una regla de datos faltantes previamente aprobada; hasta entonces el promedio aparece como no disponible si no están todas las notas requeridas.
 8. Usuarios autorizados descargan reportes PDF individuales/consolidados y Excel según permisos.
 
@@ -60,10 +60,10 @@ Aplicación de instrumentos no aprobados, diagnóstico, decisión automática de
 ## Criterios funcionales de aceptación futuros
 
 - Después de autenticarse, cada usuario llega a su dashboard correspondiente; no puede abrir dashboards o datos de otro rol.
-- Instructor solo consulta y opera voluntarios activos asignados; puede registrar notas no psicométricas y activar/desactivar pruebas, pero no modificar resultados psicométricos.
-- Voluntario edita únicamente su perfil personal, consulta estados/avance propios y nunca accede a notas, resultados individuales u observaciones.
+- Jefe de Personal solo consulta y opera voluntarios activos asignados; puede registrar notas no psicométricas y activar/desactivar pruebas, pero no modificar resultados psicométricos.
+- Instructor Voluntario edita únicamente su perfil personal, consulta estados/avance propios y nunca accede a notas, resultados individuales u observaciones.
 - Un usuario pendiente no obtiene datos privados ni puede iniciar evaluaciones.
-- Un voluntario no puede leer/alterar recursos de otra persona mediante URL o API.
+- Un Instructor Voluntario no puede leer/alterar recursos de otra persona mediante URL o API.
 - Reintentar una evaluación conserva todos los intentos previos.
 - Una nueva versión de ponderación no modifica períodos o resultados cerrados.
 - Los roles y acciones sensibles quedan comprobables mediante auditoría.

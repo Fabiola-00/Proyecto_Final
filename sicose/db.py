@@ -11,7 +11,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from .models import Usuario
 
-ROLES = ("ADMINISTRADOR", "INSTRUCTOR", "VOLUNTARIO")
+ROLES = ("ADMINISTRADOR", "JEFE_PERSONAL", "INSTRUCTOR_VOLUNTARIO")
 USERNAME_RE = re.compile(r"^[A-Za-z0-9._-]{3,80}$")
 
 
@@ -101,6 +101,7 @@ def inicializar_base_datos():
     conexion = obtener_conexion()
     esquema = Path(current_app.root_path) / "schema.sql"
     conexion.executescript(esquema.read_text(encoding="utf-8"))
+    _migrar_nombres_rol(conexion)
     columnas = {fila["name"] for fila in conexion.execute("PRAGMA table_info(usuarios)")}
     if "password_version" not in columnas:
         conexion.execute("ALTER TABLE usuarios ADD COLUMN password_version INTEGER NOT NULL DEFAULT 1")
@@ -111,10 +112,80 @@ def inicializar_base_datos():
         ((rol,) for rol in ROLES),
     )
     conexion.execute(
-        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '4')
+        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '5')
            ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor"""
     )
     conexion.commit()
+
+
+def _migrar_nombres_rol(conexion):
+    """Renombra códigos de rol y su origen/categoría de nota preservando IDs y FKs."""
+    roles = {fila["nombre"] for fila in conexion.execute("SELECT nombre FROM roles")}
+    sql_roles = conexion.execute(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name='roles'"
+    ).fetchone()["sql"] or ""
+    sql_eval = conexion.execute(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name='evaluaciones'"
+    ).fetchone()["sql"] or ""
+    migrar_roles = bool(roles & {"INSTRUCTOR", "VOLUNTARIO"}) or "JEFE_PERSONAL" not in sql_roles
+    migrar_evaluaciones = "INSTRUCTOR_VOLUNTARIO" not in sql_eval
+    if not migrar_roles and not migrar_evaluaciones:
+        return
+
+    conexion.commit()
+    conexion.execute("PRAGMA foreign_keys = OFF")
+    try:
+        conexion.execute("BEGIN")
+        if migrar_roles:
+            conexion.execute(
+                """CREATE TABLE roles_nueva (
+                       id INTEGER PRIMARY KEY,
+                       nombre TEXT NOT NULL UNIQUE CHECK (nombre IN
+                           ('ADMINISTRADOR', 'JEFE_PERSONAL', 'INSTRUCTOR_VOLUNTARIO'))
+                   )"""
+            )
+            conexion.execute(
+                """INSERT INTO roles_nueva (id, nombre)
+                   SELECT id, CASE nombre WHEN 'INSTRUCTOR' THEN 'JEFE_PERSONAL'
+                          WHEN 'VOLUNTARIO' THEN 'INSTRUCTOR_VOLUNTARIO' ELSE nombre END
+                   FROM roles"""
+            )
+            conexion.execute("DROP TABLE roles")
+            conexion.execute("ALTER TABLE roles_nueva RENAME TO roles")
+
+        if migrar_evaluaciones:
+            conexion.execute(
+                """CREATE TABLE evaluaciones_nueva (
+                    id INTEGER PRIMARY KEY,
+                    codigo TEXT NOT NULL UNIQUE,
+                    nombre TEXT NOT NULL,
+                    categoria TEXT NOT NULL CHECK (categoria IN ('PSICOMETRICA', 'FISICA', 'ACADEMICA', 'JEFE_PERSONAL')),
+                    origen_nota TEXT NOT NULL CHECK (origen_nota IN ('INSTRUCTOR_VOLUNTARIO', 'JEFE_PERSONAL')),
+                    instrumento_id INTEGER REFERENCES instrumentos(id) ON DELETE RESTRICT,
+                    activo INTEGER NOT NULL DEFAULT 0 CHECK (activo IN (0, 1)),
+                    creado_en TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+                )"""
+            )
+            conexion.execute(
+                """INSERT INTO evaluaciones_nueva
+                   SELECT id, codigo, nombre,
+                          CASE categoria WHEN 'INSTRUCTOR' THEN 'JEFE_PERSONAL' ELSE categoria END,
+                          CASE origen_nota WHEN 'INSTRUCTOR' THEN 'JEFE_PERSONAL'
+                               WHEN 'VOLUNTARIO' THEN 'INSTRUCTOR_VOLUNTARIO' ELSE origen_nota END,
+                          instrumento_id, activo, creado_en
+                   FROM evaluaciones"""
+            )
+            conexion.execute("DROP TABLE evaluaciones")
+            conexion.execute("ALTER TABLE evaluaciones_nueva RENAME TO evaluaciones")
+        conexion.commit()
+    except Exception:
+        conexion.rollback()
+        raise
+    finally:
+        conexion.execute("PRAGMA foreign_keys = ON")
+    violaciones = conexion.execute("PRAGMA foreign_key_check").fetchall()
+    if violaciones:
+        raise RuntimeError("La migración de roles detectó referencias inválidas; no uses la base hasta revisar el respaldo.")
 
 
 def seed_admin(username, password, nombre="Administrador DEMO"):
@@ -152,7 +223,7 @@ def seed_admin(username, password, nombre="Administrador DEMO"):
 def comando_init_db():
     """Crea/actualiza tablas y roles sin borrar los datos existentes."""
     inicializar_base_datos()
-    click.echo("Base SQLite inicializada; roles disponibles: administrador, instructor, voluntario.")
+    click.echo("Base SQLite inicializada; roles disponibles: Administrador, Jefe de Personal e Instructor Voluntario.")
 
 
 @click.command("seed-admin")

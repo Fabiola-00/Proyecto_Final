@@ -18,6 +18,14 @@ class Usuario(UserMixin):
     def is_active(self):
         return self.estado == "ACTIVO"
 
+    @property
+    def rol_etiqueta(self):
+        return {
+            "ADMINISTRADOR": "Administrador",
+            "JEFE_PERSONAL": "Jefe de Personal",
+            "INSTRUCTOR_VOLUNTARIO": "Instructor Voluntario",
+        }.get(self.rol, self.rol)
+
     def publico(self):
         return {
             "id": self.id,

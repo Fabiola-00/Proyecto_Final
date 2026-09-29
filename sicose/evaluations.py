@@ -10,7 +10,7 @@ from . import db
 from .permissions import role_required
 
 evaluations_bp = Blueprint("evaluations", __name__)
-CATEGORIAS = {"PSICOMETRICA", "FISICA", "ACADEMICA", "INSTRUCTOR"}
+CATEGORIAS = {"PSICOMETRICA", "FISICA", "ACADEMICA", "JEFE_PERSONAL"}
 
 
 def _now():
@@ -43,9 +43,9 @@ def _authorized_assignment(connection, assignment_id):
              LEFT JOIN instrumentos i ON i.id=e.instrumento_id
              WHERE a.id=? AND u.estado='ACTIVO'"""
     row = connection.execute(sql, (assignment_id,)).fetchone()
-    if row and current_user.rol == "INSTRUCTOR" and row["instructor_id"] != current_user.id:
+    if row and current_user.rol == "JEFE_PERSONAL" and row["instructor_id"] != current_user.id:
         return None
-    if row and current_user.rol == "VOLUNTARIO" and row["voluntario_id"] != current_user.id:
+    if row and current_user.rol == "INSTRUCTOR_VOLUNTARIO" and row["voluntario_id"] != current_user.id:
         return None
     return row
 
@@ -60,7 +60,7 @@ def pagina_catalogo():
 
 
 @evaluations_bp.get("/gestion/asistencias")
-@role_required("ADMINISTRADOR", "INSTRUCTOR")
+@role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def pagina_asistencias():
     return render_template("gestion_asistencias.html", titulo_pagina="Asistencias y cursos",
                            nav_activo="asistencias", indicadores=[],
@@ -69,7 +69,7 @@ def pagina_asistencias():
 
 
 @evaluations_bp.get("/gestion/calificaciones")
-@role_required("ADMINISTRADOR", "INSTRUCTOR")
+@role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def pagina_calificaciones():
     return render_template("gestion_calificaciones.html", titulo_pagina="Notas e historial",
                            nav_activo="calificaciones", indicadores=[],
@@ -102,13 +102,13 @@ def crear_evaluacion():
         return _bad("El código debe tener entre 2 y 40 caracteres.")
     if not isinstance(nombre, str) or not 2 <= len(nombre.strip()) <= 160:
         return _bad("El nombre debe tener entre 2 y 160 caracteres.")
-    if not isinstance(categoria, str) or categoria not in CATEGORIAS or not isinstance(origen, str) or origen not in {"VOLUNTARIO", "INSTRUCTOR"}:
+    if not isinstance(categoria, str) or categoria not in CATEGORIAS or not isinstance(origen, str) or origen not in {"INSTRUCTOR_VOLUNTARIO", "JEFE_PERSONAL"}:
         return _bad("Categoría u origen de nota no válido.")
-    if categoria == "PSICOMETRICA" and (origen != "VOLUNTARIO" or not isinstance(instrument_id, int) or isinstance(instrument_id, bool)):
+    if categoria == "PSICOMETRICA" and (origen != "INSTRUCTOR_VOLUNTARIO" or not isinstance(instrument_id, int) or isinstance(instrument_id, bool)):
         return _bad("Una evaluación psicométrica requiere instrumento asociado y respuesta del voluntario.")
     if categoria != "PSICOMETRICA":
-        if origen != "INSTRUCTOR":
-            return _bad("Las notas físicas, académicas y de desempeño las registra el instructor.")
+        if origen != "JEFE_PERSONAL":
+            return _bad("Las notas físicas, académicas y de desempeño las registra el Jefe de Personal.")
         instrument_id = None
     connection = db.obtener_conexion()
     try:
@@ -234,6 +234,7 @@ def asignar_evaluacion():
 
 
 @evaluations_bp.get("/api/admin/voluntarios-activos")
+@evaluations_bp.get("/api/admin/instructores-voluntarios-activos")
 @role_required("ADMINISTRADOR")
 def voluntarios_activos_admin():
     rows = db.obtener_conexion().execute(
@@ -245,10 +246,11 @@ def voluntarios_activos_admin():
 
 
 @evaluations_bp.get("/api/instructor/asignaciones")
-@role_required("ADMINISTRADOR", "INSTRUCTOR")
+@evaluations_bp.get("/api/jefe-personal/asignaciones")
+@role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def asignaciones_equipo():
     params, where = [], "u.estado='ACTIVO'"
-    if current_user.rol == "INSTRUCTOR":
+    if current_user.rol == "JEFE_PERSONAL":
         where += " AND v.instructor_id=?"
         params.append(current_user.id)
     rows = db.obtener_conexion().execute(
@@ -264,7 +266,8 @@ def asignaciones_equipo():
 
 
 @evaluations_bp.patch("/api/instructor/asignaciones/<int:assignment_id>/estado")
-@role_required("INSTRUCTOR", "ADMINISTRADOR")
+@evaluations_bp.patch("/api/jefe-personal/asignaciones/<int:assignment_id>/estado")
+@role_required("JEFE_PERSONAL", "ADMINISTRADOR")
 def cambiar_estado_asignacion(assignment_id):
     data = _json() or {}
     state = data.get("estado")
@@ -288,7 +291,8 @@ def cambiar_estado_asignacion(assignment_id):
 
 
 @evaluations_bp.post("/api/instructor/asistencias")
-@role_required("INSTRUCTOR", "ADMINISTRADOR")
+@evaluations_bp.post("/api/jefe-personal/asistencias")
+@role_required("JEFE_PERSONAL", "ADMINISTRADOR")
 def registrar_asistencias():
     data = _json() or {}
     try:
@@ -312,7 +316,7 @@ def registrar_asistencias():
             sql = """SELECT 1 FROM voluntarios v JOIN usuarios u ON u.id=v.usuario_id
                      WHERE v.usuario_id=? AND u.estado='ACTIVO'"""
             args = [item["voluntario_id"]]
-            if current_user.rol == "INSTRUCTOR":
+            if current_user.rol == "JEFE_PERSONAL":
                 sql += " AND v.instructor_id=?"
                 args.append(current_user.id)
             if not connection.execute(sql, args).fetchone():
@@ -334,7 +338,8 @@ def registrar_asistencias():
 
 
 @evaluations_bp.get("/api/instructor/asistencias")
-@role_required("INSTRUCTOR", "ADMINISTRADOR")
+@evaluations_bp.get("/api/jefe-personal/asistencias")
+@role_required("JEFE_PERSONAL", "ADMINISTRADOR")
 def listar_asistencias():
     when = request.args.get("fecha")
     try:
@@ -346,7 +351,7 @@ def listar_asistencias():
     where = ""
     if when:
         where = " AND a.fecha=?"
-    if current_user.rol == "INSTRUCTOR":
+    if current_user.rol == "JEFE_PERSONAL":
         where += " AND v.instructor_id=?"
         params.append(current_user.id)
     rows = db.obtener_conexion().execute(
@@ -359,7 +364,8 @@ def listar_asistencias():
 
 
 @evaluations_bp.post("/api/instructor/voluntarios/<int:volunteer_id>/capacitaciones")
-@role_required("INSTRUCTOR", "ADMINISTRADOR")
+@evaluations_bp.post("/api/jefe-personal/instructores-voluntarios/<int:volunteer_id>/capacitaciones")
+@role_required("JEFE_PERSONAL", "ADMINISTRADOR")
 def registrar_capacitacion(volunteer_id):
     data = _json() or {}
     name, entity, when, note = (data.get(key) for key in ("nombre", "entidad", "fecha", "observacion"))
@@ -374,10 +380,10 @@ def registrar_capacitacion(volunteer_id):
     connection = db.obtener_conexion()
     query = "SELECT 1 FROM voluntarios v JOIN usuarios u ON u.id=v.usuario_id WHERE v.usuario_id=? AND u.estado='ACTIVO'"
     args = [volunteer_id]
-    if current_user.rol == "INSTRUCTOR":
+    if current_user.rol == "JEFE_PERSONAL":
         query += " AND v.instructor_id=?"; args.append(current_user.id)
     if not connection.execute(query, args).fetchone():
-        return _bad("Voluntario no encontrado en el ámbito activo.", "voluntario_no_encontrado", 404)
+        return _bad("Instructor Voluntario no encontrado en el ámbito activo.", "instructor_voluntario_no_encontrado", 404)
     cursor = connection.execute(
         "INSERT INTO capacitaciones (voluntario_id,nombre,entidad,fecha,observacion) VALUES (?,?,?,?,?)",
         (volunteer_id, name.strip(), entity.strip() if entity else None, when, note.strip() if note else None),
@@ -388,7 +394,8 @@ def registrar_capacitacion(volunteer_id):
 
 
 @evaluations_bp.post("/api/instructor/asignaciones/<int:assignment_id>/calificaciones")
-@role_required("INSTRUCTOR", "ADMINISTRADOR")
+@evaluations_bp.post("/api/jefe-personal/asignaciones/<int:assignment_id>/calificaciones")
+@role_required("JEFE_PERSONAL", "ADMINISTRADOR")
 def registrar_calificacion(assignment_id):
     data = _json() or {}
     score = data.get("nota_0_100")
@@ -423,13 +430,14 @@ def registrar_calificacion(assignment_id):
 
 
 @evaluations_bp.get("/api/instructor/asignaciones/<int:assignment_id>/calificaciones")
-@role_required("INSTRUCTOR", "ADMINISTRADOR")
+@evaluations_bp.get("/api/jefe-personal/asignaciones/<int:assignment_id>/calificaciones")
+@role_required("JEFE_PERSONAL", "ADMINISTRADOR")
 def historial_calificaciones(assignment_id):
     connection = db.obtener_conexion()
     assignment = _authorized_assignment(connection, assignment_id)
     if not assignment:
         return _bad("Asignación no encontrada en tu ámbito.", "asignacion_no_encontrada", 404)
-    if assignment["categoria"] == "PSICOMETRICA" and current_user.rol == "INSTRUCTOR":
+    if assignment["categoria"] == "PSICOMETRICA" and current_user.rol == "JEFE_PERSONAL":
         return _bad("El resultado psicométrico no forma parte del historial de notas manuales.", "resultado_psicometrico_protegido", 403)
     rows = connection.execute(
         """SELECT c.id,c.nota_0_100,c.observacion,c.corregida_de_id,c.registrada_en,
@@ -441,7 +449,8 @@ def historial_calificaciones(assignment_id):
 
 
 @evaluations_bp.get("/api/instructor/asignaciones/<int:assignment_id>/resultados")
-@role_required("INSTRUCTOR", "ADMINISTRADOR")
+@evaluations_bp.get("/api/jefe-personal/asignaciones/<int:assignment_id>/resultados")
+@role_required("JEFE_PERSONAL", "ADMINISTRADOR")
 def resultados_psicometricos(assignment_id):
     connection = db.obtener_conexion()
     assignment = _authorized_assignment(connection, assignment_id)
@@ -459,7 +468,8 @@ def resultados_psicometricos(assignment_id):
 
 
 @evaluations_bp.get("/api/voluntario/evaluaciones")
-@role_required("VOLUNTARIO")
+@evaluations_bp.get("/api/instructor-voluntario/evaluaciones")
+@role_required("INSTRUCTOR_VOLUNTARIO")
 def evaluaciones_voluntario():
     rows = db.obtener_conexion().execute(
         """SELECT a.id,e.nombre AS evaluacion,e.categoria,p.nombre AS periodo,a.estado
@@ -471,7 +481,8 @@ def evaluaciones_voluntario():
 
 
 @evaluations_bp.post("/api/voluntario/asignaciones/<int:assignment_id>/intentos")
-@role_required("VOLUNTARIO")
+@evaluations_bp.post("/api/instructor-voluntario/asignaciones/<int:assignment_id>/intentos")
+@role_required("INSTRUCTOR_VOLUNTARIO")
 def iniciar_intento(assignment_id):
     connection = db.obtener_conexion()
     assignment = _authorized_assignment(connection, assignment_id)

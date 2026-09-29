@@ -27,20 +27,31 @@ def pagina_registro_invitacion(token):
 
 
 @management_bp.get("/gestion/voluntarios")
-@role_required("ADMINISTRADOR", "INSTRUCTOR")
+@management_bp.get("/gestion/instructores-voluntarios")
+@role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def pagina_gestion_voluntarios():
-    return render_template("gestion_voluntarios.html", titulo_pagina="Gestión de voluntarios",
+    return render_template("gestion_instructores_voluntarios.html", titulo_pagina="Gestión de Instructores Voluntarios",
                            nav_activo="voluntarios", indicadores=[],
-                           descripcion="Solicitudes, perfiles y asignación de instructores.",
+                           descripcion="Solicitudes, perfiles y asignación de Jefes de Personal.",
                            periodo_actual="Sin período activo")
 
 
 @management_bp.get("/gestion/instructores")
+@management_bp.get("/gestion/jefes-personal")
 @role_required("ADMINISTRADOR")
 def pagina_gestion_instructores():
-    return render_template("gestion_instructores.html", titulo_pagina="Administración de instructores",
+    return render_template("gestion_jefes_personal.html", titulo_pagina="Administración de Jefes de Personal",
                            nav_activo="instructores", indicadores=[],
-                           descripcion="Crea y administra las cuentas con rol de instructor.",
+                           descripcion="Crea y administra las cuentas con rol de Jefe de Personal.",
+                           periodo_actual="Sin período activo")
+
+
+@management_bp.get("/configuracion")
+@role_required("ADMINISTRADOR")
+def pagina_configuracion():
+    return render_template("configuracion_administrador.html", titulo_pagina="Configuración",
+                           nav_activo="configuracion", indicadores=[],
+                           descripcion="Actualiza tu perfil y las credenciales de administración.",
                            periodo_actual="Sin período activo")
 
 
@@ -105,7 +116,7 @@ def _crear_solicitud(datos, invitacion_id=None):
     except ValueError as error:
         return None, _fallo(str(error), "foto_invalida", 400)
     try:
-        rol_id = conexion.execute("SELECT id FROM roles WHERE nombre = 'VOLUNTARIO'").fetchone()[0]
+        rol_id = conexion.execute("SELECT id FROM roles WHERE nombre = 'INSTRUCTOR_VOLUNTARIO'").fetchone()[0]
         cursor = conexion.execute(
             """INSERT INTO usuarios (username, nombre_completo, correo, password_hash, rol_id, estado, foto_perfil)
                VALUES (?, ?, ?, ?, ?, 'PENDIENTE', ?)""",
@@ -231,6 +242,7 @@ def listar_solicitudes():
 
 
 @management_bp.get("/api/admin/instructores")
+@management_bp.get("/api/admin/jefes-personal")
 @role_required("ADMINISTRADOR")
 def listar_instructores():
     filas = db.obtener_conexion().execute(
@@ -245,6 +257,7 @@ def listar_instructores():
 
 
 @management_bp.post("/api/admin/instructores")
+@management_bp.post("/api/admin/jefes-personal")
 @role_required("ADMINISTRADOR")
 def crear_instructor():
     datos = _datos_form_o_json()
@@ -272,7 +285,7 @@ def crear_instructor():
     except ValueError as error:
         return _fallo(str(error), "foto_invalida", 400)
     conexion = db.obtener_conexion()
-    rol_id = conexion.execute("SELECT id FROM roles WHERE nombre='INSTRUCTOR'").fetchone()[0]
+    rol_id = conexion.execute("SELECT id FROM roles WHERE nombre='JEFE_PERSONAL'").fetchone()[0]
     ahora = _now()
     try:
         cursor = conexion.execute(
@@ -282,7 +295,7 @@ def crear_instructor():
         )
         usuario_id = cursor.lastrowid
         conexion.execute("INSERT INTO instructores (usuario_id, especialidad) VALUES (?, ?)", (usuario_id, especialidad))
-        _auditar(conexion, "INSTRUCTOR_CREADO")
+        _auditar(conexion, "JEFE_PERSONAL_CREADO")
         conexion.commit()
     except Exception as error:
         conexion.rollback()
@@ -293,6 +306,7 @@ def crear_instructor():
 
 
 @management_bp.patch("/api/admin/instructores/<int:usuario_id>")
+@management_bp.patch("/api/admin/jefes-personal/<int:usuario_id>")
 @role_required("ADMINISTRADOR")
 def editar_instructor(usuario_id):
     datos = _datos_json()
@@ -304,7 +318,7 @@ def editar_instructor(usuario_id):
            JOIN usuarios u ON u.id=i.usuario_id WHERE i.usuario_id=?""", (usuario_id,)
     ).fetchone()
     if not instructor:
-        return _fallo("Instructor no encontrado.", "instructor_no_encontrado", 404)
+        return _fallo("Jefe de Personal no encontrado.", "jefe_personal_no_encontrado", 404)
     try:
         campos = {}
         for campo, limite in (("nombre", 160), ("correo", 254), ("especialidad", 160)):
@@ -326,7 +340,7 @@ def editar_instructor(usuario_id):
         conexion.execute("UPDATE usuarios SET nombre_completo=?, correo=?, actualizado_en=? WHERE id=?",
                          (nombre, correo, _now(), usuario_id))
         conexion.execute("UPDATE instructores SET especialidad=? WHERE usuario_id=?", (especialidad, usuario_id))
-        _auditar(conexion, "INSTRUCTOR_EDITADO")
+        _auditar(conexion, "JEFE_PERSONAL_EDITADO")
         conexion.commit()
     except Exception as error:
         conexion.rollback()
@@ -334,6 +348,58 @@ def editar_instructor(usuario_id):
             return _fallo("El correo ya está asociado a otra cuenta.", "correo_duplicado", 409)
         raise
     return jsonify(ok=True, mensaje="Perfil de instructor actualizado."), 200
+
+
+@management_bp.patch("/api/admin/perfil")
+@role_required("ADMINISTRADOR")
+def editar_perfil_administrador():
+    datos = _datos_form_o_json()
+    if datos is None:
+        return _fallo("Solicitud no válida.", "solicitud_invalida", 400)
+    try:
+        nombre = _texto(datos, "nombre", 160, True)
+        nueva_clave = datos.get("nueva_clave", "")
+        clave_actual = datos.get("clave_actual", "")
+        if nueva_clave and (not isinstance(nueva_clave, str) or not 12 <= len(nueva_clave) <= 256):
+            raise ValueError("La nueva contraseña debe tener entre 12 y 256 caracteres.")
+        if nueva_clave and (not isinstance(clave_actual, str) or len(clave_actual) > 256):
+            raise ValueError("La contraseña actual no es válida.")
+        if nueva_clave and datos.get("confirmar_clave") != nueva_clave:
+            raise ValueError("La confirmación no coincide con la nueva contraseña.")
+    except (TypeError, ValueError) as error:
+        return _fallo(str(error), "datos_invalidos", 400)
+
+    conexion = db.obtener_conexion()
+    fila = conexion.execute("SELECT password_hash FROM usuarios WHERE id=?", (current_user.id,)).fetchone()
+    if nueva_clave:
+        from werkzeug.security import check_password_hash
+        if not clave_actual or not check_password_hash(fila["password_hash"], clave_actual):
+            return _fallo("La contraseña actual no coincide.", "clave_actual_invalida", 400)
+
+    from .profile_media import guardar_foto
+    try:
+        foto = guardar_foto(request.files.get("foto"))
+    except ValueError as error:
+        return _fallo(str(error), "foto_invalida", 400)
+    ahora = _now()
+    if foto is not None:
+        conexion.execute("UPDATE usuarios SET foto_perfil=? WHERE id=?", (foto, current_user.id))
+    if nueva_clave:
+        conexion.execute(
+            "UPDATE usuarios SET nombre_completo=?, password_hash=?, password_version=password_version+1, actualizado_en=? WHERE id=?",
+            (nombre, generate_password_hash(nueva_clave), ahora, current_user.id),
+        )
+    else:
+        conexion.execute("UPDATE usuarios SET nombre_completo=?, actualizado_en=? WHERE id=?", (nombre, ahora, current_user.id))
+    _auditar(conexion, "PERFIL_ADMIN_EDITADO")
+    conexion.commit()
+    requiere_login = bool(nueva_clave)
+    if requiere_login:
+        from flask import session
+        from flask_login import logout_user
+        logout_user()
+        session.clear()
+    return jsonify(ok=True, mensaje="Perfil actualizado.", requiere_nuevo_login=requiere_login), 200
 
 
 @management_bp.post("/api/admin/usuarios/<int:usuario_id>/restablecer-clave")
@@ -346,7 +412,7 @@ def restablecer_clave(usuario_id):
     conexion = db.obtener_conexion()
     fila = conexion.execute(
         """SELECT u.id FROM usuarios u JOIN roles r ON r.id=u.rol_id
-           WHERE u.id=? AND r.nombre IN ('INSTRUCTOR','VOLUNTARIO')""", (usuario_id,)
+           WHERE u.id=? AND r.nombre IN ('JEFE_PERSONAL','INSTRUCTOR_VOLUNTARIO')""", (usuario_id,)
     ).fetchone()
     if not fila:
         return _fallo("Perfil no encontrado.", "perfil_no_encontrado", 404)
@@ -360,18 +426,18 @@ def restablecer_clave(usuario_id):
 
 
 @management_bp.route("/api/usuarios/<int:usuario_id>/foto", methods=["GET", "PUT"])
-@role_required("ADMINISTRADOR", "INSTRUCTOR", "VOLUNTARIO")
+@role_required("ADMINISTRADOR", "JEFE_PERSONAL", "INSTRUCTOR_VOLUNTARIO")
 def foto_perfil(usuario_id):
     conexion = db.obtener_conexion()
     fila = conexion.execute(
         """SELECT u.foto_perfil, r.nombre AS rol FROM usuarios u JOIN roles r ON r.id=u.rol_id
-           WHERE u.id=? AND r.nombre IN ('INSTRUCTOR','VOLUNTARIO')""", (usuario_id,)
+           WHERE u.id=? AND r.nombre IN ('ADMINISTRADOR','JEFE_PERSONAL','INSTRUCTOR_VOLUNTARIO')""", (usuario_id,)
     ).fetchone()
     if not fila:
         return _fallo("Perfil no encontrado.", "perfil_no_encontrado", 404)
     es_admin = current_user.rol == "ADMINISTRADOR"
     es_propio = current_user.id == usuario_id
-    es_equipo = current_user.rol == "INSTRUCTOR" and fila["rol"] == "VOLUNTARIO" and conexion.execute(
+    es_equipo = current_user.rol == "JEFE_PERSONAL" and fila["rol"] == "INSTRUCTOR_VOLUNTARIO" and conexion.execute(
         "SELECT 1 FROM voluntarios WHERE usuario_id=? AND instructor_id=?", (usuario_id, current_user.id)
     ).fetchone()
     if request.method == "PUT":
@@ -408,12 +474,13 @@ def foto_perfil(usuario_id):
 
 
 @management_bp.post("/api/admin/instructores/<int:usuario_id>/desactivar")
+@management_bp.post("/api/admin/jefes-personal/<int:usuario_id>/desactivar")
 @role_required("ADMINISTRADOR")
 def desactivar_instructor(usuario_id):
     conexion = db.obtener_conexion()
     fila = conexion.execute("SELECT estado FROM usuarios u JOIN instructores i ON i.usuario_id=u.id WHERE u.id=?", (usuario_id,)).fetchone()
     if not fila:
-        return _fallo("Instructor no encontrado.", "instructor_no_encontrado", 404)
+        return _fallo("Jefe de Personal no encontrado.", "jefe_personal_no_encontrado", 404)
     if fila["estado"] == "INACTIVO":
         return jsonify(ok=True, estado="INACTIVO"), 200
     ahora = _now()
@@ -424,9 +491,9 @@ def desactivar_instructor(usuario_id):
            AND usuario_id IN (SELECT id FROM usuarios WHERE estado='ACTIVO')""",
         (usuario_id,),
     )
-    _auditar(conexion, "INSTRUCTOR_DESACTIVADO")
+    _auditar(conexion, "JEFE_PERSONAL_DESACTIVADO")
     if cursor.rowcount:
-        _auditar(conexion, "VOLUNTARIOS_REASIGNADOS_POR_BAJA")
+        _auditar(conexion, "INSTRUCTORES_VOLUNTARIOS_REASIGNADOS_POR_BAJA")
     conexion.commit()
     return jsonify(ok=True, estado="INACTIVO", voluntarios_desvinculados=cursor.rowcount), 200
 
@@ -486,15 +553,16 @@ def _alcance_voluntario(conexion, usuario_id):
                          (u.foto_perfil IS NOT NULL) AS tiene_foto,
                          v.instructor_id, v.experiencia_operaciones, v.antiguedad_desde
                   FROM usuarios u JOIN voluntarios v ON v.usuario_id=u.id
-                  JOIN roles r ON r.id=u.rol_id WHERE u.id=? AND r.nombre='VOLUNTARIO'"""
+                  JOIN roles r ON r.id=u.rol_id WHERE u.id=? AND r.nombre='INSTRUCTOR_VOLUNTARIO'"""
     fila = conexion.execute(consulta, (usuario_id,)).fetchone()
-    if fila and current_user.rol == "INSTRUCTOR" and fila["instructor_id"] != current_user.id:
+    if fila and current_user.rol == "JEFE_PERSONAL" and fila["instructor_id"] != current_user.id:
         return None
     return fila
 
 
 @management_bp.get("/api/voluntarios")
-@role_required("ADMINISTRADOR", "INSTRUCTOR")
+@management_bp.get("/api/instructores-voluntarios")
+@role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def listar_voluntarios():
     conexion = db.obtener_conexion()
     consulta = """SELECT u.id, u.username, u.nombre_completo AS nombre, u.correo, u.estado,
@@ -505,7 +573,7 @@ def listar_voluntarios():
                   LEFT JOIN usuarios ui ON ui.id=v.instructor_id
                   ORDER BY u.nombre_completo, u.id"""
     parametros = ()
-    if current_user.rol == "INSTRUCTOR":
+    if current_user.rol == "JEFE_PERSONAL":
         consulta = consulta.replace("ORDER BY", "WHERE v.instructor_id = ? ORDER BY")
         parametros = (current_user.id,)
     filas = conexion.execute(consulta, parametros).fetchall()
@@ -513,7 +581,8 @@ def listar_voluntarios():
 
 
 @management_bp.patch("/api/voluntarios/<int:usuario_id>")
-@role_required("ADMINISTRADOR", "INSTRUCTOR")
+@management_bp.patch("/api/instructores-voluntarios/<int:usuario_id>")
+@role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def editar_voluntario(usuario_id):
     datos = _datos_json()
     if datos is None:
@@ -521,7 +590,7 @@ def editar_voluntario(usuario_id):
     conexion = db.obtener_conexion()
     voluntario = _alcance_voluntario(conexion, usuario_id)
     if not voluntario:
-        return _fallo("Voluntario no encontrado en tu ámbito.", "voluntario_no_encontrado", 404)
+        return _fallo("Instructor Voluntario no encontrado en tu ámbito.", "instructor_voluntario_no_encontrado", 404)
     campos = {}
     try:
         for campo, limite in (("nombre", 160), ("correo", 254), ("experiencia_operaciones", 2000), ("antiguedad_desde", 10)):
@@ -556,7 +625,7 @@ def editar_voluntario(usuario_id):
         if perfil:
             asignaciones = ", ".join(f"{campo}=?" for campo in perfil)
             conexion.execute(f"UPDATE voluntarios SET {asignaciones} WHERE usuario_id=?", (*perfil.values(), usuario_id))
-        _auditar(conexion, "VOLUNTARIO_EDITADO")
+        _auditar(conexion, "INSTRUCTOR_VOLUNTARIO_EDITADO")
         conexion.commit()
     except Exception as error:
         conexion.rollback()
@@ -567,16 +636,17 @@ def editar_voluntario(usuario_id):
 
 
 @management_bp.post("/api/voluntarios/<int:usuario_id>/desactivar")
-@role_required("ADMINISTRADOR", "INSTRUCTOR")
+@management_bp.post("/api/instructores-voluntarios/<int:usuario_id>/desactivar")
+@role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def desactivar_voluntario(usuario_id):
     conexion = db.obtener_conexion()
     voluntario = _alcance_voluntario(conexion, usuario_id)
     if not voluntario:
-        return _fallo("Voluntario no encontrado en tu ámbito.", "voluntario_no_encontrado", 404)
+        return _fallo("Instructor Voluntario no encontrado en tu ámbito.", "instructor_voluntario_no_encontrado", 404)
     if voluntario["estado"] == "INACTIVO":
         return jsonify(ok=True, estado="INACTIVO", mensaje="El voluntario ya estaba desactivado."), 200
     ahora = datetime.now(timezone.utc).isoformat(timespec="seconds")
     conexion.execute("UPDATE usuarios SET estado='INACTIVO', actualizado_en=? WHERE id=?", (ahora, usuario_id))
-    _auditar(conexion, "VOLUNTARIO_DESACTIVADO")
+    _auditar(conexion, "INSTRUCTOR_VOLUNTARIO_DESACTIVADO")
     conexion.commit()
     return jsonify(ok=True, estado="INACTIVO"), 200

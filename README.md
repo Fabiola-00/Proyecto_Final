@@ -4,7 +4,7 @@ Sistema de Control y Evaluación de Personal. Prototipo académico para seguimie
 
 ## Estado
 
-Fase 5 parcial — asistencias, catálogo/asignación de evaluaciones y notas no psicométricas con historial. Se añadieron fotos de perfil privadas y restablecimiento administrativo de contraseñas antes de iniciar Fase 6. Los paneles siguen separados por rol. Los formularios e intentos psicométricos quedan bloqueados porque no hay instrumentos autorizados en `docs/06_pruebas_psicometricas.md`. La aplicación sigue siendo un prototipo local, no un sistema listo para producción.
+Fase 5 parcial — asistencias, catálogo/asignación de evaluaciones y notas no psicométricas con historial. Se añadieron fotos de perfil privadas y restablecimiento administrativo de contraseñas antes de iniciar Fase 6. Los paneles siguen separados por rol: Administrador, Jefe de Personal e Instructor Voluntario. La versión 5 de esquema migra los códigos antiguos de rol conservando cuentas e historiales. Los formularios e intentos psicométricos quedan bloqueados porque no hay instrumentos autorizados en `docs/06_pruebas_psicometricas.md`. La aplicación sigue siendo un prototipo local, no un sistema listo para producción.
 
 ## Documentación
 

@@ -2,11 +2,11 @@
 
 ## Esquema implementado
 
-SQLite usa `PRAGMA foreign_keys = ON`. El esquema `sicose/schema.sql` es aditivo e idempotente y actualiza `app_meta.schema_version` a 4. La base local previa se preserva y amplía; `init-db` agrega las columnas faltantes y no elimina tablas/filas. Fechas técnicas se expresan en UTC; claves numéricas son internas.
+SQLite usa `PRAGMA foreign_keys = ON`. El esquema `sicose/schema.sql` es aditivo e idempotente y actualiza `app_meta.schema_version` a 5. La base local previa se preserva y amplía; `init-db` agrega las columnas faltantes y no elimina tablas/filas. Fechas técnicas se expresan en UTC; claves numéricas son internas.
 
 | Tabla | Uso y restricciones principales |
 |---|---|
-| `roles` | Catálogo restringido a ADMINISTRADOR, INSTRUCTOR y VOLUNTARIO; seed repetible. |
+| `roles` | Catálogo restringido a ADMINISTRADOR, JEFE_PERSONAL e INSTRUCTOR_VOLUNTARIO; seed repetible. |
 | `usuarios` | `username` único sin distinguir mayúsculas; `password_hash` obligatorio; `password_version` para invalidar sesiones tras restablecimiento; nombre de foto aleatorio en `foto_perfil`; FK restrictiva a rol; estados y timestamps. |
 | `solicitudes_registro` | Historial de alta 1:1 con usuario; estado PENDIENTE/APROBADA/RECHAZADA, revisor y fecha. |
 | `invitaciones` | Hash SHA-256 de token aleatorio, correo opcional, expiración y uso único; el token claro solo se devuelve al crearla. |
@@ -31,12 +31,14 @@ SQLite usa `PRAGMA foreign_keys = ON`. El esquema `sicose/schema.sql` es aditivo
 
 ## Autenticación y roles
 
-La cuenta guarda el nombre de rol por FK y un hash generado por Werkzeug (scrypt predeterminado de la versión instalada), nunca la contraseña original. Solo estado ACTIVO puede completar login; cuentas pendientes/inactivas no obtienen sesión. El seed inserta únicamente ADMINISTRADOR y no modifica una cuenta existente. No se crean cuentas de instructor o voluntario demo automáticamente.
+La cuenta guarda el nombre de rol por FK y un hash generado por Werkzeug (scrypt predeterminado de la versión instalada), nunca la contraseña original. Solo estado ACTIVO puede completar login; cuentas pendientes/inactivas no obtienen sesión. El seed inserta únicamente ADMINISTRADOR y no modifica una cuenta existente. No se crean cuentas de Jefe de Personal o Instructor Voluntario demo automáticamente.
 
 ## Decisiones y límites
 
-El registro público crea usuario y perfil en estado PENDIENTE con contraseña hasheada y sin sesión. Un administrador aprueba o rechaza la solicitud. Las invitaciones duran siete días, son de un solo uso, guardan solo el hash del token y no se envían por correo: el administrador comparte manualmente el enlace mostrado al crearlas. Administración crea directamente las cuentas de instructor en estado ACTIVO con hash de contraseña y perfil asociado; puede editar o desactivar. Desactivar un instructor conserva su cuenta/perfil y desvincula los voluntarios activos para evitar nuevas operaciones bajo una asignación inactiva. Instructores solo consultan, editan y desactivan perfiles asignados a su cuenta.
+El registro público crea usuario y perfil en estado PENDIENTE con contraseña hasheada y sin sesión. Un administrador aprueba o rechaza la solicitud. Las invitaciones duran siete días, son de un solo uso, guardan solo el hash del token y no se envían por correo: el administrador comparte manualmente el enlace mostrado al crearlas. Administración crea directamente las cuentas de Jefe de Personal en estado ACTIVO con hash de contraseña y perfil asociado; puede editar o desactivar. Desactivar un Jefe de Personal conserva su cuenta/perfil y desvincula los voluntarios activos para evitar nuevas operaciones bajo una asignación inactiva. Los Jefes de Personal solo consultan, editan y desactivan perfiles de Instructores Voluntarios asignados a su cuenta.
 
-Las fotos PNG/JPEG (máximo 3 MiB y 4096 × 4096) se guardan en `instance/perfiles`, fuera de static, con nombre generado y acceso por API autenticada con control por rol/ámbito. No se guardan bytes en SQLite. Administración puede editar perfil y restablecer clave de instructores/voluntarios; no se muestra la clave anterior. El backend guarda un hash nuevo e incrementa `password_version`, por lo que las sesiones previas dejan de autenticar.
+Los códigos internos de rol se actualizaron en el esquema v5. La migración renombra `INSTRUCTOR` a `JEFE_PERSONAL` y `VOLUNTARIO` a `INSTRUCTOR_VOLUNTARIO` conservando los IDs y actualiza categorías/orígenes históricos de evaluación. Los nombres internos de tablas y columnas (`instructores`, `voluntarios`, `instructor_id`, `voluntario_id`) se conservan para no romper relaciones ni datos existentes.
+
+Las fotos PNG/JPEG (máximo 3 MiB y 4096 × 4096) se guardan en `instance/perfiles`, fuera de static, con nombre generado y acceso por API autenticada con control por rol/ámbito. No se guardan bytes en SQLite. Administración puede editar perfil y restablecer clave de Jefes de Personal/Instructores Voluntarios; no se muestra la clave anterior. El backend guarda un hash nuevo e incrementa `password_version`, por lo que las sesiones previas dejan de autenticar.
 
 IDs numéricos son internos y no autorizan por sí mismos acceso a un recurso. Campos de respuestas son sensibles; aún no se almacenan. Los instrumentos permanecen pendientes y sin reactivos. El modelo de tablas futuras no significa que APIs o cálculos estén implementados. Reglas de retención, privacidad, faltantes, pesos y publicación necesitan aprobación institucional antes de operar evaluaciones.

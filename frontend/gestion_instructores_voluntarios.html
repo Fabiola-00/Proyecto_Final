@@ -1,9 +1,9 @@
 {% extends "_dashboard_base.html" %}
 {% block contenido %}
 <section class="seccion-panel" aria-labelledby="voluntarios-titulo">
-  <div class="titulo-seccion"><div><p class="sobrelinea">GESTIÓN DE PERSONAL</p><h2 id="voluntarios-titulo">Voluntarios</h2></div></div>
+  <div class="titulo-seccion"><div><p class="sobrelinea">GESTIÓN DE PERSONAL</p><h2 id="voluntarios-titulo">Instructores Voluntarios</h2></div></div>
   {% if current_user.rol == 'ADMINISTRADOR' %}
-  <div class="tarjeta-amplia"><div><h3>Invitar a un voluntario</h3><p>El enlace expira en siete días y puede utilizarse una sola vez. La cuenta resultante requiere aprobación.</p>
+  <div class="tarjeta-amplia"><div><h3>Invitar a un Instructor Voluntario</h3><p>El enlace expira en siete días y puede utilizarse una sola vez. La cuenta resultante requiere aprobación.</p>
     <form id="invitacion-form" class="formulario-inline"><label for="invitacion-correo">Correo (opcional)</label><input id="invitacion-correo" name="correo" type="email" maxlength="254"><button type="submit">Crear invitación</button></form>
     <p id="invitacion-resultado" class="mensaje" role="status" aria-live="polite"></p></div></div>
   <section class="seccion-panel"><div class="titulo-seccion"><h2>Solicitudes pendientes</h2></div><div id="solicitudes-lista" class="rejilla-modulos"></div></section>

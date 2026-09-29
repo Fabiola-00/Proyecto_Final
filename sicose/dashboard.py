@@ -33,17 +33,29 @@ def _renderizar_panel(template, page_title, nav_activo, indicadores, descripcion
 @role_required("ADMINISTRADOR")
 def administrador():
     conexion = obtener_conexion()
+    perfiles_voluntarios = conexion.execute(
+        """SELECT u.id, u.nombre_completo AS nombre, u.estado,
+                  (u.foto_perfil IS NOT NULL) AS tiene_foto
+           FROM voluntarios v JOIN usuarios u ON u.id=v.usuario_id
+           ORDER BY (u.estado='ACTIVO') DESC, u.nombre_completo, u.id"""
+    ).fetchall()
+    perfiles_instructores = conexion.execute(
+        """SELECT u.id, u.nombre_completo AS nombre, u.estado,
+                  (u.foto_perfil IS NOT NULL) AS tiene_foto
+           FROM instructores i JOIN usuarios u ON u.id=i.usuario_id
+           ORDER BY (u.estado='ACTIVO') DESC, u.nombre_completo, u.id"""
+    ).fetchall()
     voluntarios = conexion.execute(
         """SELECT COUNT(*) AS total FROM voluntarios v
            JOIN usuarios u ON u.id = v.usuario_id
            JOIN roles r ON r.id = u.rol_id
-           WHERE u.estado = 'ACTIVO' AND r.nombre = 'VOLUNTARIO'"""
+           WHERE u.estado = 'ACTIVO' AND r.nombre = 'INSTRUCTOR_VOLUNTARIO'"""
     ).fetchone()["total"]
     instructores = conexion.execute(
         """SELECT COUNT(*) AS total FROM instructores i
            JOIN usuarios u ON u.id = i.usuario_id
            JOIN roles r ON r.id = u.rol_id
-           WHERE u.estado = 'ACTIVO' AND r.nombre = 'INSTRUCTOR'"""
+           WHERE u.estado = 'ACTIVO' AND r.nombre = 'JEFE_PERSONAL'"""
     ).fetchone()["total"]
     pendientes = conexion.execute(
         "SELECT COUNT(*) AS total FROM usuarios WHERE estado = 'PENDIENTE'"
@@ -56,18 +68,21 @@ def administrador():
         "Panel de administración",
         "inicio",
         [
-            {"etiqueta": "Voluntarios activos", "valor": voluntarios, "detalle": "Perfiles registrados"},
-            {"etiqueta": "Instructores activos", "valor": instructores, "detalle": "Perfiles registrados"},
+            {"etiqueta": "Instructores Voluntarios activos", "valor": voluntarios, "detalle": "Perfiles registrados"},
+            {"etiqueta": "Jefes de Personal activos", "valor": instructores, "detalle": "Perfiles registrados"},
             {"etiqueta": "Usuarios pendientes", "valor": pendientes, "detalle": "Cuentas sin activar"},
             {"etiqueta": "Períodos activos", "valor": periodos_activos, "detalle": "Ciclos vigentes"},
         ],
         "Resumen general construido con los datos registrados en SICOSE.",
+        perfiles_voluntarios=[dict(fila) for fila in perfiles_voluntarios],
+        perfiles_instructores=[dict(fila) for fila in perfiles_instructores],
     )
 
 
 @dashboard_bp.get("/panel/instructor")
-@role_required("INSTRUCTOR")
-def instructor():
+@dashboard_bp.get("/panel/jefe-personal")
+@role_required("JEFE_PERSONAL")
+def jefe_personal():
     conexion = obtener_conexion()
     voluntarios = conexion.execute(
         """SELECT COUNT(*) AS total FROM voluntarios v
@@ -84,20 +99,21 @@ def instructor():
         (current_user.id,),
     ).fetchone()["total"]
     return _renderizar_panel(
-        "dashboard_instructor.html",
-        "Panel del instructor",
+        "dashboard_jefe_personal.html",
+        "Panel del Jefe de Personal",
         "inicio",
         [
-            {"etiqueta": "Voluntarios asignados", "valor": voluntarios, "detalle": "Perfiles activos"},
+            {"etiqueta": "Instructores Voluntarios asignados", "valor": voluntarios, "detalle": "Perfiles activos"},
             {"etiqueta": "Evaluaciones pendientes", "valor": asignaciones_pendientes, "detalle": "Habilitadas o en progreso"},
         ],
-        "Seguimiento de tus asignaciones y voluntarios autorizados.",
+        "Seguimiento de tus asignaciones y de los Instructores Voluntarios autorizados.",
     )
 
 
 @dashboard_bp.get("/panel/voluntario")
-@role_required("VOLUNTARIO")
-def voluntario():
+@dashboard_bp.get("/panel/instructor-voluntario")
+@role_required("INSTRUCTOR_VOLUNTARIO")
+def instructor_voluntario():
     conexion = obtener_conexion()
     filas = conexion.execute(
         """SELECT COUNT(*) AS total,
@@ -118,8 +134,8 @@ def voluntario():
            ORDER BY p.fecha_inicio DESC,e.nombre""", (current_user.id,)
     ).fetchall()
     return _renderizar_panel(
-        "dashboard_voluntario.html",
-        "Mi seguimiento",
+        "dashboard_instructor_voluntario.html",
+        "Mi seguimiento como Instructor Voluntario",
         "inicio",
         [
             {"etiqueta": "Evaluaciones asignadas", "valor": total, "detalle": "En todos los períodos"},
@@ -127,7 +143,7 @@ def voluntario():
             {"etiqueta": "Pendientes", "valor": total - completadas, "detalle": "Aún no completadas"},
             {"etiqueta": "Capacitaciones", "valor": capacitaciones, "detalle": "Registros en tu perfil"},
         ],
-        "Consulta tu avance personal y la información asociada a tu cuenta.",
+        "Consulta tu avance personal y la información asociada a tu cuenta de Instructor Voluntario.",
         evaluaciones_resumen=[dict(fila) for fila in evaluaciones],
     )
 
