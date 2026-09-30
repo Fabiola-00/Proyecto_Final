@@ -6,9 +6,9 @@ Este README consolida los acuerdos funcionales y técnicos tomados desde el inic
 
 ## Estado actual
 
-El proyecto está en **Fase 5 parcial**. Están implementados autenticación y dashboards por rol, gestión básica de cuentas y perfiles, fotos privadas, parte del catálogo y asignación de evaluaciones, asistencia, capacitaciones y calificaciones manuales no psicométricas con historial. La Fase 6 no ha comenzado. La versión actual del esquema SQLite es **7**; `flask --app sicose init-db` amplía el esquema de forma aditiva y conserva las filas existentes.
+El proyecto está en **Fase 5 parcial**. Están implementados autenticación y dashboards por rol, gestión básica de cuentas y perfiles, fotos privadas, parte del catálogo y asignación de evaluaciones, asistencia, capacitaciones y calificaciones manuales no psicométricas con historial. La Fase 6 no ha comenzado. La versión actual del esquema SQLite es **8**; `flask --app sicose init-db` amplía el esquema de forma aditiva y conserva las filas existentes.
 
-Las pruebas automatizadas verificadas en el último cambio funcional: **42 pruebas aprobadas** con `python -m unittest discover -s tests -v`. No se afirma que las capacidades listadas como pendientes estén implementadas.
+Las pruebas automatizadas verificadas en este cambio: **43 pruebas aprobadas** con `python -m unittest discover -s tests -v`. No se afirma que las capacidades listadas como pendientes estén implementadas.
 
 ## Requerimientos acordados
 
@@ -47,14 +47,15 @@ Los datos acordados incluyen:
 - **Operaciones acordadas:** tipo de evento, lugar, fecha de inicio, fecha de fin e institución responsable.
 - **Fotografía:** opción de carga de foto para perfiles de Jefe de Personal e Instructor Voluntario; archivos privados y servidos mediante una ruta autenticada.
 
-Están implementados nombres, ambos apellidos, fecha completa, generación del código y carga/visualización de fotos. Permanecen pendientes los catálogos de país/departamento y especialidades, año de incorporación con cálculo de antigüedad, catálogo relacional de cursos y modelo/relaciones de operaciones. Actualmente `capacitaciones` guarda el nombre del curso como texto, entidad, fecha y observación; no representa todavía un catálogo de cursos.
+Están implementados nombres, ambos apellidos, fecha completa, generación del código, especialidad principal (catálogo acordado) y carga/visualización de fotos. Los perfiles antiguos pueden conservar la especialidad vacía y muestran “Sin especialidad registrada”. Permanecen pendientes país/departamento, especialidades secundarias, año de incorporación con cálculo de antigüedad, catálogo relacional de cursos y modelo/relaciones de operaciones. Actualmente `capacitaciones` guarda el nombre del curso como texto, entidad, fecha y observación; no representa todavía un catálogo de cursos.
 
 ### Evaluaciones, asistencia y capacitación
 
 - El catálogo previsto comprende seis componentes por período: tres psicométricos, evaluación física, rendimiento académico y criterio/desempeño del Jefe de Personal. Los pesos de referencia documentados son una propuesta, no una regla institucional aprobada.
 - Administración tiene pantallas iniciales para períodos, catálogo de evaluaciones y asignaciones. La gestión completa de versiones de ponderación y reglas para datos faltantes sigue pendiente.
 - Jefe de Personal registra y corrige notas manuales no psicométricas conservando el historial de cambios. Las notas psicométricas no se modifican desde su panel.
-- Las asistencias tienen cuatro estados nuevos. El esquema v7 agrega `estado_detalle`; conserva el estado histórico original (`PRESENTE`, `AUSENTE` o `JUSTIFICADO`) y asigna una categoría de presentación al registro antiguo. No se borran filas en la migración.
+- Las asistencias tienen cuatro estados nuevos. El esquema v7 agrega `estado_detalle`; conserva el estado histórico original (`PRESENTE`, `AUSENTE` o `JUSTIFICADO`) y asigna una categoría de presentación al registro antiguo. El esquema v8 añade la especialidad principal de forma aditiva. No se borran filas en las migraciones.
+- La etiqueta de año/período en las vistas de dashboard muestra dinámicamente el año calendario actual; no crea ni cambia períodos persistidos, que siguen administrándose mediante su pantalla.
 - Capacitaciones permite listar, registrar y editar entradas existentes en `capacitaciones`, con autorización por ámbito. La baja física no está disponible para preservar el historial.
 - No hay reactivos ni formularios psicométricos activos. No se debe habilitar una prueba sin comprobar instrumento, versión lingüística, derechos/licencia, regla de puntuación y aprobación profesional e institucional.
 - PDF, Excel, informes consolidados, cálculos oficiales de promedios e integración de IA están pendientes. No se deben inventar predicciones ni presentar reglas provisionales como un modelo entrenado o una medida validada.
@@ -114,7 +115,7 @@ Con el entorno virtual activo:
 python -m unittest discover -s tests -v
 ```
 
-Las pruebas usan bases aisladas y no reinician la base local. En el último cambio funcional se ejecutaron 42 pruebas y todas aprobaron. También se verificaron `python -m compileall -q sicose tests`, `node --check frontend\static\js\app.js`, `git diff --check` y la integridad de la base local tras su migración a v7 (`quick_check=ok`, cero infracciones de claves foráneas).
+Las pruebas usan bases aisladas y no reinician la base local. En este cambio se ejecutaron las 43 pruebas (todas aprobadas), `python -m compileall -q sicose tests`, `node --check frontend\static\js\app.js` y `git diff --check`. La base local se migró a v8: `quick_check=ok`, cero infracciones de claves foráneas, cuatro asistencias conservadas y un período persistido sin cambios.
 
 ## Estructura del proyecto
 

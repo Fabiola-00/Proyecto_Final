@@ -2,7 +2,7 @@
 
 import re
 import sqlite3
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 import click
@@ -41,6 +41,11 @@ def cerrar_conexion(_error=None):
 
 def _ahora_utc():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def periodo_actual():
+    """Año calendario mostrado en la interfaz; no modifica períodos persistidos."""
+    return str(date.today().year)
 
 
 def registrar_auditoria(conexion, usuario_id, accion, resultado, ip=None):
@@ -111,6 +116,13 @@ def inicializar_base_datos():
     for campo in ("nombres", "apellido_paterno", "apellido_materno", "fecha_nacimiento", "codigo_instructor"):
         if campo not in columnas_voluntarios:
             conexion.execute(f"ALTER TABLE voluntarios ADD COLUMN {campo} TEXT")
+    if "especialidad_principal" not in columnas_voluntarios:
+        conexion.execute(
+            "ALTER TABLE voluntarios ADD COLUMN especialidad_principal TEXT "
+            "CHECK (especialidad_principal IS NULL OR especialidad_principal IN "
+            "('Rescate en agua','Rescate en montaña','Rescate en selva',"
+            "'Lucha contra incendios','Primeros Auxilios','K-9'))"
+        )
     columnas_asistencias = {fila["name"] for fila in conexion.execute("PRAGMA table_info(asistencias)")}
     if "estado_detalle" not in columnas_asistencias:
         conexion.execute(
@@ -133,7 +145,7 @@ def inicializar_base_datos():
         ((rol,) for rol in ROLES),
     )
     conexion.execute(
-        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '7')
+        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '8')
            ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor"""
     )
     conexion.commit()

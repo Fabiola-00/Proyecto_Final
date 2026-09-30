@@ -56,7 +56,7 @@ def pagina_catalogo():
     return render_template("gestion_evaluaciones.html", titulo_pagina="Catálogo de evaluaciones",
                            nav_activo="evaluaciones", indicadores=[],
                            descripcion="Administra el catálogo y las asignaciones de cada período.",
-                           periodo_actual="Sin período activo")
+                           periodo_actual=db.periodo_actual())
 
 
 @evaluations_bp.get("/gestion/asistencias")
@@ -65,7 +65,7 @@ def pagina_asistencias():
     return render_template("gestion_asistencias.html", titulo_pagina="Asistencias",
                            nav_activo="asistencias", indicadores=[],
                            descripcion="Registra y consulta la asistencia de tu equipo.",
-                           periodo_actual="Sin período activo")
+                           periodo_actual=db.periodo_actual())
 
 
 @evaluations_bp.get("/gestion/capacitaciones")
@@ -74,7 +74,7 @@ def pagina_capacitaciones():
     return render_template("gestion_capacitaciones.html", titulo_pagina="Capacitaciones o cursos",
                            nav_activo="capacitaciones", indicadores=[],
                            descripcion="Consulta y mantiene el historial de cursos del equipo.",
-                           periodo_actual="Sin período activo")
+                           periodo_actual=db.periodo_actual())
 
 
 @evaluations_bp.get("/gestion/calificaciones")
@@ -83,7 +83,7 @@ def pagina_calificaciones():
     return render_template("gestion_calificaciones.html", titulo_pagina="Notas e historial",
                            nav_activo="calificaciones", indicadores=[],
                            descripcion="Registra y consulta notas no psicométricas e historial.",
-                           periodo_actual="Sin período activo")
+                           periodo_actual=db.periodo_actual())
 
 
 @evaluations_bp.get("/api/admin/evaluaciones")

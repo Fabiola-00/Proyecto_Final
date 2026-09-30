@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS voluntarios (
     apellido_materno TEXT,
     fecha_nacimiento TEXT,
     codigo_instructor TEXT UNIQUE,
+    especialidad_principal TEXT CHECK (especialidad_principal IS NULL OR especialidad_principal IN ('Rescate en agua', 'Rescate en montaña', 'Rescate en selva', 'Lucha contra incendios', 'Primeros Auxilios', 'K-9')),
     experiencia_operaciones TEXT,
     antiguedad_desde TEXT,
     creado_en TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))

@@ -13,6 +13,7 @@
         <label>Apellido materno<input name="apellido_materno" maxlength="80" required></label>
         <label>Fecha de nacimiento (día, mes y año)<input name="fecha_nacimiento" type="date" required></label>
         <label>Código del Instructor<output class="codigo-generado" data-codigo-instructor>Completa nombres y fecha de nacimiento</output></label>
+        <label>Especialidad principal<select name="especialidad_principal" required><option value="">Selecciona una especialidad</option><option>Rescate en agua</option><option>Rescate en montaña</option><option>Rescate en selva</option><option>Lucha contra incendios</option><option>Primeros Auxilios</option><option>K-9</option></select></label>
         <label>Nombre de usuario<input name="username" maxlength="80" autocomplete="username" required></label>
         <label>Correo electrónico (opcional)<input name="correo" type="email" maxlength="254"></label>
         <label>Contraseña inicial (mínimo 12 caracteres)<input name="password" type="password" minlength="12" maxlength="256" autocomplete="new-password" required></label>
@@ -28,7 +29,7 @@
   <section class="seccion-panel"><div class="titulo-seccion"><h2>Solicitudes pendientes</h2></div><div id="solicitudes-lista" class="rejilla-modulos"></div></section>
   {% endif %}
   <div id="perfiles-registrados" class="titulo-seccion"><div><p class="sobrelinea">DIRECTORIO</p><h2 id="lista-voluntarios-titulo">Todos los Instructores Voluntarios</h2></div></div>
-  <div class="tabla-contenedor"><table class="tabla-registros"><thead><tr><th scope="col">Perfil</th><th scope="col">Código</th><th scope="col">Nacimiento</th><th scope="col">Usuario</th><th scope="col">Correo</th><th scope="col">Estado</th><th scope="col">Experiencia</th><th scope="col">Acciones CRUD</th></tr></thead><tbody id="voluntarios-lista" aria-live="polite"></tbody></table></div>
+  <div class="tabla-contenedor"><table class="tabla-registros"><thead><tr><th scope="col">Perfil</th><th scope="col">Código</th><th scope="col">Nacimiento</th><th scope="col">Especialidad principal</th><th scope="col">Usuario</th><th scope="col">Correo</th><th scope="col">Estado</th><th scope="col">Experiencia</th><th scope="col">Acciones CRUD</th></tr></thead><tbody id="voluntarios-lista" aria-live="polite"></tbody></table></div>
   <p id="gestion-mensaje" class="mensaje" role="status" aria-live="polite"></p>
 </section>
 {% endblock %}

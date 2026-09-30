@@ -15,6 +15,10 @@ from .permissions import role_required
 
 management_bp = Blueprint("management", __name__)
 USERNAME_RE = re.compile(r"^[A-Za-z0-9._-]{3,80}$")
+ESPECIALIDADES_PRINCIPALES = (
+    "Rescate en agua", "Rescate en montaña", "Rescate en selva",
+    "Lucha contra incendios", "Primeros Auxilios", "K-9",
+)
 
 
 @management_bp.get("/registro")
@@ -34,7 +38,7 @@ def pagina_gestion_voluntarios():
     return render_template("gestion_instructores_voluntarios.html", titulo_pagina="Gestión de Instructores Voluntarios",
                            nav_activo="voluntarios", indicadores=[],
                            descripcion="Alta manual, solicitudes pendientes y administración integral de perfiles.",
-                           periodo_actual="Sin período activo")
+                           periodo_actual=db.periodo_actual())
 
 
 @management_bp.get("/gestion/instructores")
@@ -44,7 +48,7 @@ def pagina_gestion_instructores():
     return render_template("gestion_jefes_personal.html", titulo_pagina="Administración de Jefes de Personal",
                            nav_activo="instructores", indicadores=[],
                            descripcion="Crea y administra las cuentas con rol de Jefe de Personal.",
-                           periodo_actual="Sin período activo")
+                           periodo_actual=db.periodo_actual())
 
 
 @management_bp.get("/configuracion")
@@ -53,7 +57,16 @@ def pagina_configuracion():
     return render_template("configuracion_administrador.html", titulo_pagina="Configuración",
                            nav_activo="configuracion", indicadores=[],
                            descripcion="Actualiza tu perfil y las credenciales de administración.",
-                           periodo_actual="Sin período activo")
+                           periodo_actual=db.periodo_actual())
+
+
+def _especialidad_principal(datos, obligatorio=False):
+    valor = _texto(datos, "especialidad_principal", 80, obligatorio)
+    if valor is None and not obligatorio:
+        return None
+    if valor not in ESPECIALIDADES_PRINCIPALES:
+        raise ValueError("Selecciona una especialidad principal válida.")
+    return valor
 
 
 def _fallo(mensaje, codigo, status):
@@ -136,6 +149,7 @@ def _descartar_foto(foto):
 def _crear_solicitud(datos, invitacion_id=None):
     try:
         identidad = _identidad_instructor(datos)
+        especialidad = _especialidad_principal(datos, obligatorio=True)
         username = _texto(datos, "username", 80, True)
         correo = _texto(datos, "correo", 254)
         if correo:
@@ -174,11 +188,11 @@ def _crear_solicitud(datos, invitacion_id=None):
         conexion.execute(
             """INSERT INTO voluntarios
                (usuario_id, nombres, apellido_paterno, apellido_materno, fecha_nacimiento,
-                codigo_instructor, experiencia_operaciones, antiguedad_desde)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                codigo_instructor, especialidad_principal, experiencia_operaciones, antiguedad_desde)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (usuario_id, identidad["nombres"], identidad["apellido_paterno"],
              identidad["apellido_materno"], identidad["fecha_nacimiento"],
-             identidad["codigo_instructor"], experiencia, antiguedad),
+             identidad["codigo_instructor"], especialidad, experiencia, antiguedad),
         )
         conexion.execute(
             "INSERT INTO solicitudes_registro (usuario_id, invitacion_id) VALUES (?, ?)",
@@ -313,6 +327,7 @@ def crear_instructor_voluntario():
         return _fallo("Solicitud no válida.", "solicitud_invalida", 400)
     try:
         identidad = _identidad_instructor(datos)
+        especialidad = _especialidad_principal(datos, obligatorio=True)
         username = _texto(datos, "username", 80, True)
         correo = _texto(datos, "correo", 254)
         if correo:
@@ -372,11 +387,11 @@ def crear_instructor_voluntario():
         conexion.execute(
             """INSERT INTO voluntarios
                (usuario_id, instructor_id, nombres, apellido_paterno, apellido_materno,
-                fecha_nacimiento, codigo_instructor, experiencia_operaciones, antiguedad_desde)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                fecha_nacimiento, codigo_instructor, especialidad_principal, experiencia_operaciones, antiguedad_desde)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (usuario_id, jefe_id, identidad["nombres"], identidad["apellido_paterno"],
              identidad["apellido_materno"], identidad["fecha_nacimiento"],
-             identidad["codigo_instructor"], experiencia, antiguedad),
+             identidad["codigo_instructor"], especialidad, experiencia, antiguedad),
         )
         _auditar(conexion, "INSTRUCTOR_VOLUNTARIO_CREADO_MANUALMENTE")
         conexion.commit()
@@ -703,7 +718,7 @@ def _alcance_voluntario(conexion, usuario_id):
     consulta = """SELECT u.id, u.username, u.nombre_completo AS nombre, u.correo, u.estado,
                          (u.foto_perfil IS NOT NULL) AS tiene_foto,
                          v.instructor_id, v.nombres, v.apellido_paterno, v.apellido_materno,
-                         v.fecha_nacimiento, v.codigo_instructor,
+                         v.fecha_nacimiento, v.codigo_instructor, v.especialidad_principal,
                          v.experiencia_operaciones, v.antiguedad_desde
                   FROM usuarios u JOIN voluntarios v ON v.usuario_id=u.id
                   JOIN roles r ON r.id=u.rol_id WHERE u.id=? AND r.nombre='INSTRUCTOR_VOLUNTARIO'"""
@@ -722,7 +737,7 @@ def listar_voluntarios():
                          (u.foto_perfil IS NOT NULL) AS tiene_foto,
                          v.instructor_id, ui.nombre_completo AS instructor_nombre,
                          v.nombres, v.apellido_paterno, v.apellido_materno,
-                         v.fecha_nacimiento, v.codigo_instructor,
+                         v.fecha_nacimiento, v.codigo_instructor, v.especialidad_principal,
                          v.experiencia_operaciones, v.antiguedad_desde
                   FROM voluntarios v JOIN usuarios u ON u.id=v.usuario_id
                   LEFT JOIN usuarios ui ON ui.id=v.instructor_id
@@ -763,6 +778,8 @@ def editar_voluntario(usuario_id):
                 if campo == "antiguedad_desde" and valor:
                     datetime.strptime(valor, "%Y-%m-%d")
                 campos[campo] = valor
+        if "especialidad_principal" in datos:
+            campos["especialidad_principal"] = _especialidad_principal(datos)
         if "instructor_id" in datos:
             if current_user.rol != "ADMINISTRADOR":
                 raise ValueError("Solo administración puede cambiar instructor asignado.")
@@ -786,7 +803,7 @@ def editar_voluntario(usuario_id):
             conexion.execute("UPDATE usuarios SET correo=?, actualizado_en=? WHERE id=?", (correo, ahora, usuario_id))
         perfil = {k: v for k, v in campos.items() if k in {
             "nombres", "apellido_paterno", "apellido_materno", "fecha_nacimiento", "codigo_instructor",
-            "experiencia_operaciones", "antiguedad_desde", "instructor_id",
+            "experiencia_operaciones", "antiguedad_desde", "especialidad_principal", "instructor_id",
         }}
         if perfil:
             asignaciones = ", ".join(f"{campo}=?" for campo in perfil)

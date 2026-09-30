@@ -240,7 +240,7 @@ if (volunteerList) {
     if (!voluntarios.length) {
       const fila = elemento("tr");
       const celda = elemento("td", "No hay Instructores Voluntarios registrados.", "tabla-vacia");
-      celda.colSpan = 8; fila.append(celda); volunteerList.append(fila);
+      celda.colSpan = 9; fila.append(celda); volunteerList.append(fila);
     }
     voluntarios.forEach((voluntario) => {
       const fila = elemento("tr");
@@ -256,7 +256,7 @@ if (volunteerList) {
       const experiencia = elemento("td", voluntario.experiencia_operaciones || "—");
       const acciones = elemento("td", undefined, "acciones-tabla");
       const fechaNacimiento = voluntario.fecha_nacimiento ? voluntario.fecha_nacimiento.split("-").reverse().join("/") : "Pendiente de actualizar";
-      fila.append(perfil, elemento("td", voluntario.codigo_instructor || "Pendiente"), elemento("td", fechaNacimiento), usuario, correo, estado, experiencia, acciones);
+      fila.append(perfil, elemento("td", voluntario.codigo_instructor || "Pendiente"), elemento("td", fechaNacimiento), elemento("td", voluntario.especialidad_principal || "Sin especialidad registrada"), usuario, correo, estado, experiencia, acciones);
       if (voluntario.estado === "ACTIVO" || esAdministrador) {
         const edit = elemento("details", undefined, "edicion-voluntario");
         edit.append(elemento("summary", "Editar perfil"));
@@ -268,6 +268,13 @@ if (volunteerList) {
           if (["nombres", "apellido_paterno", "apellido_materno", "fecha_nacimiento"].includes(name)) input.required = true;
           const caption = elemento("label", label); caption.append(input); form.append(caption);
         });
+        const specialtyCaption = elemento("label", "Especialidad principal");
+        const specialty = elemento("select"); specialty.name = "especialidad_principal";
+        const noSpecialty = elemento("option", "Sin especialidad registrada"); noSpecialty.value = ""; specialty.append(noSpecialty);
+        ["Rescate en agua", "Rescate en montaña", "Rescate en selva", "Lucha contra incendios", "Primeros Auxilios", "K-9"].forEach((value) => {
+          const option = elemento("option", value); option.value = value; option.selected = voluntario.especialidad_principal === value; specialty.append(option);
+        });
+        specialtyCaption.append(specialty); form.append(specialtyCaption);
         const photoCaption = elemento("label", "Foto de perfil (PNG/JPEG, máximo 3 MiB)");
         const photoInput = elemento("input"); photoInput.type = "file"; photoInput.name = "foto"; photoInput.accept = "image/png,image/jpeg"; photoCaption.append(photoInput); form.append(photoCaption);
         if (esAdministrador) {
@@ -595,7 +602,7 @@ if (attendanceForm) {
     activeVolunteers.forEach((voluntario) => {
       const card = elemento("label", undefined, "fila-asistencia");
       const identity = elemento("span"); identity.append(elemento("strong", voluntario.nombre));
-      if (voluntario.codigo_instructor) identity.append(elemento("small", voluntario.codigo_instructor));
+      identity.append(elemento("small", `${voluntario.codigo_instructor || "Código pendiente"} · ${voluntario.especialidad_principal || "Sin especialidad registrada"}`));
       card.append(identity);
       const select = elemento("select"); select.name = "estado"; select.dataset.volunteerId = voluntario.id; select.required = true;
       const prompt = elemento("option", "Selecciona el estado"); prompt.value = ""; prompt.selected = true; prompt.disabled = true; select.append(prompt);

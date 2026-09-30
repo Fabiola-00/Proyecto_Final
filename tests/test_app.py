@@ -6,6 +6,7 @@ import struct
 import unittest
 import uuid
 import zlib
+from datetime import date
 from pathlib import Path
 
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -76,6 +77,21 @@ class AplicacionTestCase(unittest.TestCase):
         cookie = respuesta.headers.get("Set-Cookie", "")
         self.assertIn("HttpOnly", cookie)
         self.assertIn("SameSite=Lax", cookie)
+
+    def test_dashboard_muestra_ano_calendario_sin_periodo_activo(self):
+        self.assertEqual(self._login().status_code, 200)
+        for ruta in ("/panel/administrador", "/gestion/instructores-voluntarios",
+                     "/gestion/jefes-personal", "/configuracion", "/gestion/evaluaciones",
+                     "/gestion/asistencias", "/gestion/capacitaciones", "/gestion/calificaciones"):
+            with self.subTest(ruta=ruta):
+                respuesta = self.cliente.get(ruta)
+                self.assertEqual(respuesta.status_code, 200)
+                self.assertIn(str(date.today().year).encode(), respuesta.data)
+                self.assertNotIn(b"Sin per\xc3\xadodo activo", respuesta.data)
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            conexion = obtener_conexion()
+            self.assertEqual(conexion.execute("SELECT COUNT(*) FROM periodos").fetchone()[0], 0)
 
     def test_login_con_contrasena_incorrecta(self):
         respuesta = self._login(password="incorrecta")
@@ -245,7 +261,7 @@ class AplicacionTestCase(unittest.TestCase):
             version = conexion.execute(
                 "SELECT valor FROM app_meta WHERE clave = ?", ("schema_version",)
             ).fetchone()[0]
-            self.assertEqual(version, "7")
+            self.assertEqual(version, "8")
             columnas_asistencias = {fila["name"] for fila in conexion.execute("PRAGMA table_info(asistencias)")}
             self.assertIn("estado_detalle", columnas_asistencias)
             self.assertEqual(
@@ -315,7 +331,7 @@ class AplicacionTestCase(unittest.TestCase):
                 self.assertIsNone(conexion.execute("SELECT fecha_nacimiento FROM voluntarios WHERE usuario_id=?", (iv_id,)).fetchone()[0])
                 asistencia_migrada = conexion.execute("SELECT estado,estado_detalle FROM asistencias WHERE voluntario_id=?", (iv_id,)).fetchone()
                 self.assertEqual(tuple(asistencia_migrada), ("PRESENTE", "ASISTE"))
-                self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "7")
+                self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "8")
                 self.assertEqual(conexion.execute("PRAGMA foreign_key_check").fetchall(), [])
         finally:
             if legacy_path.exists():
@@ -325,6 +341,7 @@ class AplicacionTestCase(unittest.TestCase):
         respuesta = self.cliente.post("/api/registro/solicitudes", json={
             "username": "nueva.demo", "nombres": "Nueva", "apellido_paterno": "Voluntaria", "apellido_materno": "Demo",
             "fecha_nacimiento": "1978-04-02",
+            "especialidad_principal": "Rescate en montaña",
             "correo": "nueva@example.org", "password": "Contraseña segura 123!",
         }, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(respuesta.status_code, 201)
@@ -351,13 +368,13 @@ class AplicacionTestCase(unittest.TestCase):
         import io
         self.assertEqual(self.cliente.post("/api/registro/solicitudes", data={
             "username": "foto.demo", "nombres": "Voluntaria", "apellido_paterno": "Foto", "apellido_materno": "Demo",
-            "fecha_nacimiento": "1980-02-03", "password": "Contraseña segura 123!",
+            "fecha_nacimiento": "1980-02-03", "especialidad_principal": "K-9", "password": "Contraseña segura 123!",
             "foto": (io.BytesIO(self._png_prueba()), "perfil.png"),
         }, headers={"X-CSRFToken": self._csrf_token()}, content_type="multipart/form-data").status_code, 201)
         archivos_confirmados = set(self.media_path.iterdir())
         colision = self.cliente.post("/api/registro/solicitudes", data={
             "username": "foto.colision", "nombres": "Voluntaria", "apellido_paterno": "Foto", "apellido_materno": "Demo",
-            "fecha_nacimiento": "1980-02-03", "password": "Contraseña segura 123!",
+            "fecha_nacimiento": "1980-02-03", "especialidad_principal": "K-9", "password": "Contraseña segura 123!",
             "foto": (io.BytesIO(self._png_prueba()), "colision.png"),
         }, headers={"X-CSRFToken": self._csrf_token()}, content_type="multipart/form-data")
         self.assertEqual(colision.status_code, 409)
@@ -457,6 +474,7 @@ class AplicacionTestCase(unittest.TestCase):
             "username": "iv.manual",
             "nombres": "Instructor Voluntario", "apellido_paterno": "Manual", "apellido_materno": "Demo",
             "fecha_nacimiento": "1980-02-03",
+            "especialidad_principal": "Rescate en agua",
             "correo": "iv.manual@example.org",
             "password": "Clave inicial manual 123!",
             "experiencia_operaciones": "Rescate urbano",
@@ -474,7 +492,7 @@ class AplicacionTestCase(unittest.TestCase):
                 (user_id,),
             ).fetchone()
             perfil = conexion.execute(
-                "SELECT instructor_id, experiencia_operaciones, antiguedad_desde, fecha_nacimiento, codigo_instructor FROM voluntarios WHERE usuario_id=?",
+                "SELECT instructor_id, experiencia_operaciones, antiguedad_desde, fecha_nacimiento, codigo_instructor, especialidad_principal FROM voluntarios WHERE usuario_id=?",
                 (user_id,),
             ).fetchone()
             solicitudes = conexion.execute(
@@ -488,8 +506,21 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertEqual(perfil["antiguedad_desde"], "2024-01-15")
         self.assertEqual(perfil["fecha_nacimiento"], "1980-02-03")
         self.assertEqual(perfil["codigo_instructor"], "IMD-030280")
+        self.assertEqual(perfil["especialidad_principal"], "Rescate en agua")
         self.assertEqual(solicitudes, 0)
         self.assertTrue(any(item["id"] == user_id for item in self.cliente.get("/api/instructores-voluntarios").json["voluntarios"]))
+        cambio_especialidad = self.cliente.patch(
+            f"/api/instructores-voluntarios/{user_id}",
+            json={"especialidad_principal": "K-9"},
+            headers={"X-CSRFToken": self._csrf_token()},
+        )
+        self.assertEqual(cambio_especialidad.status_code, 200)
+        especialidad_invalida = self.cliente.patch(
+            f"/api/instructores-voluntarios/{user_id}",
+            json={"especialidad_principal": "Otra"},
+            headers={"X-CSRFToken": self._csrf_token()},
+        )
+        self.assertEqual(especialidad_invalida.status_code, 400)
         foto = self.cliente.get(f"/api/usuarios/{user_id}/foto")
         self.assertEqual(foto.status_code, 200)
         self.assertEqual(foto.mimetype, "image/png")
@@ -679,6 +710,7 @@ class AplicacionTestCase(unittest.TestCase):
         creada = self.cliente.post("/api/registro/solicitudes", json={
             "username": "aprobada.demo", "nombres": "Voluntaria", "apellido_paterno": "Aprobada", "apellido_materno": "Demo",
             "fecha_nacimiento": "1990-06-07",
+            "especialidad_principal": "Primeros Auxilios",
             "password": "Contraseña segura 123!",
         }, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(creada.status_code, 201)
@@ -707,12 +739,14 @@ class AplicacionTestCase(unittest.TestCase):
         respuesta = self.cliente.post(f"/api/registro/invitaciones/{token}", json={
             "username": "invitada.demo", "nombres": "Invitada", "apellido_paterno": "Prueba", "apellido_materno": "Demo",
             "fecha_nacimiento": "1987-12-08", "correo": "invitada@example.org",
+            "especialidad_principal": "Rescate en selva",
             "password": "Contraseña segura 123!",
         }, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(respuesta.status_code, 201)
         repetida = self.cliente.post(f"/api/registro/invitaciones/{token}", json={
             "username": "otra.demo", "nombres": "Otra", "apellido_paterno": "Prueba", "apellido_materno": "Demo",
             "fecha_nacimiento": "1987-12-08", "correo": "invitada@example.org",
+            "especialidad_principal": "Rescate en selva",
             "password": "Contraseña segura 123!",
         }, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(repetida.status_code, 404)
@@ -729,6 +763,7 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
         listado = self.cliente.get("/api/instructores-voluntarios")
         self.assertEqual([v["username"] for v in listado.json["voluntarios"]], ["voluntario.demo"])
+        self.assertIn("especialidad_principal", listado.json["voluntarios"][0])
         desactivado = self.cliente.post("/api/instructores-voluntarios/3/desactivar", headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(desactivado.status_code, 200)
 

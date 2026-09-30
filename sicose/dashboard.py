@@ -3,17 +3,10 @@
 from flask import Blueprint, jsonify, render_template
 from flask_login import current_user
 
-from .db import obtener_conexion
+from .db import obtener_conexion, periodo_actual
 from .permissions import role_required
 
 dashboard_bp = Blueprint("dashboard", __name__)
-
-
-def _periodo_actual(conexion):
-    fila = conexion.execute(
-        "SELECT nombre FROM periodos WHERE estado = 'ACTIVO' ORDER BY fecha_inicio DESC LIMIT 1"
-    ).fetchone()
-    return fila["nombre"] if fila else "Sin período activo"
 
 
 def _renderizar_panel(template, page_title, nav_activo, indicadores, descripcion, **extra):
@@ -24,7 +17,7 @@ def _renderizar_panel(template, page_title, nav_activo, indicadores, descripcion
         nav_activo=nav_activo,
         indicadores=indicadores,
         descripcion=descripcion,
-        periodo_actual=_periodo_actual(conexion),
+        periodo_actual=periodo_actual(),
         **extra,
     )
 
