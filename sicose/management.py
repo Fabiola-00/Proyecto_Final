@@ -12,6 +12,14 @@ from werkzeug.security import generate_password_hash
 
 from . import db
 from .permissions import role_required
+from .perfil_residencia import CAMPOS_RESIDENCIA, DEPARTAMENTOS_BOLIVIA, PAISES_RESIDENCIA, leer_geografia, guardar_geografia, validar_perfil_residencia, antiguedad_calculada
+
+def _leer_secundarias(conexion, usuario_id):
+    return [fila[0] for fila in conexion.execute(
+        "SELECT especialidad FROM especialidades_secundarias WHERE voluntario_id=? ORDER BY especialidad",
+        (usuario_id,),
+    )]
+
 
 management_bp = Blueprint("management", __name__)
 USERNAME_RE = re.compile(r"^[A-Za-z0-9._-]{3,80}$")
@@ -21,14 +29,38 @@ ESPECIALIDADES_PRINCIPALES = (
 )
 
 
+GRADOS_INSTRUCTOR = ("Instructor Inicial", "Instructor Segundo", "Instructor Primero", "Instructor Principal", "Instructor Mayor")
+
+
+def _grado(datos):
+    valor = _texto(datos, "grado", 80)
+    if valor and valor not in GRADOS_INSTRUCTOR: raise ValueError("Selecciona un grado válido.")
+    return valor or None
+
+
+def _validar_alta_completa(datos, residencia):
+    if not _texto(datos, "correo", 254, True): raise ValueError("Ingresa el correo electrónico.")
+    if not residencia.get("nacionalidad"): raise ValueError("Selecciona la nacionalidad.")
+    if not residencia.get("departamento_residencia"): raise ValueError("Selecciona el departamento.")
+    foto = request.files.get("foto")
+    if foto is None or not foto.filename: raise ValueError("Selecciona una foto de perfil PNG/JPEG.")
+
+
+def _guardar_incorporacion_grado(conexion, usuario_id, datos, residencia):
+    if "fecha_incorporacion" in residencia:
+        conexion.execute("UPDATE voluntarios SET fecha_incorporacion=? WHERE usuario_id=?", (residencia["fecha_incorporacion"], usuario_id))
+    if "grado" in datos:
+        conexion.execute("UPDATE voluntarios SET grado=? WHERE usuario_id=?", (_grado(datos), usuario_id))
+
+
 @management_bp.get("/registro")
 def pagina_registro():
-    return render_template("registro.html", token=None)
+    return render_template("registro.html", token=None, paises=PAISES_RESIDENCIA, departamentos=DEPARTAMENTOS_BOLIVIA)
 
 
 @management_bp.get("/registro/invitacion/<token>")
 def pagina_registro_invitacion(token):
-    return render_template("registro.html", token=token)
+    return render_template("registro.html", token=token, paises=PAISES_RESIDENCIA, departamentos=DEPARTAMENTOS_BOLIVIA)
 
 
 @management_bp.get("/gestion/voluntarios")
@@ -36,8 +68,10 @@ def pagina_registro_invitacion(token):
 @role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def pagina_gestion_voluntarios():
     return render_template("gestion_instructores_voluntarios.html", titulo_pagina="Gestión de Instructores Voluntarios",
-                           nav_activo="voluntarios", indicadores=[],
-                           descripcion="Alta manual, solicitudes pendientes y administración integral de perfiles.",
+                           nav_activo="voluntarios", indicadores=[], grados=GRADOS_INSTRUCTOR, departamentos=DEPARTAMENTOS_BOLIVIA, paises=PAISES_RESIDENCIA, ano_actual=date.today().year,
+                           descripcion=("Alta manual, solicitudes pendientes y administración integral de perfiles."
+                                        if current_user.rol == "ADMINISTRADOR" else
+                                        "Solicita altas y gestiona tu equipo activo asignado."),
                            periodo_actual=db.periodo_actual())
 
 
@@ -49,6 +83,69 @@ def pagina_gestion_instructores():
                            nav_activo="instructores", indicadores=[],
                            descripcion="Crea y administra las cuentas con rol de Jefe de Personal.",
                            periodo_actual=db.periodo_actual())
+
+
+def _geografia_propia():
+    conexion = db.obtener_conexion()
+    perfil = conexion.execute("SELECT pais_residencia,departamento_residencia,grado FROM voluntarios WHERE usuario_id=?",(current_user.id,)).fetchone()
+    valores = dict(perfil) if perfil else {}
+    valores.update(leer_geografia(conexion,current_user.id))
+    return valores
+
+
+@management_bp.get("/mi-perfil")
+@role_required("INSTRUCTOR_VOLUNTARIO")
+def pagina_perfil_propio():
+    return render_template("perfil_instructor_voluntario.html", titulo_pagina="Mi perfil",
+                           nav_activo="perfil", indicadores=[], periodo_actual=db.periodo_actual(),
+                           descripcion="Actualiza tu correo y foto de perfil.",
+                           especialidades_secundarias=_leer_secundarias(db.obtener_conexion(), current_user.id),
+                           geografia=_geografia_propia())
+
+
+@management_bp.patch("/api/instructor-voluntario/perfil")
+@role_required("INSTRUCTOR_VOLUNTARIO")
+def editar_perfil_propio():
+    """Autoservicio limitado a correo y foto de la cuenta autenticada."""
+    datos = _datos_form_o_json()
+    if datos is None:
+        return _fallo("Solicitud no válida.", "solicitud_invalida", 400)
+    if set(datos) - {"correo"} or set(request.files) - {"foto"}:
+        return _fallo("Solo puedes actualizar correo y foto.", "campos_no_permitidos", 400)
+    tiene_foto = request.files.get("foto") is not None
+    if "correo" not in datos and not tiene_foto:
+        return _fallo("No se enviaron cambios.", "sin_cambios", 400)
+    try:
+        correo = current_user.correo
+        if "correo" in datos:
+            correo = _texto(datos, "correo", 254)
+            if correo:
+                correo = correo.casefold()
+                if "@" not in correo or any(char.isspace() for char in correo):
+                    raise ValueError("El correo no es válido.")
+    except ValueError as error:
+        return _fallo(str(error), "datos_invalidos", 400)
+    from .profile_media import guardar_foto
+    foto = None
+    try:
+        if tiene_foto:
+            foto = guardar_foto(request.files.get("foto"))
+    except ValueError as error:
+        return _fallo(str(error), "foto_invalida", 400)
+    conexion = db.obtener_conexion()
+    try:
+        conexion.execute(
+            """UPDATE usuarios SET correo=?, foto_perfil=COALESCE(?,foto_perfil), actualizado_en=?
+               WHERE id=?""", (correo, foto, _now(), current_user.id))
+        _auditar(conexion, "PERFIL_PROPIO_ACTUALIZADO")
+        conexion.commit()
+    except Exception as error:
+        conexion.rollback()
+        _descartar_foto(foto)
+        if error.__class__.__name__ == "IntegrityError":
+            return _fallo("No se pudo actualizar el correo. Verifica los datos.", "correo_no_disponible", 409)
+        raise
+    return jsonify(ok=True, mensaje="Correo y foto actualizados."), 200
 
 
 @management_bp.get("/configuracion")
@@ -146,8 +243,17 @@ def _descartar_foto(foto):
             current_app.logger.warning("No se pudo limpiar un archivo de perfil no asociado a una solicitud confirmada.")
 
 
-def _crear_solicitud(datos, invitacion_id=None):
+def _crear_solicitud(datos, invitacion_id=None, jefe_id=None):
     try:
+        if "estado" in datos: raise ValueError("Las solicitudes permanecen pendientes hasta aprobación.")
+        if jefe_id is None and "grado" in datos: raise ValueError("El grado se asigna desde gestión autorizada.")
+        if jefe_id is None and datos.get("pais_residencia") not in (None, "", "Bolivia"):
+            raise ValueError("La solicitud registra residencia en Bolivia.")
+        if "departamento_residencia" in datos and not datos.get("pais_residencia"):
+            datos = dict(datos, pais_residencia="Bolivia")
+        residencia = validar_perfil_residencia(datos)
+        _grado(datos)
+        _validar_alta_completa(datos, residencia)
         identidad = _identidad_instructor(datos)
         especialidad = _especialidad_principal(datos, obligatorio=True)
         username = _texto(datos, "username", 80, True)
@@ -162,7 +268,7 @@ def _crear_solicitud(datos, invitacion_id=None):
         if not isinstance(password, str) or not 12 <= len(password) <= 256:
             raise ValueError("La contraseña debe tener entre 12 y 256 caracteres.")
         experiencia = _texto(datos, "experiencia_operaciones", 2000)
-        antiguedad = _texto(datos, "antiguedad_desde", 10)
+        antiguedad = residencia.get("antiguedad_desde", _texto(datos, "antiguedad_desde", 10))
         if antiguedad:
             datetime.strptime(antiguedad, "%Y-%m-%d")
     except (ValueError, TypeError) as error:
@@ -188,12 +294,18 @@ def _crear_solicitud(datos, invitacion_id=None):
         conexion.execute(
             """INSERT INTO voluntarios
                (usuario_id, nombres, apellido_paterno, apellido_materno, fecha_nacimiento,
-                codigo_instructor, especialidad_principal, experiencia_operaciones, antiguedad_desde)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                codigo_instructor, especialidad_principal, experiencia_operaciones, antiguedad_desde,
+                pais_residencia, departamento_residencia, ano_incorporacion)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (usuario_id, identidad["nombres"], identidad["apellido_paterno"],
              identidad["apellido_materno"], identidad["fecha_nacimiento"],
-             identidad["codigo_instructor"], especialidad, experiencia, antiguedad),
+             identidad["codigo_instructor"], especialidad, experiencia, antiguedad,
+             residencia.get("pais_residencia") if residencia.get("pais_residencia") == "Bolivia" else None, residencia.get("departamento_residencia") if residencia.get("pais_residencia") == "Bolivia" else None, residencia.get("ano_incorporacion")),
         )
+        guardar_geografia(conexion, usuario_id, residencia)
+        _guardar_incorporacion_grado(conexion, usuario_id, datos, residencia)
+        if jefe_id is not None:
+            conexion.execute("UPDATE voluntarios SET instructor_id=? WHERE usuario_id=?", (jefe_id, usuario_id))
         conexion.execute(
             "INSERT INTO solicitudes_registro (usuario_id, invitacion_id) VALUES (?, ?)",
             (usuario_id, invitacion_id),
@@ -207,7 +319,7 @@ def _crear_solicitud(datos, invitacion_id=None):
                 conexion.rollback()
                 _descartar_foto(foto)
                 return None, None, _fallo("La invitación ya fue utilizada o expiró.", "invitacion_invalida", 404)
-        _auditar(conexion, "SOLICITUD_REGISTRO")
+        _auditar(conexion, "SOLICITUD_ALTA_JEFE" if jefe_id is not None else "SOLICITUD_REGISTRO")
         conexion.commit()
     except Exception as error:
         conexion.rollback()
@@ -219,6 +331,29 @@ def _crear_solicitud(datos, invitacion_id=None):
             return None, None, _fallo("No se pudo registrar la solicitud. Verifica los datos e inténtalo de nuevo.", "registro_no_disponible", 409)
         raise
     return usuario_id, identidad["codigo_instructor"], None
+
+
+@management_bp.post("/api/jefe-personal/instructores-voluntarios")
+@role_required("JEFE_PERSONAL")
+def solicitar_alta_equipo():
+    """Registra una solicitud pendiente asignada al Jefe autenticado."""
+    datos = _datos_form_o_json()
+    if datos is None:
+        return _fallo("Solicitud no válida.", "solicitud_invalida", 400)
+    permitidos = {"nombres", "apellido_paterno", "apellido_materno", "fecha_nacimiento",
+                  "especialidad_principal", "username", "correo", "password",
+                  "experiencia_operaciones", "antiguedad_desde"}
+    permitidos |= CAMPOS_RESIDENCIA | {"grado"}
+    if set(datos) - permitidos:
+        return _fallo("Se enviaron campos no permitidos para el alta.", "campos_no_permitidos", 400)
+    conexion = db.obtener_conexion()
+    if not conexion.execute("SELECT 1 FROM instructores WHERE usuario_id=?", (current_user.id,)).fetchone():
+        return _fallo("Falta el perfil de Jefe de Personal.", "perfil_no_encontrado", 409)
+    usuario_id, codigo, error = _crear_solicitud(datos, jefe_id=current_user.id)
+    if error is not None:
+        return error
+    return jsonify(ok=True, id=usuario_id, codigo_instructor=codigo, estado="PENDIENTE",
+                   mensaje="Solicitud registrada. Requiere aprobación del Administrador."), 201
 
 
 @management_bp.post("/api/registro/solicitudes")
@@ -310,7 +445,7 @@ def listar_solicitudes():
                   v.nombres, v.apellido_paterno, v.apellido_materno,
                   v.fecha_nacimiento, v.codigo_instructor,
                   (u.foto_perfil IS NOT NULL) AS tiene_foto,
-                  s.estado, s.creada_en, s.invitacion_id
+                  s.estado, s.creada_en, s.invitacion_id, v.instructor_id
            FROM solicitudes_registro s JOIN usuarios u ON u.id = s.usuario_id
            JOIN voluntarios v ON v.usuario_id = u.id
            WHERE s.estado = 'PENDIENTE' ORDER BY s.creada_en, s.id"""
@@ -326,6 +461,11 @@ def crear_instructor_voluntario():
     if datos is None:
         return _fallo("Solicitud no válida.", "solicitud_invalida", 400)
     try:
+        estado_inicial = datos.get("estado", "ACTIVO")
+        if estado_inicial not in ("ACTIVO", "INACTIVO"): raise ValueError("Selecciona Activo o Inactivo.")
+        _grado(datos)
+        residencia = validar_perfil_residencia(datos)
+        _validar_alta_completa(datos, residencia)
         identidad = _identidad_instructor(datos)
         especialidad = _especialidad_principal(datos, obligatorio=True)
         username = _texto(datos, "username", 80, True)
@@ -340,7 +480,7 @@ def crear_instructor_voluntario():
         if not isinstance(password, str) or not 12 <= len(password) <= 256:
             raise ValueError("La contraseña inicial debe tener entre 12 y 256 caracteres.")
         experiencia = _texto(datos, "experiencia_operaciones", 2000)
-        antiguedad = _texto(datos, "antiguedad_desde", 10)
+        antiguedad = residencia.get("antiguedad_desde", _texto(datos, "antiguedad_desde", 10))
         if antiguedad:
             datetime.strptime(antiguedad, "%Y-%m-%d")
         jefe_dato = datos.get("instructor_id")
@@ -380,19 +520,23 @@ def crear_instructor_voluntario():
         cursor = conexion.execute(
             """INSERT INTO usuarios (username, nombre_completo, correo, password_hash,
                                      rol_id, estado, foto_perfil)
-               VALUES (?, ?, ?, ?, ?, 'ACTIVO', ?)""",
-            (username, identidad["nombre_completo"], correo, generate_password_hash(password), rol["id"], foto),
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (username, identidad["nombre_completo"], correo, generate_password_hash(password), rol["id"], estado_inicial, foto),
         )
         usuario_id = cursor.lastrowid
         conexion.execute(
             """INSERT INTO voluntarios
                (usuario_id, instructor_id, nombres, apellido_paterno, apellido_materno,
-                fecha_nacimiento, codigo_instructor, especialidad_principal, experiencia_operaciones, antiguedad_desde)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                fecha_nacimiento, codigo_instructor, especialidad_principal, experiencia_operaciones, antiguedad_desde,
+                pais_residencia, departamento_residencia, ano_incorporacion)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (usuario_id, jefe_id, identidad["nombres"], identidad["apellido_paterno"],
              identidad["apellido_materno"], identidad["fecha_nacimiento"],
-             identidad["codigo_instructor"], especialidad, experiencia, antiguedad),
+             identidad["codigo_instructor"], especialidad, experiencia, antiguedad,
+             residencia.get("pais_residencia") if residencia.get("pais_residencia") == "Bolivia" else None, residencia.get("departamento_residencia") if residencia.get("pais_residencia") == "Bolivia" else None, residencia.get("ano_incorporacion")),
         )
+        guardar_geografia(conexion, usuario_id, residencia)
+        _guardar_incorporacion_grado(conexion, usuario_id, datos, residencia)
         _auditar(conexion, "INSTRUCTOR_VOLUNTARIO_CREADO_MANUALMENTE")
         conexion.commit()
     except Exception as error:
@@ -403,8 +547,8 @@ def crear_instructor_voluntario():
                 return _fallo("Ya existe otro Instructor Voluntario con ese código generado; revisa el nombre y la fecha de nacimiento.", "codigo_instructor_duplicado", 409)
             return _fallo("El nombre de usuario o correo ya está asociado a otra cuenta.", "cuenta_duplicada", 409)
         raise
-    return jsonify(ok=True, id=usuario_id, estado="ACTIVO", codigo_instructor=identidad["codigo_instructor"],
-                   mensaje="Instructor Voluntario creado y activado."), 201
+    return jsonify(ok=True, id=usuario_id, estado=estado_inicial, codigo_instructor=identidad["codigo_instructor"],
+                   mensaje="Instructor Voluntario guardado."), 201
 
 
 @management_bp.get("/api/admin/instructores")
@@ -497,7 +641,7 @@ def editar_instructor(usuario_id):
                 campos[campo] = valor
     except (ValueError, TypeError) as error:
         return _fallo(str(error), "datos_invalidos", 400)
-    if not campos:
+    if not campos and secundarias is None:
         return _fallo("No se enviaron campos para actualizar.", "sin_cambios", 400)
     nombre = campos.pop("nombre", instructor["nombre_completo"])
     correo = campos.pop("correo", instructor["correo"])
@@ -596,14 +740,14 @@ def restablecer_clave(usuario_id):
 def foto_perfil(usuario_id):
     conexion = db.obtener_conexion()
     fila = conexion.execute(
-        """SELECT u.foto_perfil, r.nombre AS rol FROM usuarios u JOIN roles r ON r.id=u.rol_id
+        """SELECT u.foto_perfil, u.estado, r.nombre AS rol FROM usuarios u JOIN roles r ON r.id=u.rol_id
            WHERE u.id=? AND r.nombre IN ('ADMINISTRADOR','JEFE_PERSONAL','INSTRUCTOR_VOLUNTARIO')""", (usuario_id,)
     ).fetchone()
     if not fila:
         return _fallo("Perfil no encontrado.", "perfil_no_encontrado", 404)
     es_admin = current_user.rol == "ADMINISTRADOR"
     es_propio = current_user.id == usuario_id
-    es_equipo = current_user.rol == "JEFE_PERSONAL" and fila["rol"] == "INSTRUCTOR_VOLUNTARIO" and conexion.execute(
+    es_equipo = current_user.rol == "JEFE_PERSONAL" and fila["estado"] == "ACTIVO" and fila["rol"] == "INSTRUCTOR_VOLUNTARIO" and conexion.execute(
         "SELECT 1 FROM voluntarios WHERE usuario_id=? AND instructor_id=?", (usuario_id, current_user.id)
     ).fetchone()
     if request.method == "PUT":
@@ -671,11 +815,15 @@ def aprobar_solicitud(solicitud_id):
     instructor_id = datos.get("instructor_id")
     conexion = db.obtener_conexion()
     solicitud = conexion.execute(
-        "SELECT usuario_id FROM solicitudes_registro WHERE id = ? AND estado = 'PENDIENTE'",
+        """SELECT s.usuario_id, v.instructor_id FROM solicitudes_registro s
+           JOIN voluntarios v ON v.usuario_id=s.usuario_id
+           WHERE s.id = ? AND s.estado = 'PENDIENTE'""",
         (solicitud_id,),
     ).fetchone()
     if not solicitud:
         return _fallo("No existe una solicitud pendiente con ese identificador.", "solicitud_no_encontrada", 404)
+    if "instructor_id" not in datos:
+        instructor_id = solicitud["instructor_id"]
     if instructor_id is not None:
         if not isinstance(instructor_id, int) or isinstance(instructor_id, bool) or not conexion.execute(
             """SELECT 1 FROM instructores i JOIN usuarios u ON u.id=i.usuario_id
@@ -719,12 +867,17 @@ def _alcance_voluntario(conexion, usuario_id):
                          (u.foto_perfil IS NOT NULL) AS tiene_foto,
                          v.instructor_id, v.nombres, v.apellido_paterno, v.apellido_materno,
                          v.fecha_nacimiento, v.codigo_instructor, v.especialidad_principal,
-                         v.experiencia_operaciones, v.antiguedad_desde
+                         v.experiencia_operaciones, v.antiguedad_desde,
+                         v.pais_residencia, v.departamento_residencia, v.ano_incorporacion, v.fecha_incorporacion, v.grado
                   FROM usuarios u JOIN voluntarios v ON v.usuario_id=u.id
                   JOIN roles r ON r.id=u.rol_id WHERE u.id=? AND r.nombre='INSTRUCTOR_VOLUNTARIO'"""
     fila = conexion.execute(consulta, (usuario_id,)).fetchone()
-    if fila and current_user.rol == "JEFE_PERSONAL" and fila["instructor_id"] != current_user.id:
+    if fila and current_user.rol == "JEFE_PERSONAL" and (
+        fila["instructor_id"] != current_user.id or fila["estado"] != "ACTIVO"
+    ):
         return None
+    if fila:
+        fila = dict(fila); fila.update(leer_geografia(conexion, usuario_id))
     return fila
 
 
@@ -738,16 +891,23 @@ def listar_voluntarios():
                          v.instructor_id, ui.nombre_completo AS instructor_nombre,
                          v.nombres, v.apellido_paterno, v.apellido_materno,
                          v.fecha_nacimiento, v.codigo_instructor, v.especialidad_principal,
-                         v.experiencia_operaciones, v.antiguedad_desde
+                         v.experiencia_operaciones, v.antiguedad_desde,
+                         v.pais_residencia, v.departamento_residencia, v.ano_incorporacion, v.fecha_incorporacion, v.grado
                   FROM voluntarios v JOIN usuarios u ON u.id=v.usuario_id
                   LEFT JOIN usuarios ui ON ui.id=v.instructor_id
                   ORDER BY u.nombre_completo, u.id"""
     parametros = ()
     if current_user.rol == "JEFE_PERSONAL":
-        consulta = consulta.replace("ORDER BY", "WHERE v.instructor_id = ? ORDER BY")
+        consulta = consulta.replace("ORDER BY", "WHERE v.instructor_id = ? AND u.estado = 'ACTIVO' ORDER BY")
         parametros = (current_user.id,)
     filas = conexion.execute(consulta, parametros).fetchall()
-    return jsonify(voluntarios=[dict(fila) for fila in filas]), 200
+    # La antigüedad se calcula al consultar, sin persistir un resultado que envejezca.
+    perfiles = [dict(fila) for fila in filas]
+    for perfil in perfiles:
+        perfil.update(leer_geografia(conexion, perfil["id"]))
+        perfil["especialidades_secundarias"] = _leer_secundarias(conexion, perfil["id"])
+        perfil["antiguedad_anos"] = antiguedad_calculada(perfil["ano_incorporacion"])
+    return jsonify(voluntarios=perfiles), 200
 
 
 @management_bp.patch("/api/voluntarios/<int:usuario_id>")
@@ -763,7 +923,16 @@ def editar_voluntario(usuario_id):
         return _fallo("Instructor Voluntario no encontrado en tu ámbito.", "instructor_voluntario_no_encontrado", 404)
     campos = {}
     identidad = None
+    secundarias = None
     try:
+        if "especialidades_secundarias" in datos:
+            secundarias = datos["especialidades_secundarias"]
+            if (not isinstance(secundarias, list) or len(secundarias) > len(ESPECIALIDADES_PRINCIPALES)
+                    or any(not isinstance(v, str) or v not in ESPECIALIDADES_PRINCIPALES for v in secundarias)
+                    or len(set(secundarias)) != len(secundarias)):
+                raise ValueError("Selecciona especialidades secundarias válidas, sin duplicados.")
+        campos.update(validar_perfil_residencia(datos, dict(voluntario)))
+        if "grado" in datos: campos["grado"] = _grado(datos)
         campos_identidad = {"nombres", "apellido_paterno", "apellido_materno", "fecha_nacimiento"}
         if campos_identidad.intersection(datos):
             identidad = _identidad_instructor(datos, dict(voluntario))
@@ -791,7 +960,7 @@ def editar_voluntario(usuario_id):
             campos["instructor_id"] = instructor_id
     except (ValueError, TypeError) as error:
         return _fallo(str(error), "datos_invalidos", 400)
-    if not campos:
+    if not campos and secundarias is None:
         return _fallo("No se enviaron campos para actualizar.", "sin_cambios", 400)
     correo = campos.pop("correo", voluntario["correo"])
     ahora = datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -801,13 +970,21 @@ def editar_voluntario(usuario_id):
                              (identidad["nombre_completo"], correo, ahora, usuario_id))
         elif "correo" in datos:
             conexion.execute("UPDATE usuarios SET correo=?, actualizado_en=? WHERE id=?", (correo, ahora, usuario_id))
+        guardar_geografia(conexion, usuario_id, campos, voluntario)
+        if campos.get("pais_residencia") not in (None, "Bolivia"):
+            campos["pais_residencia"] = None; campos["departamento_residencia"] = None
         perfil = {k: v for k, v in campos.items() if k in {
             "nombres", "apellido_paterno", "apellido_materno", "fecha_nacimiento", "codigo_instructor",
             "experiencia_operaciones", "antiguedad_desde", "especialidad_principal", "instructor_id",
+            "pais_residencia", "departamento_residencia", "ano_incorporacion", "fecha_incorporacion", "grado",
         }}
         if perfil:
             asignaciones = ", ".join(f"{campo}=?" for campo in perfil)
             conexion.execute(f"UPDATE voluntarios SET {asignaciones} WHERE usuario_id=?", (*perfil.values(), usuario_id))
+        if secundarias is not None:
+            conexion.execute("DELETE FROM especialidades_secundarias WHERE voluntario_id=?", (usuario_id,))
+            conexion.executemany("INSERT INTO especialidades_secundarias (voluntario_id, especialidad) VALUES (?, ?)",
+                                 ((usuario_id, valor) for valor in secundarias))
         _auditar(conexion, "INSTRUCTOR_VOLUNTARIO_EDITADO")
         conexion.commit()
     except Exception as error:

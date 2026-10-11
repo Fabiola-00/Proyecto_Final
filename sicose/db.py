@@ -123,6 +123,29 @@ def inicializar_base_datos():
             "('Rescate en agua','Rescate en montaña','Rescate en selva',"
             "'Lucha contra incendios','Primeros Auxilios','K-9'))"
         )
+    nuevas_columnas = {
+        "fecha_incorporacion": "TEXT",
+        "grado": "TEXT CHECK (grado IS NULL OR grado IN ('Instructor Inicial','Instructor Segundo','Instructor Primero','Instructor Principal','Instructor Mayor'))",
+        "pais_residencia": "TEXT CHECK (pais_residencia IS NULL OR pais_residencia = 'Bolivia')",
+        "departamento_residencia": "TEXT CHECK (departamento_residencia IS NULL OR departamento_residencia IN ('Beni','Chuquisaca','Cochabamba','La Paz','Oruro','Pando','Potosí','Santa Cruz','Tarija'))",
+        "ano_incorporacion": "INTEGER CHECK (ano_incorporacion IS NULL OR (typeof(ano_incorporacion) = 'integer' AND ano_incorporacion BETWEEN 1 AND 9999))",
+    }
+    for campo, tipo in nuevas_columnas.items():
+        if campo not in columnas_voluntarios:
+            conexion.execute(f"ALTER TABLE voluntarios ADD COLUMN {campo} {tipo}")
+    columnas_catalogo = {fila["name"] for fila in conexion.execute("PRAGMA table_info(cursos)")}
+    campos_catalogo = {
+        "tipo": "TEXT CHECK(tipo IS NULL OR tipo IN ('Capacitación','Especialización','Actualización','Taller','Seminario (Webinar)'))",
+        "entidad": "TEXT", "fecha_inicio": "TEXT", "fecha_fin": "TEXT",
+        "estado": "TEXT CHECK(estado IS NULL OR estado IN ('Próximo','En curso','Finalizado'))",
+        "observaciones": "TEXT",
+    }
+    for campo, definicion in campos_catalogo.items():
+        if campo not in columnas_catalogo:
+            conexion.execute(f"ALTER TABLE cursos ADD COLUMN {campo} {definicion}")
+    columnas_cursos = {fila["name"] for fila in conexion.execute("PRAGMA table_info(capacitaciones)")}
+    if "curso_id" not in columnas_cursos:
+        conexion.execute("ALTER TABLE capacitaciones ADD COLUMN curso_id INTEGER REFERENCES cursos(id) ON DELETE RESTRICT")
     columnas_asistencias = {fila["name"] for fila in conexion.execute("PRAGMA table_info(asistencias)")}
     if "estado_detalle" not in columnas_asistencias:
         conexion.execute(
@@ -136,6 +159,15 @@ def inicializar_base_datos():
                WHEN 'JUSTIFICADO' THEN 'PERMISO'
            END WHERE estado_detalle IS NULL"""
     )
+    conexion.executescript("""
+        CREATE TRIGGER IF NOT EXISTS conservar_correccion_asistencia
+        AFTER UPDATE OF estado,estado_detalle ON asistencias
+        WHEN COALESCE(OLD.estado_detalle,OLD.estado) != COALESCE(NEW.estado_detalle,NEW.estado)
+        BEGIN
+          INSERT INTO historial_asistencias(asistencia_id,estado_anterior,estado_nuevo,corregido_por)
+          VALUES (OLD.id,COALESCE(OLD.estado_detalle,OLD.estado),COALESCE(NEW.estado_detalle,NEW.estado),NEW.registrado_por);
+        END;
+    """)
     conexion.execute(
         """CREATE UNIQUE INDEX IF NOT EXISTS idx_voluntarios_codigo_instructor
            ON voluntarios(codigo_instructor) WHERE codigo_instructor IS NOT NULL"""
@@ -145,7 +177,7 @@ def inicializar_base_datos():
         ((rol,) for rol in ROLES),
     )
     conexion.execute(
-        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '8')
+        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '14')
            ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor"""
     )
     conexion.commit()

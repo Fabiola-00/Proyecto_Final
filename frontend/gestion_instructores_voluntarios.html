@@ -2,11 +2,10 @@
 {% block contenido %}
 <section class="seccion-panel" aria-labelledby="voluntarios-titulo">
   <div class="titulo-seccion"><div><p class="sobrelinea">GESTIÓN DE PERSONAL</p><h2 id="voluntarios-titulo">Instructores Voluntarios</h2></div></div>
-  {% if current_user.rol == 'ADMINISTRADOR' %}
   <details id="agregar-instructor-voluntario" class="bloque-alta-manual">
-    <summary class="alta-manual-resumen"><span class="alta-manual-mas" aria-hidden="true">+</span><span><strong>Agregar Instructor Voluntario</strong><small>Crear una cuenta activa manualmente</small></span></summary>
+    <summary class="alta-manual-resumen"><span class="alta-manual-mas" aria-hidden="true">+</span><span><strong>Agregar Instructor Voluntario</strong><small>{{ 'Crear una cuenta manualmente' if current_user.rol == 'ADMINISTRADOR' else 'Solicitar alta para tu equipo' }}</small></span></summary>
     <div class="tarjeta-amplia alta-manual-contenido"><div>
-      <p>Registra la cuenta desde administración. Quedará activa; comparte el usuario y la contraseña inicial directamente por un canal seguro.</p>
+      <p>{% if current_user.rol == 'ADMINISTRADOR' %}Registra una cuenta activa o inactiva desde administración.{% else %}La solicitud quedará pendiente de aprobación administrativa y asignada a tu equipo.{% endif %} Comparte las credenciales iniciales únicamente por un canal seguro.</p>
       <form id="instructor-voluntario-form" class="formulario-inline" enctype="multipart/form-data">
         <label>Nombres<input name="nombres" maxlength="120" required></label>
         <label>Apellido paterno<input name="apellido_paterno" maxlength="80" required></label>
@@ -14,22 +13,28 @@
         <label>Fecha de nacimiento (día, mes y año)<input name="fecha_nacimiento" type="date" required></label>
         <label>Código del Instructor<output class="codigo-generado" data-codigo-instructor>Completa nombres y fecha de nacimiento</output></label>
         <label>Especialidad principal<select name="especialidad_principal" required><option value="">Selecciona una especialidad</option><option>Rescate en agua</option><option>Rescate en montaña</option><option>Rescate en selva</option><option>Lucha contra incendios</option><option>Primeros Auxilios</option><option>K-9</option></select></label>
+        <label>Grado<select name="grado"><option value="">Sin registrar</option>{% for grado in grados %}<option>{{ grado }}</option>{% endfor %}</select></label>
+        {% if current_user.rol == 'ADMINISTRADOR' %}<label>Estado<select name="estado"><option value="ACTIVO">Activo</option><option value="INACTIVO">Inactivo</option></select></label>{% else %}<p>Estado: Pendiente de aprobación administrativa.</p>{% endif %}
         <label>Nombre de usuario<input name="username" maxlength="80" autocomplete="username" required></label>
-        <label>Correo electrónico (opcional)<input name="correo" type="email" maxlength="254"></label>
+        <label>Correo electrónico<input name="correo" type="email" maxlength="254" required></label>
         <label>Contraseña inicial (mínimo 12 caracteres)<input name="password" type="password" minlength="12" maxlength="256" autocomplete="new-password" required></label>
-        <label>Experiencia en operaciones (opcional)<input name="experiencia_operaciones" maxlength="2000"></label>
-        <label>Antigüedad desde (opcional)<input name="antiguedad_desde" type="date"></label>
-        <label>Jefe de Personal asignado (opcional)<select name="instructor_id"><option value="">Sin asignar</option></select></label>
-        <label>Foto de perfil (PNG/JPEG, máximo 3 MiB)<input name="foto" type="file" accept="image/png,image/jpeg"></label>
-        <button type="submit">Crear Instructor Voluntario</button>
+                <label>País de nacionalidad<select name="nacionalidad" required><option value="">Sin registrar</option>{% for pais in paises %}<option>{{ pais }}</option>{% endfor %}</select></label>
+        <input type="hidden" name="pais_residencia" value="Bolivia">
+        <label>Departamento de residencia<select name="departamento_residencia" required><option value="">Sin registrar</option>{% for departamento in departamentos %}<option>{{ departamento }}</option>{% endfor %}</select></label>
+        <label>Fecha de incorporación<input name="fecha_incorporacion" type="date"></label>
+        <p>Antigüedad: año actual menos año de incorporación.</p>
+        {% if current_user.rol == 'ADMINISTRADOR' %}<label>Jefe de Personal asignado (opcional)<select name="instructor_id"><option value="">Sin asignar</option></select></label>{% endif %}
+        <label>Foto de perfil (PNG/JPEG, máximo 3 MiB)<input name="foto" type="file" required accept="image/png,image/jpeg"></label>
+        <button type="submit">Guardar</button>
       </form>
       <p id="instructor-voluntario-form-mensaje" class="mensaje" role="status" aria-live="polite"></p>
     </div></div>
   </details>
+  {% if current_user.rol == 'ADMINISTRADOR' %}
   <section class="seccion-panel"><div class="titulo-seccion"><h2>Solicitudes pendientes</h2></div><div id="solicitudes-lista" class="rejilla-modulos"></div></section>
   {% endif %}
-  <div id="perfiles-registrados" class="titulo-seccion"><div><p class="sobrelinea">DIRECTORIO</p><h2 id="lista-voluntarios-titulo">Todos los Instructores Voluntarios</h2></div></div>
-  <div class="tabla-contenedor"><table class="tabla-registros"><thead><tr><th scope="col">Perfil</th><th scope="col">Código</th><th scope="col">Nacimiento</th><th scope="col">Especialidad principal</th><th scope="col">Usuario</th><th scope="col">Correo</th><th scope="col">Estado</th><th scope="col">Experiencia</th><th scope="col">Acciones CRUD</th></tr></thead><tbody id="voluntarios-lista" aria-live="polite"></tbody></table></div>
+  <div id="perfiles-registrados" class="titulo-seccion"><div><p class="sobrelinea">DIRECTORIO</p><h2 id="lista-voluntarios-titulo">{{ 'Todos los Instructores Voluntarios' if current_user.rol == 'ADMINISTRADOR' else 'Instructores Voluntarios activos de mi equipo' }}</h2></div></div>
+  <div class="tabla-contenedor"><table class="tabla-registros tabla-directorio tabla-instructores"><thead><tr><th scope="col">Nombre completo</th><th scope="col">Código</th><th scope="col">Grado</th><th scope="col">Especialidad Principal</th><th scope="col">Estado</th><th scope="col">Antigüedad</th><th scope="col">Acciones</th></tr></thead><tbody id="voluntarios-lista" aria-live="polite"></tbody></table></div>
   <p id="gestion-mensaje" class="mensaje" role="status" aria-live="polite"></p>
 </section>
 {% endblock %}

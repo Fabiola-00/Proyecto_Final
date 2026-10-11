@@ -1,0 +1,4 @@
+{% extends "_dashboard_base.html" %}
+{% block contenido %}
+<section class="seccion-panel"><h2>Resumen por gestión</h2><form id="calendario-asistencias-form" class="formulario-inline"><label>Gestión<input name="gestion" type="number" min="1" max="9999" value="{{ periodo_actual }}" required></label><button>Consultar calendario</button></form><p id="calendario-asistencias-mensaje" role="status"></p><div id="asistencias-propias-totales" class="rejilla-modulos"></div><p>Asiste · Atraso · Permiso · Falta. Días sin registros quedan sin marcar; los totales cuentan llamadas registradas.</p><div id="asistencias-calendario" class="calendario-meses"></div></section>
+{% endblock %}

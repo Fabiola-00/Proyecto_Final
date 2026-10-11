@@ -70,6 +70,78 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertIsNotNone(coincidencia, "El formulario debe emitir token CSRF")
         return coincidencia.group(1).decode("ascii")
 
+    def _post_alta(self, ruta, **kwargs):
+        """Fixture de alta con los datos obligatorios y foto sintética actuales."""
+        import io
+        datos = dict(kwargs.pop("json", kwargs.pop("data", {})))
+        datos.setdefault("correo", f"{datos.get('username', 'demo')}@example.test")
+        datos.setdefault("pais_residencia", "Bolivia")
+        datos.setdefault("departamento_residencia", "La Paz")
+        datos.setdefault("nacionalidad", "Bolivia")
+        datos.setdefault("foto", (io.BytesIO(self._png_prueba()), "perfil.png"))
+        kwargs["content_type"] = "multipart/form-data"
+        return self.cliente.post(ruta, data=datos, **kwargs)
+
+    def test_perfil_grado_incorporacion_estado_y_solicitud_ampliada(self):
+        from sicose.db import obtener_conexion
+        datos = {**self._datos_alta_4a(), "estado": "INACTIVO", "grado": "Instructor Mayor", "fecha_incorporacion": "2022-12-31"}
+        self._login()
+        headers = {"X-CSRFToken": self._csrf_token()}
+        r = self._post_alta("/api/admin/instructores-voluntarios", json=datos, headers=headers)
+        self.assertEqual(r.status_code, 201, r.json)
+        uid = r.json["id"]
+        perfil = next(v for v in self.cliente.get("/api/instructores-voluntarios").json["voluntarios"] if v["id"] == uid)
+        self.assertEqual(perfil["estado"], "INACTIVO")
+        self.assertEqual(perfil["grado"], "Instructor Mayor")
+        self.assertEqual(perfil["ano_incorporacion"], 2022)
+        self.assertEqual(perfil["antiguedad_desde"], "2022-12-31")
+        self.assertEqual(perfil["antiguedad_anos"], date.today().year - 2022)
+        self.assertEqual(self._login(datos["username"], datos["password"]).status_code, 401)
+        self._login()
+        ruta = f"/api/instructores-voluntarios/{uid}"
+        for invalido in ({"grado": "Almirante"}, {"fecha_incorporacion": "9999-01-01"}, {"fecha_incorporacion": "2020-01-01", "ano_incorporacion": 2021}):
+            self.assertEqual(self.cliente.patch(ruta, json=invalido, headers={"X-CSRFToken": self._csrf_token()}).status_code, 400)
+        self.assertEqual(self.cliente.patch(ruta, json={"fecha_incorporacion": "2021-06-01"}, headers={"X-CSRFToken": self._csrf_token()}).status_code, 200)
+        with self.app.app_context():
+            inicializar_base_datos(); inicializar_base_datos()
+            c = obtener_conexion()
+            self.assertEqual(tuple(c.execute("SELECT fecha_incorporacion,ano_incorporacion,antiguedad_desde,grado FROM voluntarios WHERE usuario_id=?", (uid,)).fetchone()), ("2021-06-01",2021,"2021-06-01","Instructor Mayor"))
+            self.assertEqual(c.execute("PRAGMA quick_check").fetchone()[0], "ok")
+            self.assertEqual(c.execute("PRAGMA foreign_key_check").fetchall(), [])
+        # Public applicant cannot set account state or grade, even with a valid photo.
+        self.cliente.post('/api/auth/logout', headers={"X-CSRFToken":self._csrf_token()})
+        nueva = {**self._datos_alta_4a(), "username":"publica.grado", "nombres":"Pública", "correo":"publica@example.test", "fecha_incorporacion":"2020-02-02"}
+        for prohibido in ({"grado":"Instructor Inicial"},{"estado":"ACTIVO"}):
+            self.assertEqual(self._post_alta('/api/registro/solicitudes',json={**nueva,**prohibido},headers={"X-CSRFToken":self._csrf_token()}).status_code,400)
+        r = self._post_alta('/api/registro/solicitudes',json=nueva,headers={"X-CSRFToken":self._csrf_token()})
+        self.assertEqual(r.status_code,201,r.json)
+        with self.app.app_context():
+            c = obtener_conexion()
+            fila=c.execute("SELECT u.estado,v.grado,v.fecha_incorporacion,p.nacionalidad,p.departamento_residencia FROM usuarios u JOIN voluntarios v ON v.usuario_id=u.id JOIN perfil_geografico p ON p.voluntario_id=u.id WHERE u.username='publica.grado'").fetchone()
+            self.assertEqual(tuple(fila),('PENDIENTE',None,'2020-02-02','Bolivia','La Paz'))
+
+    def test_grado_ambito_jefe_consulta_propia_y_campos_obligatorios(self):
+        from sicose.db import obtener_conexion
+        jefe = self._preparar_jefe_4a()
+        with self.app.app_context():
+            c=obtener_conexion();c.execute("INSERT INTO voluntarios(usuario_id,instructor_id,ano_incorporacion,antiguedad_desde) VALUES (3,?,2020,'2019-01-01')",(jefe,));c.commit()
+        self.assertEqual(self.cliente.patch('/api/instructores-voluntarios/3',json={'grado':'Instructor Primero'},headers={"X-CSRFToken":self._csrf_token()}).status_code,200)
+        p=self.cliente.get('/api/instructores-voluntarios').json['voluntarios'][0]
+        self.assertEqual((p['ano_incorporacion'],p['antiguedad_desde'],p['fecha_incorporacion']),(2020,'2019-01-01',None))
+        self._login('voluntario.demo','Clave voluntario 123!')
+        self.assertIn(b'Instructor Primero',self.cliente.get('/mi-perfil').data)
+        self.assertEqual(self.cliente.patch('/api/instructor-voluntario/perfil',json={'grado':'Instructor Mayor'},headers={"X-CSRFToken":self._csrf_token()}).status_code,400)
+        self._login()
+        self.cliente.post('/api/instructores-voluntarios/3/desactivar',headers={"X-CSRFToken":self._csrf_token()})
+        self._login('instructor.demo','Clave instructor 123!')
+        self.assertEqual(self.cliente.patch('/api/instructores-voluntarios/3',json={'grado':'Instructor Mayor'},headers={"X-CSRFToken":self._csrf_token()}).status_code,404)
+        # Required profile data and media must also be enforced by the server.
+        self._login()
+        datos={**self._datos_alta_4a(),'nacionalidad':'Bolivia','departamento_residencia':'La Paz','pais_residencia':'Bolivia'}
+        self.assertEqual(self.cliente.post('/api/admin/instructores-voluntarios',json=datos,headers={"X-CSRFToken":self._csrf_token()}).status_code,400)
+        for campo in ('correo','nacionalidad','departamento_residencia'):
+            self.assertEqual(self._post_alta('/api/admin/instructores-voluntarios',json={**datos,campo:''},headers={"X-CSRFToken":self._csrf_token()}).status_code,400)
+
     def test_login_correcto(self):
         respuesta = self._login()
         self.assertEqual(respuesta.status_code, 200)
@@ -151,7 +223,7 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertIn(b"images/sbrab-logo.png", respuesta.data)
         self.assertIn(b"Agregar Jefe de Personal", respuesta.data)
         self.assertIn(b"Ver todos los Jefes de Personal", respuesta.data)
-        self.assertIn(b"Capacitaciones o cursos", respuesta.data)
+        self.assertIn(b"Capacitaciones y Cursos", respuesta.data)
         self.assertIn(b"SICOSE", respuesta.data)
 
     def test_logo_institucional_esta_disponible_como_imagen(self):
@@ -261,7 +333,7 @@ class AplicacionTestCase(unittest.TestCase):
             version = conexion.execute(
                 "SELECT valor FROM app_meta WHERE clave = ?", ("schema_version",)
             ).fetchone()[0]
-            self.assertEqual(version, "8")
+            self.assertEqual(version, "14")
             columnas_asistencias = {fila["name"] for fila in conexion.execute("PRAGMA table_info(asistencias)")}
             self.assertIn("estado_detalle", columnas_asistencias)
             self.assertEqual(
@@ -331,14 +403,14 @@ class AplicacionTestCase(unittest.TestCase):
                 self.assertIsNone(conexion.execute("SELECT fecha_nacimiento FROM voluntarios WHERE usuario_id=?", (iv_id,)).fetchone()[0])
                 asistencia_migrada = conexion.execute("SELECT estado,estado_detalle FROM asistencias WHERE voluntario_id=?", (iv_id,)).fetchone()
                 self.assertEqual(tuple(asistencia_migrada), ("PRESENTE", "ASISTE"))
-                self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "8")
+                self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "14")
                 self.assertEqual(conexion.execute("PRAGMA foreign_key_check").fetchall(), [])
         finally:
             if legacy_path.exists():
                 legacy_path.unlink()
 
     def test_solicitud_publica_crea_usuario_pendiente_sin_sesion(self):
-        respuesta = self.cliente.post("/api/registro/solicitudes", json={
+        respuesta = self._post_alta("/api/registro/solicitudes", json={
             "username": "nueva.demo", "nombres": "Nueva", "apellido_paterno": "Voluntaria", "apellido_materno": "Demo",
             "fecha_nacimiento": "1978-04-02",
             "especialidad_principal": "Rescate en montaña",
@@ -366,13 +438,13 @@ class AplicacionTestCase(unittest.TestCase):
 
     def test_registro_guarda_foto_en_instancia_y_la_sirve_solo_con_autorizacion(self):
         import io
-        self.assertEqual(self.cliente.post("/api/registro/solicitudes", data={
+        self.assertEqual(self._post_alta("/api/registro/solicitudes", data={
             "username": "foto.demo", "nombres": "Voluntaria", "apellido_paterno": "Foto", "apellido_materno": "Demo",
             "fecha_nacimiento": "1980-02-03", "especialidad_principal": "K-9", "password": "Contraseña segura 123!",
             "foto": (io.BytesIO(self._png_prueba()), "perfil.png"),
         }, headers={"X-CSRFToken": self._csrf_token()}, content_type="multipart/form-data").status_code, 201)
         archivos_confirmados = set(self.media_path.iterdir())
-        colision = self.cliente.post("/api/registro/solicitudes", data={
+        colision = self._post_alta("/api/registro/solicitudes", data={
             "username": "foto.colision", "nombres": "Voluntaria", "apellido_paterno": "Foto", "apellido_materno": "Demo",
             "fecha_nacimiento": "1980-02-03", "especialidad_principal": "K-9", "password": "Contraseña segura 123!",
             "foto": (io.BytesIO(self._png_prueba()), "colision.png"),
@@ -425,7 +497,7 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertNotIn(b'id="invitacion-form"', gestion.data)
         self.assertIn(b'<details id="agregar-instructor-voluntario"', gestion.data)
         self.assertIn(b'<tbody id="voluntarios-lista"', gestion.data)
-        self.assertIn(b"Acciones CRUD", gestion.data)
+        self.assertIn(b"Acciones", gestion.data)
         instructores = self.cliente.get("/gestion/jefes-personal")
         self.assertEqual(instructores.status_code, 200)
         self.assertIn(b"Agregar Jefe de Personal", instructores.data)
@@ -470,7 +542,7 @@ class AplicacionTestCase(unittest.TestCase):
             conexion.execute("INSERT INTO instructores (usuario_id, especialidad) VALUES (?, 'Rescate')", (jefe_id,))
             conexion.commit()
 
-        creada = self.cliente.post("/api/admin/instructores-voluntarios", data={
+        creada = self._post_alta("/api/admin/instructores-voluntarios", data={
             "username": "iv.manual",
             "nombres": "Instructor Voluntario", "apellido_paterno": "Manual", "apellido_materno": "Demo",
             "fecha_nacimiento": "1980-02-03",
@@ -527,7 +599,7 @@ class AplicacionTestCase(unittest.TestCase):
         foto.close()
         self.cliente.post("/api/auth/logout", headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
-        denegada = self.cliente.post("/api/admin/instructores-voluntarios", json={}, headers={"X-CSRFToken": self._csrf_token()})
+        denegada = self._post_alta("/api/admin/instructores-voluntarios", json={}, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(denegada.status_code, 403)
 
     def test_admin_registra_instructor_con_foto(self):
@@ -619,13 +691,29 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertEqual([item["nota_0_100"] for item in historial.json["historial"]], [75, 80])
         pagina_asistencias = self.cliente.get("/gestion/asistencias")
         self.assertEqual(pagina_asistencias.status_code, 200)
-        self.assertIn(b"Fecha de la gesti", pagina_asistencias.data)
-        self.assertIn(b"Capacitaciones o cursos", pagina_asistencias.data)
+        self.assertIn(b"Fecha", pagina_asistencias.data)
+        self.assertIn(b"Actividad", pagina_asistencias.data)
+        self.assertIn(b"Capacitaciones y Cursos", pagina_asistencias.data)
         assets = self.cliente.get("/static/js/app.js")
         self.assertIn(b"ATRASO", assets.data)
         assets.close()
         self.assertEqual(self.cliente.get("/gestion/capacitaciones").status_code, 200)
         self.assertEqual(self.cliente.get("/gestion/calificaciones").status_code, 200)
+
+    def test_pagina_asistencias_usa_esquema_en_tabla(self):
+        with self.app.app_context():
+            from sicose.db import obtener_conexion
+            conexion = obtener_conexion()
+            instructor_id = conexion.execute("SELECT id FROM usuarios WHERE username='instructor.demo'").fetchone()[0]
+            volunteer_id = conexion.execute("SELECT id FROM usuarios WHERE username='voluntario.demo'").fetchone()[0]
+            conexion.execute("INSERT INTO instructores(usuario_id) VALUES (?)", (instructor_id,))
+            conexion.execute("INSERT INTO voluntarios(usuario_id,instructor_id) VALUES (?,?)", (volunteer_id,instructor_id))
+            conexion.commit()
+        self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
+        pagina = self.cliente.get("/gestion/asistencias")
+        self.assertEqual(pagina.status_code, 200)
+        for fragmento in (b"Nombre completo", b"C\xc3\xb3digo", b"Estado", b"Asistencia"):
+            self.assertIn(fragmento, pagina.data)
 
     def test_asistencias_aceptan_cuatro_estados_y_filtran_por_persona_y_fechas(self):
         with self.app.app_context():
@@ -707,7 +795,7 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertNotIn("observacion", str(respuesta.json))
 
     def test_admin_aprueba_solicitud_y_cuenta_puede_ingresar(self):
-        creada = self.cliente.post("/api/registro/solicitudes", json={
+        creada = self._post_alta("/api/registro/solicitudes", json={
             "username": "aprobada.demo", "nombres": "Voluntaria", "apellido_paterno": "Aprobada", "apellido_materno": "Demo",
             "fecha_nacimiento": "1990-06-07",
             "especialidad_principal": "Primeros Auxilios",
@@ -736,14 +824,14 @@ class AplicacionTestCase(unittest.TestCase):
         creada = self.cliente.post("/api/admin/invitaciones", json={"correo": "invitada@example.org"}, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(creada.status_code, 201)
         token = creada.json["invitacion_url"].rsplit("/", 1)[1]
-        respuesta = self.cliente.post(f"/api/registro/invitaciones/{token}", json={
+        respuesta = self._post_alta(f"/api/registro/invitaciones/{token}", json={
             "username": "invitada.demo", "nombres": "Invitada", "apellido_paterno": "Prueba", "apellido_materno": "Demo",
             "fecha_nacimiento": "1987-12-08", "correo": "invitada@example.org",
             "especialidad_principal": "Rescate en selva",
             "password": "Contraseña segura 123!",
         }, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(respuesta.status_code, 201)
-        repetida = self.cliente.post(f"/api/registro/invitaciones/{token}", json={
+        repetida = self._post_alta(f"/api/registro/invitaciones/{token}", json={
             "username": "otra.demo", "nombres": "Otra", "apellido_paterno": "Prueba", "apellido_materno": "Demo",
             "fecha_nacimiento": "1987-12-08", "correo": "invitada@example.org",
             "especialidad_principal": "Rescate en selva",
@@ -780,6 +868,422 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertEqual(self._login("instructor.demo", "Clave instructor 123!").status_code, 200)
         respuesta = self.cliente.patch("/api/instructores-voluntarios/1", json={"nombre": "Cambio"}, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(respuesta.status_code, 404)
+
+    def _preparar_jefe_4a(self):
+        from sicose.db import obtener_conexion
+        with self.app.app_context():
+            conexion = obtener_conexion()
+            jefe_id = conexion.execute("SELECT id FROM usuarios WHERE username='instructor.demo'").fetchone()[0]
+            conexion.execute("INSERT INTO instructores(usuario_id) VALUES (?)", (jefe_id,))
+            conexion.commit()
+        self._login("instructor.demo", "Clave instructor 123!")
+        return jefe_id
+
+    def _datos_alta_4a(self):
+        return {"username": "alta.jefe", "password": "Clave nueva segura 123!",
+                "nombres": "Ana", "apellido_paterno": "Perez", "apellido_materno": "Diaz",
+                "fecha_nacimiento": "1990-05-12", "especialidad_principal": "Rescate en agua"}
+
+    def test_alta_jefe_pendiente_se_aprueba_con_asignacion_preservada(self):
+        from sicose.db import obtener_conexion
+        jefe_id = self._preparar_jefe_4a()
+        self.assertIn(b">Guardar</button>", self.cliente.get("/gestion/instructores-voluntarios").data)
+        respuesta = self._post_alta("/api/jefe-personal/instructores-voluntarios",
+                                      json=self._datos_alta_4a(), headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(respuesta.status_code, 201)
+        self.assertEqual(respuesta.json["estado"], "PENDIENTE")
+        usuario_id = respuesta.json["id"]
+        self.assertEqual(self.cliente.get(f"/api/usuarios/{usuario_id}/foto").status_code, 403)
+        self.assertEqual(self.cliente.get("/api/instructores-voluntarios").json["voluntarios"], [])
+        with self.app.app_context():
+            conexion = obtener_conexion()
+            self.assertEqual(conexion.execute("SELECT instructor_id FROM voluntarios WHERE usuario_id=?", (usuario_id,)).fetchone()[0], jefe_id)
+            solicitud_id = conexion.execute("SELECT id FROM solicitudes_registro WHERE usuario_id=?", (usuario_id,)).fetchone()[0]
+            self.assertTrue(check_password_hash(conexion.execute("SELECT password_hash FROM usuarios WHERE id=?", (usuario_id,)).fetchone()[0], self._datos_alta_4a()["password"]))
+            self.assertEqual(conexion.execute("SELECT usuario_id FROM auditoria WHERE accion='SOLICITUD_ALTA_JEFE'").fetchone()[0], jefe_id)
+        token = self._csrf_token()
+        self.assertEqual(self.cliente.post(f"/api/admin/solicitudes/{solicitud_id}/aprobar", json={}, headers={"X-CSRFToken": token}).status_code, 403)
+        self.assertEqual(self.cliente.patch(f"/api/instructores-voluntarios/{usuario_id}", json={"correo": "nuevo@example.test"}, headers={"X-CSRFToken": token}).status_code, 404)
+        self.cliente.post("/api/auth/logout", headers={"X-CSRFToken": token})
+        self.assertEqual(self._login("alta.jefe", self._datos_alta_4a()["password"]).status_code, 401)
+        self._login()
+        solicitudes = self.cliente.get("/api/admin/solicitudes").json["solicitudes"]
+        self.assertEqual(solicitudes[0]["instructor_id"], jefe_id)
+        aprobada = self.cliente.post(f"/api/admin/solicitudes/{solicitud_id}/aprobar", json={}, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(aprobada.status_code, 200)
+        with self.app.app_context():
+            self.assertEqual(obtener_conexion().execute("SELECT instructor_id FROM voluntarios WHERE usuario_id=?", (usuario_id,)).fetchone()[0], jefe_id)
+        self.assertEqual(self._login("alta.jefe", self._datos_alta_4a()["password"]).status_code, 200)
+
+    def test_alta_jefe_rechaza_campos_administrativos_csrf_y_colision(self):
+        self._preparar_jefe_4a()
+        ruta = "/api/jefe-personal/instructores-voluntarios"
+        self.assertEqual(self._post_alta(ruta, json=self._datos_alta_4a()).status_code, 400)
+        token = self._csrf_token()
+        for campo, valor in (("instructor_id", 1), ("estado", "ACTIVO"), ("rol", "ADMINISTRADOR"), ("codigo_instructor", "OTRO")):
+            datos = {**self._datos_alta_4a(), campo: valor}
+            self.assertEqual(self._post_alta(ruta, json=datos, headers={"X-CSRFToken": token}).status_code, 400)
+        self.assertEqual(self._post_alta(ruta, json=self._datos_alta_4a(), headers={"X-CSRFToken": token}).status_code, 201)
+        datos = {**self._datos_alta_4a(), "username": "otra.cuenta"}
+        self.assertEqual(self._post_alta(ruta, json=datos, headers={"X-CSRFToken": token}).status_code, 409)
+        self._login()
+        self.assertEqual(self._post_alta(ruta, json=datos, headers={"X-CSRFToken": self._csrf_token()}).status_code, 403)
+
+    def test_jefe_no_lista_ni_edita_personal_inactivo_asignado(self):
+        from sicose.db import obtener_conexion
+        jefe_id = self._preparar_jefe_4a()
+        with self.app.app_context():
+            conexion = obtener_conexion()
+            conexion.execute("INSERT INTO voluntarios(usuario_id,instructor_id) VALUES (3,?)", (jefe_id,))
+            conexion.execute("UPDATE usuarios SET estado='INACTIVO' WHERE id=3")
+            conexion.commit()
+        self.assertEqual(self.cliente.get("/api/instructores-voluntarios").json["voluntarios"], [])
+        self.assertEqual(self.cliente.get("/api/usuarios/3/foto").status_code, 403)
+        self.assertEqual(self.cliente.patch("/api/instructores-voluntarios/3", json={"correo": "nuevo@example.test"}, headers={"X-CSRFToken": self._csrf_token()}).status_code, 404)
+        self._login()
+        self.assertEqual(len(self.cliente.get("/api/instructores-voluntarios").json["voluntarios"]), 1)
+
+    def test_autoservicio_correo_foto_solo_modifica_cuenta_propia(self):
+        import io
+        from sicose.db import obtener_conexion
+        self._login("voluntario.demo", "Clave voluntario 123!")
+        pagina = self.cliente.get("/mi-perfil")
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn(b'id="perfil-propio-form"', pagina.data)
+        self.assertNotIn(b'name="fecha_nacimiento"', pagina.data)
+        respuesta = self.cliente.patch("/api/instructor-voluntario/perfil", data={
+            "correo": "  PROPIO@example.test  ", "foto": (io.BytesIO(self._png_prueba()), "perfil.png")
+        }, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(respuesta.status_code, 200)
+        with self.cliente.get("/api/usuarios/3/foto") as foto_propia:
+            self.assertEqual(foto_propia.status_code, 200)
+        self.assertEqual(self.cliente.get("/api/usuarios/1/foto").status_code, 403)
+        self.assertEqual(self.cliente.put("/api/usuarios/1/foto", data={"foto": (io.BytesIO(self._png_prueba()), "otra.png")}, headers={"X-CSRFToken": self._csrf_token()}).status_code, 403)
+        with self.app.app_context():
+            conexion = obtener_conexion()
+            usuario = conexion.execute("SELECT correo,nombre_completo,estado FROM usuarios WHERE id=3").fetchone()
+            self.assertEqual(tuple(usuario), ("propio@example.test", "voluntario.demo", "ACTIVO"))
+            self.assertIsNone(conexion.execute("SELECT correo FROM usuarios WHERE id=1").fetchone()[0])
+            self.assertEqual(conexion.execute("SELECT usuario_id FROM auditoria WHERE accion='PERFIL_PROPIO_ACTUALIZADO'").fetchone()[0], 3)
+        self.assertEqual(self.cliente.patch("/api/instructor-voluntario/perfil", json={"correo": ""}, headers={"X-CSRFToken": self._csrf_token()}).status_code, 200)
+        with self.app.app_context():
+            self.assertIsNone(obtener_conexion().execute("SELECT correo FROM usuarios WHERE id=3").fetchone()[0])
+
+    def test_autoservicio_rechaza_campos_roles_csrf_y_sesion_inactiva(self):
+        from sicose.db import obtener_conexion
+        ruta = "/api/instructor-voluntario/perfil"
+        self.assertEqual(self.cliente.patch(ruta, json={"correo": "x@example.test"}, headers={"X-CSRFToken": self._csrf_token()}).status_code, 401)
+        self._login()
+        self.assertEqual(self.cliente.get("/mi-perfil").status_code, 403)
+        self.assertEqual(self.cliente.patch(ruta, json={"correo": "x@example.test"}, headers={"X-CSRFToken": self._csrf_token()}).status_code, 403)
+        self._login("instructor.demo", "Clave instructor 123!")
+        self.assertEqual(self.cliente.get("/mi-perfil").status_code, 403)
+        self._login("voluntario.demo", "Clave voluntario 123!")
+        self.assertEqual(self.cliente.patch(ruta, json={"correo": "x@example.test"}).status_code, 400)
+        for campo in ("id", "usuario_id", "rol", "estado", "instructor_id", "nombres", "fecha_nacimiento", "codigo_instructor", "especialidad_principal", "antiguedad_desde", "experiencia_operaciones", "nota", "observaciones"):
+            self.assertEqual(self.cliente.patch(ruta, json={"correo": "x@example.test", campo: "cambio"}, headers={"X-CSRFToken": self._csrf_token()}).status_code, 400)
+        with self.app.app_context():
+            conexion = obtener_conexion()
+            self.assertIsNone(conexion.execute("SELECT correo FROM usuarios WHERE id=3").fetchone()[0])
+            conexion.execute("UPDATE usuarios SET estado='INACTIVO' WHERE id=3")
+            conexion.commit()
+        self.assertEqual(self.cliente.get("/mi-perfil").status_code, 302)
+
+    def test_autoservicio_rechaza_correo_foto_invalidos_y_revierte_colision(self):
+        import io
+        from sicose.db import obtener_conexion
+        ruta = "/api/instructor-voluntario/perfil"
+        with self.app.app_context():
+            conexion = obtener_conexion()
+            conexion.execute("UPDATE usuarios SET correo='ocupado@example.test' WHERE id=1")
+            conexion.commit()
+        self._login("voluntario.demo", "Clave voluntario 123!")
+        token = self._csrf_token()
+        for correo in ("sin-arroba", "con espacio@example.test", "a" * 255, 123):
+            self.assertEqual(self.cliente.patch(ruta, json={"correo": correo}, headers={"X-CSRFToken": token}).status_code, 400)
+        respuesta = self.cliente.patch(ruta, data={"correo": "nuevo@example.test", "foto": (io.BytesIO(b"invalida"), "foto.png")}, headers={"X-CSRFToken": token})
+        self.assertEqual(respuesta.status_code, 400)
+        respuesta = self.cliente.patch(ruta, data={"correo": "ocupado@example.test", "foto": (io.BytesIO(self._png_prueba()), "foto.png")}, headers={"X-CSRFToken": token})
+        self.assertEqual(respuesta.status_code, 409)
+        with self.app.app_context():
+            self.assertEqual(tuple(obtener_conexion().execute("SELECT correo,foto_perfil FROM usuarios WHERE id=3").fetchone()), (None, None))
+        self.assertEqual(list(self.media_path.glob("*")), [])
+
+    def test_residencia_y_antiguedad_validan_catalogo_y_limites(self):
+        from sicose.perfil_residencia import validar_perfil_residencia, antiguedad_calculada, DEPARTAMENTOS_BOLIVIA
+        hoy = date(2026, 10, 10)
+        self.assertEqual(len(DEPARTAMENTOS_BOLIVIA), 9)
+        for departamento in DEPARTAMENTOS_BOLIVIA:
+            datos = {"pais_residencia": "Bolivia", "departamento_residencia": departamento, "ano_incorporacion": "2020"}
+            self.assertEqual(validar_perfil_residencia(datos, hoy=hoy)["ano_incorporacion"], 2020)
+        for datos in ({"pais_residencia": "País no admitido"}, {"departamento_residencia": "La Paz"}, {"pais_residencia": "Bolivia", "departamento_residencia": "Otro"}, {"ano_incorporacion": 2027}, {"ano_incorporacion": 0}, {"ano_incorporacion": True}, {"ano_incorporacion": 2020.5}, {"ano_incorporacion": "2020.0"}):
+            with self.assertRaises(ValueError): validar_perfil_residencia(datos, hoy=hoy)
+        self.assertEqual(antiguedad_calculada(2026, hoy), 0)
+        self.assertEqual(antiguedad_calculada(2020, hoy), 6)
+        self.assertEqual(antiguedad_calculada(2020, date(2027, 1, 1)), 7)
+        self.assertIsNone(antiguedad_calculada(None, hoy))
+
+    def test_gestion_residencia_guarda_calcula_y_preserva_fecha_historica(self):
+        from sicose.db import obtener_conexion
+        jefe_id = self._preparar_jefe_4a()
+        with self.app.app_context():
+            conexion = obtener_conexion()
+            conexion.execute("INSERT INTO voluntarios(usuario_id,instructor_id,antiguedad_desde) VALUES (3,?,'2019-01-15')", (jefe_id,))
+            conexion.commit()
+        cambios = {"pais_residencia": "Bolivia", "departamento_residencia": "La Paz", "ano_incorporacion": date.today().year}
+        respuesta = self.cliente.patch("/api/instructores-voluntarios/3", json=cambios, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(respuesta.status_code, 200)
+        perfil = self.cliente.get("/api/instructores-voluntarios").json["voluntarios"][0]
+        self.assertEqual(perfil["antiguedad_anos"], 0)
+        self.assertEqual(perfil["departamento_residencia"], "La Paz")
+        self.assertEqual(perfil["antiguedad_desde"], "2019-01-15")
+        self.assertEqual(self.cliente.patch("/api/instructores-voluntarios/3", json={"pais_residencia": ""}, headers={"X-CSRFToken": self._csrf_token()}).status_code, 400)
+        self.assertEqual(self.cliente.patch("/api/instructores-voluntarios/1", json=cambios, headers={"X-CSRFToken": self._csrf_token()}).status_code, 404)
+        self._login("voluntario.demo", "Clave voluntario 123!")
+        self.assertEqual(self.cliente.get("/api/instructores-voluntarios").status_code, 403)
+        self.assertEqual(self.cliente.patch("/api/instructor-voluntario/perfil", json=cambios, headers={"X-CSRFToken": self._csrf_token()}).status_code, 400)
+        pagina = self.cliente.get("/mi-perfil").data
+        self.assertNotIn(b"ano_incorporacion", pagina)
+        self.assertNotIn("ano_incorporacion", str(self.cliente.get("/api/instructor-voluntario/evaluaciones").json))
+        self._login()
+        vacios = {"pais_residencia": "", "departamento_residencia": "", "ano_incorporacion": ""}
+        self.assertEqual(self.cliente.patch("/api/instructores-voluntarios/3", json=vacios, headers={"X-CSRFToken": self._csrf_token()}).status_code, 200)
+        self.assertIsNone(self.cliente.get("/api/instructores-voluntarios").json["voluntarios"][0]["antiguedad_anos"])
+
+    def test_altas_gestion_residencia_y_registro_publico_restringido(self):
+        from sicose.db import obtener_conexion
+        jefe_id = self._preparar_jefe_4a()
+        datos = {**self._datos_alta_4a(), "pais_residencia": "Bolivia", "departamento_residencia": "Beni", "ano_incorporacion": 2024}
+        respuesta = self._post_alta("/api/jefe-personal/instructores-voluntarios", json=datos, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(respuesta.status_code, 201)
+        with self.app.app_context():
+            fila = obtener_conexion().execute("SELECT pais_residencia,departamento_residencia,ano_incorporacion,instructor_id FROM voluntarios WHERE usuario_id=?", (respuesta.json["id"],)).fetchone()
+            self.assertEqual(tuple(fila), ("Bolivia", "Beni", 2024, jefe_id))
+        self._login()
+        datos.update(username="alta.admin", fecha_nacimiento="1991-05-12")
+        self.assertEqual(self._post_alta("/api/admin/instructores-voluntarios", json=datos, headers={"X-CSRFToken": self._csrf_token()}).status_code, 201)
+        datos.update(username="alta.publica", fecha_nacimiento="1992-05-12")
+        datos.update(username="registro.geo", nombres="Geografía", apellido_paterno="Nueva", apellido_materno="Demo")
+        self.assertEqual(self._post_alta("/api/registro/solicitudes", json=datos, headers={"X-CSRFToken": self._csrf_token()}).status_code, 201)
+
+    def test_migracion_v8_a_v9_preserva_perfiles_y_es_idempotente(self):
+        from sicose.db import obtener_conexion
+        with self.app.app_context():
+            conexion = obtener_conexion()
+            conexion.execute("INSERT INTO voluntarios(usuario_id,antiguedad_desde,experiencia_operaciones) VALUES (3,'2020-01-15','Histórica')")
+            for campo in ("pais_residencia", "departamento_residencia", "ano_incorporacion"):
+                conexion.execute(f"ALTER TABLE voluntarios DROP COLUMN {campo}")
+            conexion.execute("UPDATE app_meta SET valor='8' WHERE clave='schema_version'")
+            conexion.commit()
+            antes = conexion.execute("SELECT * FROM voluntarios").fetchone()
+            inicializar_base_datos()
+            inicializar_base_datos()
+            despues = conexion.execute("SELECT * FROM voluntarios").fetchone()
+            for campo in antes.keys(): self.assertEqual(antes[campo], despues[campo])
+            for campo in ("pais_residencia", "departamento_residencia", "ano_incorporacion"):
+                self.assertIsNone(despues[campo])
+            self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "14")
+            self.assertEqual(conexion.execute("PRAGMA quick_check").fetchone()[0], "ok")
+            self.assertEqual(conexion.execute("PRAGMA foreign_key_check").fetchall(), [])
+
+    def test_secundarias_permisos_validacion_y_consulta_propia(self):
+        from sicose.db import obtener_conexion
+        jefe_id = self._preparar_jefe_4a()
+        with self.app.app_context():
+            conexion = obtener_conexion()
+            conexion.execute("INSERT INTO voluntarios(usuario_id,instructor_id,especialidad_principal) VALUES (3,?,'K-9')", (jefe_id,))
+            conexion.commit()
+        ruta = "/api/instructores-voluntarios/3"
+        def editar(valores):
+            return self.cliente.patch(ruta, json={"especialidades_secundarias": valores}, headers={"X-CSRFToken": self._csrf_token()})
+        self.assertEqual(editar(["K-9", "Primeros Auxilios"]).status_code, 200)
+        self.assertEqual(self.cliente.get("/api/instructores-voluntarios").json["voluntarios"][0]["especialidades_secundarias"], ["K-9", "Primeros Auxilios"])
+        for invalido in (None, "K-9", ["Otro"], ["K-9", "K-9"], [False]):
+            self.assertEqual(editar(invalido).status_code, 400)
+        self.assertEqual(self.cliente.patch(ruta, json={"especialidades_secundarias": []}).status_code, 400)
+        self._login("voluntario.demo", "Clave voluntario 123!")
+        self.assertIn(b'Primeros Auxilios', self.cliente.get("/mi-perfil").data)
+        self.assertEqual(editar([]).status_code, 403)
+        self.assertEqual(self.cliente.patch("/api/instructor-voluntario/perfil", json={"especialidades_secundarias": []}, headers={"X-CSRFToken": self._csrf_token()}).status_code, 400)
+        self._login()
+        self.assertEqual(editar([]).status_code, 200)
+        with self.app.app_context():
+            conexion = obtener_conexion()
+            conexion.execute("UPDATE voluntarios SET instructor_id=NULL WHERE usuario_id=3")
+            conexion.commit()
+        self._login("instructor.demo", "Clave instructor 123!")
+        self.assertEqual(editar(["K-9"]).status_code, 404)
+
+    def test_4b_catalogo_y_capacitaciones_relacionales_sin_filtraciones(self):
+        from sicose.db import obtener_conexion
+        jefe = self._preparar_jefe_4a()
+        with self.app.app_context():
+            conexion=obtener_conexion()
+            conexion.execute("INSERT INTO voluntarios(usuario_id,instructor_id) VALUES (3,?)",(jefe,))
+            conexion.execute("INSERT INTO capacitaciones(voluntario_id,nombre,observacion) VALUES (3,'Histórico','Privada')")
+            conexion.commit()
+        self.assertEqual(self.cliente.post('/api/cursos',json={'nombre':'Curso Jefe DEMO','tipo':'Capacitación','estado':'Próximo'},headers={'X-CSRFToken':self._csrf_token()}).status_code,201)
+        self._login()
+        respuesta=self.cliente.post('/api/cursos',json={'nombre':'Curso DEMO','tipo':'Capacitación','estado':'Próximo'},headers={'X-CSRFToken':self._csrf_token()})
+        self.assertEqual(respuesta.status_code,201);curso=respuesta.json['id']
+        self.assertEqual(self.cliente.post('/api/cursos',json={'nombre':'Curso DEMO','tipo':'Capacitación','estado':'Próximo'},headers={'X-CSRFToken':self._csrf_token()}).status_code,409)
+        self._login('instructor.demo','Clave instructor 123!')
+        ruta='/api/jefe-personal/instructores-voluntarios/3/capacitaciones'
+        registro=self.cliente.post(ruta,json={'curso_id':curso,'observacion':'Oculta'},headers={'X-CSRFToken':self._csrf_token()})
+        self.assertEqual(registro.status_code,201)
+        self.assertEqual(self.cliente.post(ruta,json={'curso_id':999},headers={'X-CSRFToken':self._csrf_token()}).status_code,400)
+        self._login('voluntario.demo','Clave voluntario 123!')
+        registros=self.cliente.get('/api/instructor-voluntario/capacitaciones').json['capacitaciones']
+        self.assertEqual(len(registros),2)
+        self.assertTrue(all('observacion' not in fila and 'voluntario_id' not in fila for fila in registros))
+        self.assertEqual(self.cliente.get('/api/cursos').status_code,403)
+        self.assertEqual(self.cliente.get('/mis-cursos').status_code,200)
+        with self.app.app_context():
+            historico=obtener_conexion().execute("SELECT nombre,curso_id,observacion FROM capacitaciones WHERE nombre='Histórico'").fetchone()
+            self.assertEqual(tuple(historico),('Histórico',None,'Privada'))
+
+    def test_4b_operaciones_eventos_admin_participaciones_por_ambito(self):
+        from sicose.db import obtener_conexion
+        jefe=self._preparar_jefe_4a()
+        with self.app.app_context():
+            conexion=obtener_conexion();conexion.execute("INSERT INTO voluntarios(usuario_id,instructor_id) VALUES (3,?)",(jefe,));conexion.commit()
+        evento={'tipo_evento':'Simulacro','lugar':'Lugar DEMO','fecha_inicio':'2026-10-01','fecha_fin':'2026-10-02','institucion_responsable':'Entidad DEMO'}
+        self.assertEqual(self.cliente.post('/api/operaciones',json=evento,headers={'X-CSRFToken':self._csrf_token()}).status_code,403)
+        self._login()
+        self.assertEqual(self.cliente.post('/api/operaciones',json={**evento,'fecha_fin':'2026-09-30'},headers={'X-CSRFToken':self._csrf_token()}).status_code,400)
+        respuesta=self.cliente.post('/api/operaciones',json=evento,headers={'X-CSRFToken':self._csrf_token()});self.assertEqual(respuesta.status_code,201);identificador=respuesta.json['id']
+        self.assertEqual(self.cliente.patch(f'/api/operaciones/{identificador}',json={'lugar':'Otro lugar DEMO'},headers={'X-CSRFToken':self._csrf_token()}).status_code,200)
+        self._login('instructor.demo','Clave instructor 123!')
+        self.assertEqual(self.cliente.patch(f'/api/operaciones/{identificador}',json={'lugar':'No autorizado'},headers={'X-CSRFToken':self._csrf_token()}).status_code,403)
+        ruta=f'/api/operaciones/{identificador}/participaciones'
+        self.assertEqual(self.cliente.post(ruta,json={'voluntario_id':3}).status_code,400)
+        self.assertEqual(self.cliente.post(ruta,json={'voluntario_id':1},headers={'X-CSRFToken':self._csrf_token()}).status_code,404)
+        self.assertEqual(self.cliente.post(ruta,json={'voluntario_id':3},headers={'X-CSRFToken':self._csrf_token()}).status_code,201)
+        self.assertEqual(self.cliente.post(ruta,json={'voluntario_id':3},headers={'X-CSRFToken':self._csrf_token()}).status_code,409)
+        self._login('voluntario.demo','Clave voluntario 123!')
+        eventos=self.cliente.get('/api/operaciones').json['operaciones'];self.assertEqual(len(eventos),1)
+        self.assertEqual(eventos[0]['participantes'],[{'voluntario_id':3,'nombre':'voluntario.demo'}])
+        self.assertEqual(self.cliente.post(ruta,json={'voluntario_id':3},headers={'X-CSRFToken':self._csrf_token()}).status_code,403)
+        self.assertEqual(self.cliente.get('/gestion/operaciones').status_code,200)
+        with self.app.app_context():
+            conexion=obtener_conexion();conexion.execute("UPDATE voluntarios SET instructor_id=NULL WHERE usuario_id=3");conexion.commit()
+        self._login('instructor.demo','Clave instructor 123!')
+        self.assertEqual(self.cliente.get('/api/operaciones').json['operaciones'][0]['participantes'],[])
+        self.assertEqual(self.cliente.post(ruta,json={'voluntario_id':3},headers={'X-CSRFToken':self._csrf_token()}).status_code,404)
+
+    def test_4b_geografia_ampliada_consulta_propia_y_migracion_aditiva(self):
+        from sicose.db import obtener_conexion
+        jefe=self._preparar_jefe_4a()
+        with self.app.app_context():
+            conexion=obtener_conexion();conexion.execute("INSERT INTO voluntarios(usuario_id,instructor_id,pais_residencia,departamento_residencia) VALUES (3,?,'Bolivia','La Paz')",(jefe,));conexion.commit()
+        datos={'pais_residencia':'Perú','departamento_residencia':'Cusco','nacionalidad':'Bolivia'}
+        respuesta=self.cliente.patch('/api/instructores-voluntarios/3',json=datos,headers={'X-CSRFToken':self._csrf_token()});self.assertEqual(respuesta.status_code,200)
+        perfil=self.cliente.get('/api/instructores-voluntarios').json['voluntarios'][0]
+        for campo,valor in datos.items():self.assertEqual(perfil[campo],valor)
+        with self.app.app_context():
+            inicializar_base_datos();inicializar_base_datos();conexion=obtener_conexion()
+            self.assertEqual(conexion.execute('PRAGMA quick_check').fetchone()[0],'ok');self.assertEqual(conexion.execute('PRAGMA foreign_key_check').fetchall(),[])
+        self._login('voluntario.demo','Clave voluntario 123!')
+        self.assertIn(b'Cusco',self.cliente.get('/mi-perfil').data)
+        self.assertEqual(self.cliente.patch('/api/instructor-voluntario/perfil',json=datos,headers={'X-CSRFToken':self._csrf_token()}).status_code,400)
+        self._login('instructor.demo','Clave instructor 123!')
+        self.assertEqual(self.cliente.patch('/api/instructores-voluntarios/3',json={'pais_residencia':'Bolivia','departamento_residencia':'Otro'},headers={'X-CSRFToken':self._csrf_token()}).status_code,400)
+
+    def test_cursos_registro_validacion_fechas_y_pantalla_sin_personas(self):
+        self._login()
+        datos={'nombre':'Taller DEMO','tipo':'Taller','estado':'En curso','entidad':'Entidad DEMO','fecha_inicio':'2026-10-01','fecha_fin':'2026-10-10','observaciones':'Opcional'}
+        headers={'X-CSRFToken':self._csrf_token()}
+        respuesta=self.cliente.post('/api/cursos',json=datos,headers=headers)
+        self.assertEqual(respuesta.status_code,201)
+        curso=self.cliente.get('/api/cursos').json['cursos'][0]
+        for campo,valor in datos.items(): self.assertEqual(curso[campo],valor)
+        for cambio in ({'tipo':'Otro'},{'estado':'Otro'},{'fecha_fin':'2026-09-01'},{'fecha_inicio':False},{'observaciones':123},{'voluntario_id':3}):
+            self.assertEqual(self.cliente.patch(f"/api/cursos/{curso['id']}",json=cambio,headers=headers).status_code,400)
+        self.assertEqual(self.cliente.patch(f"/api/cursos/{curso['id']}",json={'estado':'Finalizado'},headers=headers).status_code,200)
+        pagina=self.cliente.get('/gestion/capacitaciones').data
+        self.assertNotIn(b'name="voluntario_id"',pagina)
+        self.assertIn(b'Registro de curso',pagina)
+        self.assertEqual(self.cliente.post('/api/cursos',json=datos).status_code,400)
+
+    def test_reporte_cursos_por_fecha_tipo_estado_y_roles(self):
+        from sicose.db import obtener_conexion
+        self._preparar_jefe_4a()
+        with self.app.app_context():
+            c=obtener_conexion()
+            c.executemany("INSERT INTO cursos(nombre,tipo,estado,fecha_inicio) VALUES (?,?,?,?)", [('Curso A','Taller','Próximo','2026-10-01'),('Curso B','Capacitación','Finalizado','2026-10-02'),('Curso C','Taller','Próximo',None)])
+            c.commit()
+        ruta='/api/cursos/reporte.pdf'
+        consulta={'desde':'2026-10-01','hasta':'2026-10-02','tipo':'Taller','estado':'Próximo'}
+        from unittest.mock import patch
+        from io import BytesIO
+        with patch('sicose.reportes_cursos.generar_pdf_cursos', return_value=BytesIO(b'%PDF-1.4 DEMO')) as generar:
+            respuesta=self.cliente.get(ruta,query_string=consulta)
+            self.assertEqual(respuesta.status_code,200);self.assertEqual(respuesta.mimetype,'application/pdf')
+            self.assertEqual([r['nombre'] for r in generar.call_args.args[0]],['Curso A'])
+            self.assertNotIn('observaciones',generar.call_args.args[0][0]);respuesta.close()
+        respuesta=self.cliente.get(ruta,query_string=consulta);self.assertTrue(respuesta.data.startswith(b'%PDF-'));respuesta.close()
+        for cambio in ({'hasta':'2026-09-01'},{'tipo':'Otro'},{'estado':'Otro'},{'desde':'fecha'}):
+            self.assertEqual(self.cliente.get(ruta,query_string={**consulta,**cambio}).status_code,400)
+        self._login('voluntario.demo','Clave voluntario 123!')
+        self.assertEqual(self.cliente.get(ruta,query_string=consulta).status_code,403)
+        self.assertEqual(self.cliente.post('/api/cursos',json={'nombre':'No','tipo':'Taller','estado':'Próximo'},headers={'X-CSRFToken':self._csrf_token()}).status_code,403)
+
+    def test_asistencia_correcciones_historial_y_no_duplicados(self):
+        from sicose.db import obtener_conexion
+        jefe=self._preparar_jefe_4a()
+        with self.app.app_context():
+            c=obtener_conexion();c.execute('INSERT INTO voluntarios(usuario_id,instructor_id) VALUES (3,?)',(jefe,));c.commit()
+        datos={'fecha':'2026-10-10','actividad':'Entrenamiento','asistencias':[{'voluntario_id':3,'estado':'FALTA'}]}
+        ruta='/api/jefe-personal/asistencias'
+        for estado in ('FALTA','ASISTE','ASISTE'):
+            datos['asistencias'][0]['estado']=estado
+            self.assertEqual(self.cliente.post(ruta,json=datos,headers={'X-CSRFToken':self._csrf_token()}).status_code,200)
+        identificador=self.cliente.get(ruta).json['asistencias'][0]['id']
+        historial=self.cliente.get(f'{ruta}/{identificador}/historial').json['historial']
+        self.assertEqual(len(historial),1);self.assertEqual(historial[0]['estado_anterior'],'FALTA');self.assertEqual(historial[0]['estado_nuevo'],'ASISTE')
+        self._login()
+        self.assertEqual(self.cliente.patch(f'{ruta}/{identificador}',json={'estado':'ATRASO'},headers={'X-CSRFToken':self._csrf_token()}).status_code,200)
+        self.assertEqual(self.cliente.patch(f'{ruta}/{identificador}',json={'estado':'FALTA'}).status_code,400)
+        self.assertEqual(self.cliente.patch(f'{ruta}/{identificador}',json={'estado':'FALTA','fecha':'2026-10-11'},headers={'X-CSRFToken':self._csrf_token()}).status_code,400)
+        with self.app.app_context():
+            c=obtener_conexion();inicializar_base_datos();inicializar_base_datos()
+            self.assertEqual(c.execute('SELECT COUNT(*) FROM asistencias').fetchone()[0],1)
+            filas=c.execute('SELECT corregido_por,corregido_en FROM historial_asistencias ORDER BY id').fetchall()
+            self.assertEqual([f[0] for f in filas],[jefe,1]);self.assertTrue(all(f[1] for f in filas))
+            c.execute('UPDATE voluntarios SET instructor_id=NULL WHERE usuario_id=3');c.commit()
+        self._login('instructor.demo','Clave instructor 123!')
+        self.assertEqual(self.cliente.patch(f'{ruta}/{identificador}',json={'estado':'FALTA'},headers={'X-CSRFToken':self._csrf_token()}).status_code,404)
+        self.assertEqual(self.cliente.get(f'{ruta}/{identificador}/historial').status_code,404)
+        self._login('voluntario.demo','Clave voluntario 123!')
+        self.assertEqual(self.cliente.get(f'{ruta}/{identificador}/historial').status_code,403)
+
+    def test_asistencia_calendario_y_reporte_por_ambito_sin_filtraciones(self):
+        from sicose.db import obtener_conexion
+        jefe=self._preparar_jefe_4a()
+        with self.app.app_context():
+            c=obtener_conexion();c.execute('INSERT INTO voluntarios(usuario_id,instructor_id) VALUES (3,?)',(jefe,));c.commit()
+        for fecha,actividad,estado in [('2026-10-01','Uno','ASISTE'),('2026-10-01','Dos','ATRASO'),('2026-10-02','Uno','PERMISO'),('2026-10-03','Uno','FALTA'),('2025-10-01','Uno','FALTA')]:
+            self.assertEqual(self.cliente.post('/api/jefe-personal/asistencias',json={'fecha':fecha,'actividad':actividad,'asistencias':[{'voluntario_id':3,'estado':estado}]},headers={'X-CSRFToken':self._csrf_token()}).status_code,200)
+        argumentos={'desde':'2026-10-01','hasta':'2026-10-03'}
+        ruta='/api/jefe-personal/asistencias/reporte'
+        reporte=self.cliente.get(ruta,query_string=argumentos).json
+        self.assertEqual(len(reporte['llamadas']),4)
+        self.assertEqual(reporte['personas'][0]['totales']['porcentaje'],66.67)
+        respuesta=self.cliente.get(ruta+'.pdf',query_string=argumentos);self.assertEqual(respuesta.status_code,200);self.assertTrue(respuesta.data.startswith(b'%PDF-'));respuesta.close()
+        self.assertEqual(self.cliente.get(ruta,query_string={'desde':'2026-10-03','hasta':'2026-10-01'}).status_code,400)
+        self.assertEqual(self.cliente.get(ruta,query_string={**argumentos,'materia':'X'}).status_code,400)
+        self._login('voluntario.demo','Clave voluntario 123!')
+        resumen=self.cliente.get('/api/instructor-voluntario/asistencias?gestion=2026').json
+        self.assertEqual(len(resumen['registros']),4);self.assertEqual(resumen['totales']['FALTA'],1)
+        self.assertEqual(set(resumen['registros'][0]),{'fecha','estado'})
+        self.assertEqual(self.cliente.get('/api/instructor-voluntario/asistencias?gestion=2026&voluntario_id=2').status_code,400)
+        self.assertEqual(self.cliente.get(ruta,query_string=argumentos).status_code,403)
+        self.assertEqual(self.cliente.get('/mis-asistencias').status_code,200)
+        self.assertEqual(self.cliente.get('/api/instructor-voluntario/asistencias?gestion=2024').json['totales']['porcentaje'],None)
+        with self.app.app_context():
+            c=obtener_conexion();c.execute('UPDATE voluntarios SET instructor_id=NULL WHERE usuario_id=3');c.commit()
+        self._login('instructor.demo','Clave instructor 123!')
+        self.assertEqual(self.cliente.get(ruta,query_string=argumentos).json['personas'],[])
 
     def test_csrf_rechaza_post_sin_token(self):
         csrf_db = Path(".tmp") / f"csrf-{uuid.uuid4().hex}.sqlite3"

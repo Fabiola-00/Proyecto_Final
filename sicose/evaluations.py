@@ -71,9 +71,9 @@ def pagina_asistencias():
 @evaluations_bp.get("/gestion/capacitaciones")
 @role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def pagina_capacitaciones():
-    return render_template("gestion_capacitaciones.html", titulo_pagina="Capacitaciones o cursos",
+    return render_template("gestion_capacitaciones.html", titulo_pagina="Capacitaciones y Cursos",
                            nav_activo="capacitaciones", indicadores=[],
-                           descripcion="Consulta y mantiene el historial de cursos del equipo.",
+                           descripcion="Registra y edita cursos; genera reportes del catálogo.",
                            periodo_actual=db.periodo_actual())
 
 
@@ -310,7 +310,7 @@ def registrar_asistencias():
         entries = data.get("asistencias")
         if not isinstance(activity, str) or not 1 <= len(activity.strip()) <= 160:
             raise ValueError("La actividad es obligatoria (máximo 160 caracteres).")
-        date.fromisoformat(when)
+        when = date.fromisoformat(when).isoformat()
         if not isinstance(entries, list) or not 1 <= len(entries) <= 200:
             raise ValueError("Selecciona al menos un voluntario.")
         states = {"ASISTE", "ATRASO", "PERMISO", "FALTA", "PRESENTE", "AUSENTE", "JUSTIFICADO"}
@@ -339,7 +339,8 @@ def registrar_asistencias():
                 """INSERT INTO asistencias (voluntario_id,fecha,estado,estado_detalle,actividad,registrado_por)
                    VALUES (?,?,?,?,?,?) ON CONFLICT(voluntario_id,fecha,actividad)
                    DO UPDATE SET estado=excluded.estado,estado_detalle=excluded.estado_detalle,
-                                 registrado_por=excluded.registrado_por""",
+                                 registrado_por=excluded.registrado_por
+                   WHERE COALESCE(asistencias.estado_detalle,asistencias.estado) != COALESCE(excluded.estado_detalle,excluded.estado)""",
                 (item["voluntario_id"], when, legacy_state, detail, activity.strip(), current_user.id),
             )
         _audit(connection, "ASISTENCIAS_REGISTRADAS")
@@ -381,7 +382,7 @@ def listar_asistencias():
     scope = ""
     scope_params = []
     if current_user.rol == "JEFE_PERSONAL":
-        scope = " AND v.instructor_id=?"
+        scope = " AND v.instructor_id=? AND v.usuario_id IN (SELECT id FROM usuarios WHERE estado='ACTIVO')"
         scope_params.append(current_user.id)
     if person_id is not None:
         scope += " AND a.voluntario_id=?"
@@ -424,10 +425,10 @@ def listar_capacitaciones():
             return _bad("El Instructor Voluntario no es válido.")
         where += " AND c.voluntario_id=?"; params.append(volunteer_id)
     if current_user.rol == "JEFE_PERSONAL":
-        where += " AND v.instructor_id=?"; params.append(current_user.id)
+        where += " AND v.instructor_id=? AND u.estado='ACTIVO'"; params.append(current_user.id)
     rows = db.obtener_conexion().execute(
         """SELECT c.id,c.voluntario_id,u.nombre_completo AS voluntario,c.nombre,c.entidad,
-                  c.fecha,c.observacion,c.creado_en
+                  c.fecha,c.observacion,c.creado_en,c.curso_id
            FROM capacitaciones c JOIN voluntarios v ON v.usuario_id=c.voluntario_id
            JOIN usuarios u ON u.id=v.usuario_id WHERE 1=1""" + where +
         " ORDER BY c.fecha DESC,c.id DESC", params,
@@ -439,7 +440,12 @@ def listar_capacitaciones():
 @evaluations_bp.post("/api/jefe-personal/instructores-voluntarios/<int:volunteer_id>/capacitaciones")
 @role_required("JEFE_PERSONAL", "ADMINISTRADOR")
 def registrar_capacitacion(volunteer_id):
+    from .relaciones_perfil import curso_para_registro
     data = _json() or {}
+    connection = db.obtener_conexion()
+    try: curso = curso_para_registro(connection, data.get("curso_id"))
+    except ValueError as fallo: return _bad(str(fallo))
+    if curso is not None: data["nombre"] = curso["nombre"]
     name, entity, when, note = (data.get(key) for key in ("nombre", "entidad", "fecha", "observacion"))
     if not isinstance(name, str) or not 1 <= len(name.strip()) <= 160:
         return _bad("El nombre del curso es obligatorio.")
@@ -457,8 +463,8 @@ def registrar_capacitacion(volunteer_id):
     if not connection.execute(query, args).fetchone():
         return _bad("Instructor Voluntario no encontrado en el ámbito activo.", "instructor_voluntario_no_encontrado", 404)
     cursor = connection.execute(
-        "INSERT INTO capacitaciones (voluntario_id,nombre,entidad,fecha,observacion) VALUES (?,?,?,?,?)",
-        (volunteer_id, name.strip(), entity.strip() if entity else None, when, note.strip() if note else None),
+        "INSERT INTO capacitaciones (voluntario_id,nombre,entidad,fecha,observacion,curso_id) VALUES (?,?,?,?,?,?)",
+        (volunteer_id, name.strip(), entity.strip() if entity else None, when, note.strip() if note else None, curso["id"] if curso is not None else None),
     )
     _audit(connection, "CAPACITACION_REGISTRADA")
     connection.commit()
@@ -481,12 +487,15 @@ def editar_capacitacion(training_id):
         return _bad("Capacitación no encontrada.", "capacitacion_no_encontrada", 404)
     if current_user.rol == "JEFE_PERSONAL":
         allowed = connection.execute(
-            "SELECT 1 FROM voluntarios WHERE usuario_id=? AND instructor_id=?",
+            "SELECT 1 FROM voluntarios v JOIN usuarios u ON u.id=v.usuario_id WHERE v.usuario_id=? AND v.instructor_id=? AND u.estado='ACTIVO'",
             (row["voluntario_id"], current_user.id),
         ).fetchone()
         if not allowed:
             return _bad("Capacitación fuera de tu ámbito.", "sin_permiso", 403)
-    name = data.get("nombre", row["nombre"])
+    from .relaciones_perfil import curso_para_registro
+    try: curso = curso_para_registro(connection, data.get("curso_id", row["curso_id"]))
+    except ValueError as fallo: return _bad(str(fallo))
+    name = curso["nombre"] if curso is not None else data.get("nombre", row["nombre"])
     entity = data.get("entidad", row["entidad"])
     when = data.get("fecha", row["fecha"])
     note = data.get("observacion", row["observacion"])
@@ -500,9 +509,9 @@ def editar_capacitacion(training_id):
         try: date.fromisoformat(when)
         except (ValueError, TypeError): return _bad("La fecha no es válida.")
     connection.execute(
-        "UPDATE capacitaciones SET nombre=?,entidad=?,fecha=?,observacion=? WHERE id=?",
+        "UPDATE capacitaciones SET nombre=?,entidad=?,fecha=?,observacion=?,curso_id=? WHERE id=?",
         (name.strip(), entity.strip() if entity else None, when or None,
-         note.strip() if note else None, training_id),
+         note.strip() if note else None, curso["id"] if curso is not None else None, training_id),
     )
     _audit(connection, "CAPACITACION_ACTUALIZADA")
     connection.commit()

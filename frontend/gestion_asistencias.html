@@ -1,14 +1,35 @@
 {% extends "_dashboard_base.html" %}
 {% block contenido %}
 <section class="seccion-panel">
-  <div class="titulo-seccion"><div><p class="sobrelinea">CONTROL DIARIO</p><h2>Registrar asistencia</h2></div></div>
-  <form id="asistencias-form" class="tarjeta-amplia">
-    <div class="formulario-inline asistencia-cabecera">
-      <label>Fecha de la gestión<input name="fecha" type="date" required></label>
-      <label>Actividad o gestión<input name="actividad" maxlength="160" placeholder="Ej.: Entrenamiento semanal" required></label>
+  <div class="titulo-seccion"><div><p class="sobrelinea">CONTROL DIARIO</p><h2>Llamar asistencia</h2></div></div>
+  <form id="asistencias-form" class="tarjeta-amplia asistencias-layout">
+    <div class="asistencias-fila asistencias-cabecera">
+      <label>Responsable<input value="{{ current_user.nombre }}" readonly></label>
+      <label>Gestión<input id="asistencias-gestion" value="{{ periodo_actual }}" readonly></label>
+      <label>Actividad<select name="actividad" required><option value="">Selecciona una actividad</option><option>Ordinaria</option><option>Actividad Externa</option><option>Terreno</option><option>Operación</option></select></label>
+      <label>Fecha<input name="fecha" type="date" required></label>
     </div>
-    <div id="asistencias-voluntarios" class="lista-asistencia" aria-live="polite"><p class="nota-informativa">Selecciona una fecha para cargar el equipo activo.</p></div>
-    <div class="acciones-formulario"><button id="guardar-asistencias" type="submit" disabled>Guardar asistencia</button><span id="asistencias-conteo" class="texto-secundario"></span></div>
+
+    <div class="asistencias-fila asistencias-listado-wrap">
+      <div class="tabla-contenedor tabla-asistencia-formulario-wrap">
+        <table class="tabla-registros tabla-asistencia-formulario">
+          <thead>
+            <tr>
+              <th>Nombre completo</th>
+              <th>Código</th>
+              <th>Estado</th>
+              <th>Asistencia</th>
+            </tr>
+          </thead>
+          <tbody id="asistencias-voluntarios" class="lista-asistencia" aria-live="polite"><tr><td colspan="4" class="tabla-vacia">Selecciona una fecha para cargar el equipo activo.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="asistencias-fila asistencias-acciones">
+      <button id="guardar-asistencias" type="submit" disabled>Guardar asistencia</button>
+      <span id="asistencias-conteo" class="texto-secundario"></span>
+    </div>
   </form>
   <p id="asistencias-mensaje" class="mensaje" role="status" aria-live="polite"></p>
 </section>
@@ -16,12 +37,16 @@
   <div class="titulo-seccion"><div><p class="sobrelinea">CONSULTA</p><h2>Historial de asistencias</h2></div></div>
   <form id="asistencias-filtros" class="tarjeta-amplia formulario-inline">
     <label>Instructor Voluntario<select name="voluntario_id"><option value="">Todos los de mi ámbito</option></select></label>
-    <label>Vista<select name="modo"><option value="ultima">Última gestión registrada</option><option value="rango">Rango de fechas</option></select></label>
+    <label>Vista<select name="modo"><option value="ultima">Última fecha registrada</option><option value="rango">Rango de fechas</option></select></label>
     <label class="filtro-fecha">Desde<input name="desde" type="date" disabled></label>
     <label class="filtro-fecha">Hasta<input name="hasta" type="date" disabled></label>
     <button type="submit">Consultar historial</button>
   </form>
   <p id="asistencias-historial-resumen" class="nota-informativa" aria-live="polite"></p>
-  <div class="tabla-contenedor"><table class="tabla-registros tabla-asistencia"><thead><tr><th>Fecha</th><th>Instructor Voluntario</th><th>Actividad</th><th>Estado</th></tr></thead><tbody id="asistencias-historial"></tbody></table></div>
+  <div class="tabla-contenedor"><table class="tabla-registros tabla-asistencia"><thead><tr><th>Fecha</th><th>Instructor Voluntario</th><th>Actividad</th><th>Estado</th><th>Edición e historial</th></tr></thead><tbody id="asistencias-historial"></tbody></table></div>
 </section>
+<section class="seccion-panel"><h2>Reporte asistencia</h2>
+<form id="reporte-asistencias-form" class="tarjeta-amplia formulario-inline"><label>Desde<input name="desde" type="date" required></label><label>Hasta<input name="hasta" type="date" required></label><button type="submit">Ver reporte</button><button id="asistencias-pdf" type="button">Imprimir / descargar PDF</button></form>
+<p id="reporte-asistencias-mensaje" class="mensaje" role="status"></p><p>A: Asiste · T: Atraso · P: Permiso · F: Falta · —: Sin registro. Permiso excluido del porcentaje.</p>
+<div class="tabla-contenedor"><table id="reporte-asistencias-tabla" class="tabla-registros"></table></div></section>
 {% endblock %}

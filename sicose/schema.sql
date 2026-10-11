@@ -40,6 +40,11 @@ CREATE TABLE IF NOT EXISTS voluntarios (
     especialidad_principal TEXT CHECK (especialidad_principal IS NULL OR especialidad_principal IN ('Rescate en agua', 'Rescate en montaña', 'Rescate en selva', 'Lucha contra incendios', 'Primeros Auxilios', 'K-9')),
     experiencia_operaciones TEXT,
     antiguedad_desde TEXT,
+    fecha_incorporacion TEXT,
+    grado TEXT CHECK (grado IS NULL OR grado IN ('Instructor Inicial','Instructor Segundo','Instructor Primero','Instructor Principal','Instructor Mayor')),
+    pais_residencia TEXT CHECK (pais_residencia IS NULL OR pais_residencia = 'Bolivia'),
+    departamento_residencia TEXT CHECK (departamento_residencia IS NULL OR departamento_residencia IN ('Beni','Chuquisaca','Cochabamba','La Paz','Oruro','Pando','Potosí','Santa Cruz','Tarija')),
+    ano_incorporacion INTEGER CHECK (ano_incorporacion IS NULL OR (typeof(ano_incorporacion) = 'integer' AND ano_incorporacion BETWEEN 1 AND 9999)),
     creado_en TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );
 
@@ -191,4 +196,41 @@ CREATE TABLE IF NOT EXISTS auditoria (
     resultado TEXT NOT NULL CHECK (resultado IN ('EXITOSO', 'FALLIDO')),
     direccion_ip TEXT,
     fecha TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+);
+
+-- Fase 4B: conjunto de especialidades secundarias, independiente de la principal.
+CREATE TABLE IF NOT EXISTS especialidades_secundarias (
+    voluntario_id INTEGER NOT NULL REFERENCES voluntarios(usuario_id) ON DELETE RESTRICT,
+    especialidad TEXT NOT NULL CHECK (especialidad IN ('Rescate en agua','Rescate en montaña','Rescate en selva','Lucha contra incendios','Primeros Auxilios','K-9')),
+    PRIMARY KEY (voluntario_id, especialidad)
+);
+
+CREATE TABLE IF NOT EXISTS cursos (
+ id INTEGER PRIMARY KEY, nombre TEXT NOT NULL COLLATE NOCASE UNIQUE CHECK(length(nombre) BETWEEN 1 AND 160),
+ tipo TEXT CHECK(tipo IS NULL OR tipo IN ('Capacitación','Especialización','Actualización','Taller','Seminario (Webinar)')),
+ entidad TEXT, fecha_inicio TEXT, fecha_fin TEXT,
+ estado TEXT CHECK(estado IS NULL OR estado IN ('Próximo','En curso','Finalizado')),
+ observaciones TEXT
+);
+CREATE TABLE IF NOT EXISTS operaciones (
+ id INTEGER PRIMARY KEY, tipo_evento TEXT NOT NULL, lugar TEXT NOT NULL,
+ fecha_inicio TEXT NOT NULL, fecha_fin TEXT, institucion_responsable TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS participaciones_operacion (
+ operacion_id INTEGER NOT NULL REFERENCES operaciones(id) ON DELETE RESTRICT,
+ voluntario_id INTEGER NOT NULL REFERENCES voluntarios(usuario_id) ON DELETE RESTRICT,
+ PRIMARY KEY(operacion_id, voluntario_id)
+);
+
+CREATE TABLE IF NOT EXISTS perfil_geografico (
+ voluntario_id INTEGER PRIMARY KEY REFERENCES voluntarios(usuario_id) ON DELETE RESTRICT,
+ pais_residencia TEXT, departamento_residencia TEXT, nacionalidad TEXT
+);
+
+CREATE TABLE IF NOT EXISTS historial_asistencias (
+ id INTEGER PRIMARY KEY,
+ asistencia_id INTEGER NOT NULL REFERENCES asistencias(id) ON DELETE RESTRICT,
+ estado_anterior TEXT NOT NULL, estado_nuevo TEXT NOT NULL,
+ corregido_por INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ corregido_en TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now'))
 );

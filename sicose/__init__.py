@@ -58,12 +58,16 @@ def create_app(test_config=None):
     from .dashboard import dashboard_bp
     from .management import management_bp
     from .evaluations import evaluations_bp
+    from .relaciones_perfil import relaciones_bp
+    from .asistencias import asistencias_bp
 
     db.init_app(app)
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(management_bp)
     app.register_blueprint(evaluations_bp)
+    app.register_blueprint(relaciones_bp)
+    app.register_blueprint(asistencias_bp)
 
     @login_manager.user_loader
     def cargar_usuario(user_id):

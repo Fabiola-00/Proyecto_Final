@@ -1,0 +1,7 @@
+{% extends "_dashboard_base.html" %}
+{% block contenido %}
+{% if current_user.rol == 'ADMINISTRADOR' %}
+<section class="seccion-panel"><h2>Registrar evento</h2><form id="operacion-form" class="tarjeta-amplia formulario-inline"><input name="id" type="hidden"><label>Tipo de evento<input name="tipo_evento" required maxlength="160"></label><label>Lugar<input name="lugar" required maxlength="160"></label><label>Inicio<input name="fecha_inicio" type="date" required></label><label>Fin (opcional)<input name="fecha_fin" type="date"></label><label>Institución responsable<input name="institucion_responsable" required maxlength="160"></label><button>Guardar evento</button><button type="button" id="operacion-cancelar" class="boton-secundario">Cancelar edición</button></form></section>
+{% endif %}
+<section class="seccion-panel"><h2>{{ 'Mis participaciones' if current_user.rol == 'INSTRUCTOR_VOLUNTARIO' else 'Eventos y participaciones' }}</h2><div id="operaciones-lista" class="rejilla-modulos"></div><p id="operaciones-mensaje" role="status" aria-live="polite"></p></section>
+{% endblock %}

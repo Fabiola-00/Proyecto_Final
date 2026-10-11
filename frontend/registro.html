@@ -19,10 +19,15 @@
       <label>Código del Instructor<output class="codigo-generado" data-codigo-instructor>Completa nombres y fecha de nacimiento</output></label>
       <label for="reg-especialidad">Especialidad principal</label><select id="reg-especialidad" name="especialidad_principal" required><option value="">Selecciona una especialidad</option><option>Rescate en agua</option><option>Rescate en montaña</option><option>Rescate en selva</option><option>Lucha contra incendios</option><option>Primeros Auxilios</option><option>K-9</option></select>
       <label for="reg-username">Nombre de usuario</label><input id="reg-username" name="username" maxlength="80" autocomplete="username" required>
-      <label for="reg-correo">Correo electrónico</label><input id="reg-correo" name="correo" type="email" maxlength="254">
-      <label for="reg-foto">Foto de perfil (PNG/JPEG, máximo 3 MiB)</label><input id="reg-foto" name="foto" type="file" accept="image/png,image/jpeg">
+      <label for="reg-correo">Correo electrónico</label><input id="reg-correo" name="correo" type="email" maxlength="254" required>
+      <input type="hidden" name="pais_residencia" value="Bolivia">
+      <label for="reg-nacionalidad">Nacionalidad</label><select id="reg-nacionalidad" name="nacionalidad" required><option value="">Sin registrar</option>{% for pais in paises %}<option>{{ pais }}</option>{% endfor %}</select>
+      <label for="reg-departamento">Departamento</label><select id="reg-departamento" name="departamento_residencia" required><option value="">Sin registrar</option>{% for departamento in departamentos %}<option>{{ departamento }}</option>{% endfor %}</select>
+      <label for="reg-incorporacion">Fecha de incorporación</label><input id="reg-incorporacion" name="fecha_incorporacion" type="date">
+      <p>Estado: Pendiente de aprobación administrativa. El grado lo asigna el personal autorizado. Antigüedad: año actual menos año de incorporación.</p>
+      <label for="reg-foto">Foto de perfil (PNG/JPEG, máximo 3 MiB)</label><input id="reg-foto" name="foto" type="file" required accept="image/png,image/jpeg">
       <label for="reg-password">Contraseña (mínimo 12 caracteres)</label><input id="reg-password" name="password" type="password" minlength="12" maxlength="256" autocomplete="new-password" required>
-      <button id="registro-button" type="submit">Enviar solicitud</button>
+      <button id="registro-button" type="submit">Guardar</button>
       <p id="auth-message" class="mensaje" role="status" aria-live="polite"></p>
     </form>
     <p><a href="/login">Volver al inicio de sesión</a></p>

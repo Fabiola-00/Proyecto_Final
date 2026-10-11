@@ -6,14 +6,16 @@
 
 SICOSE apoyará el seguimiento, capacitación y evaluación periódica de voluntarios de rescate y emergencias. El prototipo tendrá autenticación, permisos por rol, perfiles, seis evaluaciones, períodos con ponderaciones versionadas, historial y reportes. La IA se reserva como integración futura, sin generar predicciones en esta fase.
 
-## Roles y permisos
+## Roles y permisos requeridos
+
+La matriz expresa el alcance requerido, no una certificación de implementación. Estado comprobado al 2026-10-10: alta manual exclusiva del Administrador; Jefe consulta, edita y desactiva personal activo asignado, con solicitudes de alta pendientes de aprobación administrativa; autoservicio de correo y foto implementado; Instructor consulta estados/avance, cursos y operaciones propios, especialidades secundarias y geografía propia, sin notas ni observaciones. Psicometría, reportes y cálculos oficiales no están implementados. Véase [plan y criterios de cierre](05_plan_desarrollo.md).
 
 | Capacidad | Administrador | Jefe de Personal | Instructor Voluntario |
 |---|---:|---:|---:|
 | Iniciar sesión y abrir su dashboard por rol | Sí | Sí | Sí |
 | Administrar todas las cuentas y evaluaciones | Sí | No | No |
-| CRUD de voluntarios activos de su ámbito | Todos los voluntarios | Sí, solo voluntarios asignados; baja lógica, sin borrado físico | No |
-| Editar datos personales | Todas las cuentas | Perfil de voluntario dentro de su ámbito | Solo su propio perfil |
+| Consultar, crear, editar y desactivar personal | Administrador: operaciones implementadas | Consulta/edición/desactivación de activos asignados y solicitud de alta pendiente de aprobación administrativa implementadas | No |
+| Editar datos personales | Todas las cuentas | Perfil de voluntario dentro de su ámbito | Solo correo y foto propios (implementado) |
 | Ver estado/avance de evaluaciones | Todos | Voluntarios de su ámbito | Evaluaciones propias completadas y pendientes |
 | Ver resultados psicométricos de voluntarios | Sí, administración global | Sí, solo voluntarios autorizados | No |
 | Modificar notas/resultados psicométricos | Gestión administrativa global, con auditoría | No | No |
@@ -24,32 +26,34 @@ SICOSE apoyará el seguimiento, capacitación y evaluación periódica de volunt
 
 Una solicitud de registro o usuario invitado se mantiene `pendiente` hasta aprobación. Las rutas API deben denegar datos protegidos y evaluaciones antes de esa aprobación. La autorización se aplica en backend a cada recurso, no solo ocultando controles. Tras autenticarse, cada cuenta se dirige al dashboard correspondiente a su rol: Administrador, Jefe de Personal o Instructor Voluntario; no se comparte un dashboard con contenido intercambiado por URL.
 
-El dashboard administrativo ofrece control global de cuentas y evaluaciones. El dashboard del Jefe de Personal se limita a sus voluntarios activos asignados, sus evaluaciones y resultados autorizados y el registro de notas no psicométricas. El dashboard del Instructor Voluntario permite actualizar sus datos personales, consultar qué evaluaciones propias están completadas o pendientes y ver un resumen limitado, sin editar calificaciones.
+El dashboard administrativo ofrece control global de cuentas y evaluaciones. El dashboard del Jefe de Personal se limita a sus voluntarios activos asignados, sus evaluaciones y resultados autorizados y el registro de notas no psicométricas. El dashboard del Instructor Voluntario permite actualizar solo correo y foto propios y consultar qué evaluaciones propias están completadas o pendientes y ver un resumen limitado, sin editar calificaciones.
 
 El resumen del Instructor Voluntario muestra solamente estado y avance. No expone notas/calificaciones, resultados individuales ni observaciones.
 
-## Flujos principales
+## Flujos objetivo (incluyen capacidades pendientes)
 
 1. Administrador crea un período, confirma pesos que suman 100% y administra usuarios y Jefes de Personal.
 2. Un Instructor Voluntario solicita alta o ingresa con código de invitación; el administrador aprueba o rechaza. No se concede sesión protegida al estado pendiente.
 3. Una cuenta autenticada es redirigida al dashboard exclusivo de su rol. Administración gestiona globalmente las cuentas y evaluaciones.
 4. Jefe de Personal da de alta/edita/desactiva voluntarios activos de su ámbito, consulta evaluaciones/resultados permitidos, registra notas físicas, de cursos y desempeño, y activa/desactiva pruebas psicométricas por voluntario sin poder alterar sus notas.
-5. El Instructor Voluntario puede editar sus propios datos personales, ve evaluaciones completadas/pendientes y resumen permitido, pero no edita calificaciones.
+5. El Instructor Voluntario puede editar solo correo y foto propios, ve evaluaciones completadas/pendientes y resumen permitido, pero no edita calificaciones.
 6. El Instructor Voluntario completa cada prueba habilitada. Reiniciar crea intento nuevo y conserva el anterior.
-7. El sistema calcula avance y promedio ponderado solo con una regla de datos faltantes previamente aprobada; hasta entonces el promedio aparece como no disponible si no están todas las notas requeridas.
+7. El sistema calcula avance y promedio ponderado solo con una regla de datos faltantes previamente aprobada; hasta aprobar esas reglas no hay cálculo oficial implementado; no se adopta una regla de faltantes por defecto.
 8. Usuarios autorizados descargan reportes PDF individuales/consolidados y Excel según permisos.
 
 ## Evaluaciones y calificaciones
 
 Seis componentes por período: psicométrica 1, 2 y 3 (autoinforme); física; rendimiento académico; criterio del instructor. Escala institucional propuesta de 0–100. Pesos iniciales configurables: 10%, 10%, 10%, 25%, 15%, 30%. La configuración es una hipótesis inicial para aprobar, no una ponderación validada científicamente. Fase 5 no carga reactivos, procesa respuestas ni habilita candidatos pendientes. El flujo manual rechaza calificaciones de categoría psicométrica.
 
-La nota 0 debe distinguirse de “sin evaluar”. Cada calificación guarda autor, fecha, período, evaluación y versión del peso aplicable. Los cambios de peso generan versión nueva, no reescriben resultados históricos. Intentos guardan inicio, envío, estado y puntuación oficial/normalizada si está aprobada.
+La nota 0 debe distinguirse de “sin evaluar”. El requisito futuro es que cada calificación quede vinculada a autor, fecha, período, evaluación y versión del peso aplicable; actualmente la asignación vincula período/evaluación, pero no hay vinculación completa a pesos publicados. Los cambios de peso generan versión nueva, no reescriben resultados históricos. Intentos guardan inicio, envío, estado y puntuación oficial/normalizada si está aprobada.
 
 ## Perfil y seguimiento
 
-Datos del Instructor Voluntario requeridos: nombres, apellidos paterno y materno, fecha completa de nacimiento para formar su código institucional `XXX-DDMMAA`, nacionalidad, departamento según país, año de incorporación, antigüedad calculada por año, especialidad principal/secundarias, cursos y operaciones vinculados. La fecha completa se solicitó expresamente para el código; se limita a administración y Jefes de Personal autorizados. En la implementación v8 están persistidos nombres/apellidos, nacimiento, código y especialidad principal con catálogo acordado; la migración conserva NULL para perfiles antiguos. Nacionalidad/departamento, antigüedad calculada, especialidades secundarias y catálogos relacionales de cursos y operaciones siguen pendientes de definir e implementar. La retención y visibilidad del resto de campos requiere política institucional. Registrar auditoría para aprobación de usuarios, reasignaciones, cambios de nota/pesos, estados de pruebas y generación/revisión de informes.
+Datos del Instructor Voluntario requeridos: nombres, apellidos paterno y materno, fecha completa de nacimiento para formar su código institucional `XXX-DDMMAA`, nacionalidad, departamento según país, año de incorporación, antigüedad calculada por año, especialidad principal/secundarias, cursos y operaciones vinculados. La fecha completa se solicitó expresamente para el código; se limita a administración y Jefes de Personal autorizados. En la implementación v8 están persistidos nombres/apellidos, nacimiento, código y especialidad principal con catálogo acordado; la migración conserva NULL para perfiles antiguos. En v9 están implementados país/departamento de residencia (Bolivia inicialmente) y año de incorporación con antigüedad calculada por diferencia de años calendario; no son nacionalidad. Son opcionales, no se infieren datos históricos, y solo Administrador/Jefe autorizado los ven/editan. Desde v11 consulta residencia/nacionalidad propias, sin editar; incorporación permanece oculta. En v11 están implementados nacionalidad/residencia ampliada, cursos y operaciones relacionados, según las reglas actuales abajo. La retención y visibilidad del resto de campos requiere política institucional. Registrar auditoría para aprobación de usuarios, reasignaciones, cambios de nota/pesos, estados de pruebas y generación/revisión de informes.
 
 ## Reportes
+
+Pendientes: separar reportes operativos (pueden avanzar sin psicometría con alcance/permisos definidos) de reportes con resultados psicométricos (requieren cierre de Fase 6). Promedios requieren además reglas de Fase 5B aprobadas.
 
 PDF individual, PDF consolidado y Excel: datos necesarios, notas por componente, avance, promedio cuando calculable, observaciones autorizadas y fechas. El reporte no incluye respuestas psicométricas salvo necesidad profesional y aprobación explícita. Sección IA queda omitida/no disponible hasta la existencia de modelo validado; no mostrar recomendaciones ficticias.
 
@@ -61,10 +65,55 @@ Aplicación de instrumentos no aprobados, diagnóstico, decisión automática de
 
 - Después de autenticarse, cada usuario llega a su dashboard correspondiente; no puede abrir dashboards o datos de otro rol.
 - Jefe de Personal solo consulta y opera voluntarios activos asignados; puede registrar notas no psicométricas y activar/desactivar pruebas, pero no modificar resultados psicométricos.
-- Instructor Voluntario edita únicamente su perfil personal, consulta estados/avance propios y nunca accede a notas, resultados individuales u observaciones.
+- Instructor Voluntario edita únicamente correo y foto de su cuenta, consulta estados/avance propios y nunca accede a notas, resultados individuales u observaciones.
 - Un usuario pendiente no obtiene datos privados ni puede iniciar evaluaciones.
 - Un Instructor Voluntario no puede leer/alterar recursos de otra persona mediante URL o API.
 - Reintentar una evaluación conserva todos los intentos previos.
 - Una nueva versión de ponderación no modifica períodos o resultados cerrados.
 - Los roles y acciones sensibles quedan comprobables mediante auditoría.
 - Interfaz usable en móvil y escritorio, con estados vacíos, carga y error comprensibles.
+
+### Estado vigente — Cierre técnico de Fase 4B (2026-10-10)
+
+Esquema v11. Nacionalidad (país) y residencia diferenciadas, con 20 países latinoamericanos iniciales; Bolivia con nueve departamentos, los demás con provincia/departamento en texto libre. Administrador/Jefe autorizado editan; Instructor consulta sus propios datos geográficos. Incorporación sigue limitada a gestión. Secundarias consultables por ámbito, editables por Administrador/Jefe; la principal puede repetirse como secundaria.
+
+Catálogo común de cursos creado/editado solo por Administrador; capacitaciones vinculadas opcionalmente por Administrador/Jefe al personal de su ámbito activo. Instructor consulta su formación sin observaciones. Históricos sin enlace automático; renombrar catálogo no cambia nombres previamente registrados. Administrador crea/edita eventos de operaciones; Administrador/Jefe vinculan personal activo de su ámbito; Instructor consulta solo sus participaciones. Se conserva el texto histórico de experiencia; no se implementa borrado/desvinculación.
+
+58 pruebas aprobadas en 62,893 s. Migración local v11 con respaldo, 19 tablas anteriores preservadas, inicialización repetida, curso_id previo NULL, quick_check=ok y cero infracciones FK. Cierre técnico implementado; aceptación operativa pendiente. Siguiente entrega: Fase 5A, ensayo de asistencia, capacitaciones y notas manuales por rol, con correcciones e historial. Privacidad/retención y autorización institucional siguen pendientes antes del piloto.
+
+### Corrección vigente — Registro de cursos (2026-10-10, v12)
+
+La pantalla “Capacitaciones y Cursos” registra cursos independientes de personas. Incluye nombre, tipo (Capacitación, Especialización, Actualización, Taller, Seminario (Webinar)), entidad organizadora, inicio/fin, estado (Próximo, En curso, Finalizado) y observaciones opcionales. Nombre, tipo y estado obligatorios para registros nuevos; fechas/entidad opcionales; fin requiere inicio y no puede precederlo. Estado se elige manualmente, sin deducirlo de fechas. Administrador registra/edita; Jefe consulta el catálogo según permisos ya acordados. Edición mediante modal responsivo con datos precargados y errores en el modal.
+
+Se retiraron de esta pantalla el selector de Instructor y el formulario de asignación. Los registros personales históricos, sus vínculos y APIs se conservan; no hay interfaz nueva de asignación en esta entrega. “Mis cursos” sigue consultando historial personal sin observaciones. Las observaciones del catálogo son distintas del historial personal y solo se muestran a Administrador/Jefe.
+
+Migración v12 aditiva: campos nuevos nullable en cursos, sin inferir tipo, estado ni fechas de históricos. Respaldo SQLite previo, datos de 23 tablas anteriores preservados, inicialización repetida, quick_check=ok y FK=0. 59 pruebas aprobadas en 42,354 s (ejecución final); cuatro escenarios Chromium con API simulada, Administrador/Jefe a 360/1447px, opciones exactas y edición modal correctas. Compilación Python, sintaxis JavaScript y diff comprobados.
+
+### Actualización vigente — Cursos por Jefe y PDF operativo (2026-10-10)
+
+El solicitante autorizó también al Jefe de Personal a crear/editar el catálogo común; esta decisión sustituye la exclusividad administrativa anterior. Administrador y Jefe ven formulario Registro de curso, edición modal y menú/título “Capacitaciones y Cursos”. La asignación de personas continúa fuera de esta pantalla; historial personal conservado.
+
+Reporte GET `/api/cursos/reporte.pdf`, autorizado para Administrador/Jefe; Instructor excluido. Rango obligatorio e inclusivo por fecha de inicio, tipo/estado opcionales combinados; fechas/filtros inválidos rechazados. Cursos sin inicio excluidos; resultado vacío produce PDF explícito. Incluye nombre, tipo, entidad, fechas, estado y total, sin datos personales ni observaciones. Carimbo en cada página con logo SBRAB, nombre institucional completo, fecha/hora de Bolivia y numeración; respuesta privada no-store y auditoría mínima de generación.
+
+ReportLab incorporado a requirements y al entorno existente; no se recreó .venv, .env ni base. Este reporte inicia una entrega operativa acotada de Fase 7; no implementa reportes personales/psicométricos, Excel ni promedios oficiales. Privacidad/retención y aprobación del piloto siguen pendientes.
+
+### Entrega vigente — Asistencia, correcciones, calendario y reporte (2026-10-10, v13)
+
+- Administrador consulta/registra/corrige asistencia; Jefe solo personal activo asignado. La llamada muestra nombre del responsable autenticado, gestión anual de la fecha seleccionada y fecha; conserva actividad obligatoria. Los cuatro estados exactos son Asiste, Atraso, Permiso y Falta. Llamada nueva inicia todas las filas en Falta; al elegir fecha/actividad existente se cargan sus estados guardados para corregirlos.
+- Clave única persona/fecha/actividad: guardar otra vez actualiza el mismo registro. Corrección conserva estado anterior/nuevo, actor y fecha UTC en historial_asistencias mediante trigger; cambios se auditan. Repetir el mismo estado no crea corrección ni sustituye al último responsable. No se permiten cambiar identidad/fecha/actividad mediante el PATCH de corrección. Históricos no se borran ni se fabrican correcciones anteriores.
+- Instructor consulta solo su calendario anual y totales de los cuatro estados, sin datos de terceros ni observaciones ni edición. El día puede tener varias llamadas; totales cuentan registros, no días calendario. Sin registro no se considera Falta.
+- Reporte matricial por rango inclusivo de fechas, sin materia ni filtros adicionales. Columnas por fecha/actividad, código y nombre, cuatro totales y porcentaje. Asiste y Atraso cuentan como asistencia; Permiso excluido: (Asiste + Atraso)/(Asiste + Atraso + Falta), redondeado a dos decimales; sin denominador, No disponible. Es un indicador operativo aprobado para esta entrega, no una nota ni promedio oficial de Fase 5B. Jefe exporta solo ámbito activo asignado; Administrador todo su alcance; Instructor no exporta reporte administrativo.
+- PDF imprimible horizontal: matriz dividida en bloques de hasta ocho llamadas, filas paginadas y cabeceras repetidas, sin perder columnas. Carimbo SBRAB en cada página con escudo, nombre completo institucional y generación en hora de Bolivia; paginación, rango, leyenda y fórmula visibles. Sin observaciones; descarga privada no-store y auditoría mínima.
+- Migración local v13 tras respaldo: 23 tablas anteriores preservadas, inicialización repetida, quick_check=ok y cero infracciones FK. Entorno, secretos y base existente conservados. Aceptación operativa del solicitante pendiente; Fase 5A aún requiere revisar integralmente cursos/notas y sus casos de corrección. Retención/privacidad y autorización institucional siguen pendientes antes del piloto.
+
+
+### Perfil y directorio vigentes — Grado e incorporación (2026-10-10, v14)
+
+- Directorio con Nombre completo, Código, Grado, Especialidad Principal, Estado, Antigüedad y Acciones. Estado horizontal: ACTIVO verde, INACTIVO rojo, con texto identificable. Ver consulta en modal los datos permitidos y foto; Editar perfil usa modal y Desactivar conserva baja lógica. Restablecer contraseña sigue siendo exclusivo del Administrador, dentro de Editar perfil; nunca se muestra la contraseña guardada ni su hash.
+- Grados permitidos: Instructor Inicial, Instructor Segundo, Instructor Primero, Instructor Principal e Instructor Mayor. Administrador los asigna/edita; Jefe solo en personal activo asignado y puede proponerlo al solicitar el alta de su equipo. Instructor consulta el suyo sin editar. La solicitud pública no permite enviar grado; queda NULL hasta revisión del personal autorizado. No se asigna un grado por defecto a históricos ni se infiere por antigüedad.
+- Una sola Fecha de incorporación en alta y edición. Al registrarla se sincronizan fecha_incorporacion, antiguedad_desde y ano_incorporacion. Antigüedad = año calendario actual del servidor menos año de incorporación, sin descontar meses/días. Fechas inválidas/futuras y año/fecha contradictorios rechazados. Históricos mantienen año y fecha anterior, incluso si difieren, hasta completar explícitamente la nueva fecha; no se fabrican fechas desde un año. Borrar una fecha canónica existente borra también sus dos valores derivados; un formulario sin fecha histórica completa conserva el año previo.
+- Alta administrativa permite ACTIVO o INACTIVO. Solicitudes de Jefe/públicas permanecen PENDIENTE, sin selector que habilite acceso, hasta aprobación administrativa. Las cuentas inactivas/pendientes no acceden a información protegida.
+- Alta y solicitudes incluyen nombres, ambos apellidos, nacimiento, código generado en servidor, especialidad principal, usuario, correo, contraseña, nacionalidad, departamento y foto PNG/JPEG (máximo 3 MiB). Correo, nacionalidad, departamento y foto ahora son obligatorios también en servidor. Fecha de incorporación y grado son opcionales; las solicitudes públicas no incluyen grado. Residencia Bolivia oculta en las pantallas nuevas, nacionalidad independiente y catálogo latinoamericano existente. Países históricos se conservan en consulta/edición; no hay reclasificación automática a Bolivia en migración. Botón Guardar. Invitaciones usan el mismo formulario y validaciones.
+- Migración v14 aditiva: grado y fecha_incorporacion nullable, sin rellenar perfiles anteriores. Respaldo local previo; 24 tablas anteriores preservadas, inicialización repetida, quick_check=ok y cero infracciones de claves foráneas. No se recrearon .venv, .env ni base local.
+
+Verificación actual (2026-10-10): 64 pruebas aprobadas en 31,611 s, con bases aisladas. Ocho escenarios Chromium con datos sintéticos/API simulada (Administración, Jefe, Instructor y solicitud pública; 360/1447 px), modales precargados, campos/opciones/roles y ausencia de desborde comprobados. Compilación Python, sintaxis JavaScript y git diff --check correctos. La primera ejecución detectó dos expectativas antiguas de etiquetas (Guardar y retiro de Especialidad en tabla de asistencia); actualizadas y suite completa repetida. No se afirma cierre de Fase 5A ni aceptación institucional del piloto.
