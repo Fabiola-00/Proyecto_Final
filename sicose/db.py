@@ -11,7 +11,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from .models import Usuario
 
-ROLES = ("ADMINISTRADOR", "JEFE_PERSONAL", "INSTRUCTOR_VOLUNTARIO")
+ROLES = ("ADMINISTRADOR", "JEFE_PERSONAL", "INSTRUCTOR_VOLUNTARIO", "COMANDANTE_GRUPO")
 USERNAME_RE = re.compile(r"^[A-Za-z0-9._-]{3,80}$")
 
 
@@ -107,6 +107,7 @@ def inicializar_base_datos():
     esquema = Path(current_app.root_path) / "schema.sql"
     conexion.executescript(esquema.read_text(encoding="utf-8"))
     _migrar_nombres_rol(conexion)
+    _asegurar_comandante_unico(conexion)
     columnas = {fila["name"] for fila in conexion.execute("PRAGMA table_info(usuarios)")}
     if "password_version" not in columnas:
         conexion.execute("ALTER TABLE usuarios ADD COLUMN password_version INTEGER NOT NULL DEFAULT 1")
@@ -177,10 +178,24 @@ def inicializar_base_datos():
         ((rol,) for rol in ROLES),
     )
     conexion.execute(
-        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '14')
+        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '15')
            ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor"""
     )
     conexion.commit()
+
+
+def _asegurar_comandante_unico(conexion):
+    """Crear restricciones después de ampliar el catálogo de roles."""
+    conexion.executescript("""
+CREATE TRIGGER IF NOT EXISTS unico_comandante_insertar BEFORE INSERT ON usuarios
+WHEN NEW.estado='ACTIVO' AND NEW.rol_id IN (SELECT id FROM roles WHERE nombre='COMANDANTE_GRUPO')
+AND EXISTS(SELECT 1 FROM usuarios u JOIN roles r ON r.id=u.rol_id WHERE r.nombre='COMANDANTE_GRUPO' AND u.estado='ACTIVO')
+BEGIN SELECT RAISE(ABORT,'comandante_activo_existente'); END;
+CREATE TRIGGER IF NOT EXISTS unico_comandante_actualizar BEFORE UPDATE OF estado,rol_id ON usuarios
+WHEN NEW.estado='ACTIVO' AND NEW.rol_id IN (SELECT id FROM roles WHERE nombre='COMANDANTE_GRUPO')
+AND EXISTS(SELECT 1 FROM usuarios u JOIN roles r ON r.id=u.rol_id WHERE r.nombre='COMANDANTE_GRUPO' AND u.estado='ACTIVO' AND u.id!=NEW.id)
+BEGIN SELECT RAISE(ABORT,'comandante_activo_existente'); END;
+    """)
 
 
 def _migrar_nombres_rol(conexion):
@@ -192,7 +207,7 @@ def _migrar_nombres_rol(conexion):
     sql_eval = conexion.execute(
         "SELECT sql FROM sqlite_master WHERE type='table' AND name='evaluaciones'"
     ).fetchone()["sql"] or ""
-    migrar_roles = bool(roles & {"INSTRUCTOR", "VOLUNTARIO"}) or "JEFE_PERSONAL" not in sql_roles
+    migrar_roles = bool(roles & {"INSTRUCTOR", "VOLUNTARIO"}) or "COMANDANTE_GRUPO" not in sql_roles
     migrar_evaluaciones = "INSTRUCTOR_VOLUNTARIO" not in sql_eval
     if not migrar_roles and not migrar_evaluaciones:
         return
@@ -206,7 +221,7 @@ def _migrar_nombres_rol(conexion):
                 """CREATE TABLE roles_nueva (
                        id INTEGER PRIMARY KEY,
                        nombre TEXT NOT NULL UNIQUE CHECK (nombre IN
-                           ('ADMINISTRADOR', 'JEFE_PERSONAL', 'INSTRUCTOR_VOLUNTARIO'))
+                           ('ADMINISTRADOR', 'JEFE_PERSONAL', 'INSTRUCTOR_VOLUNTARIO', 'COMANDANTE_GRUPO'))
                    )"""
             )
             conexion.execute(

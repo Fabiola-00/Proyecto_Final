@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS app_meta (
 
 CREATE TABLE IF NOT EXISTS roles (
     id INTEGER PRIMARY KEY,
-    nombre TEXT NOT NULL UNIQUE CHECK (nombre IN ('ADMINISTRADOR', 'JEFE_PERSONAL', 'INSTRUCTOR_VOLUNTARIO'))
+    nombre TEXT NOT NULL UNIQUE CHECK (nombre IN ('ADMINISTRADOR', 'JEFE_PERSONAL', 'INSTRUCTOR_VOLUNTARIO', 'COMANDANTE_GRUPO'))
 );
 
 CREATE TABLE IF NOT EXISTS usuarios (
@@ -233,4 +233,31 @@ CREATE TABLE IF NOT EXISTS historial_asistencias (
  estado_anterior TEXT NOT NULL, estado_nuevo TEXT NOT NULL,
  corregido_por INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
  corregido_en TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now'))
+);
+
+
+CREATE TABLE IF NOT EXISTS notas_operativas (
+    id INTEGER PRIMARY KEY,
+    voluntario_id INTEGER NOT NULL REFERENCES voluntarios(usuario_id) ON DELETE RESTRICT,
+    periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+    fuente TEXT NOT NULL CHECK(fuente IN ('FISICA_1','FISICA_2','ACADEMICA','DESEMPENO_JEFE','DESEMPENO_COMANDANTE')),
+    puntos_centesimas INTEGER NOT NULL CHECK(typeof(puntos_centesimas)='integer' AND puntos_centesimas BETWEEN 0 AND 10000),
+    evaluador_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+    registrada_por INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+    evaluador_nombre TEXT NOT NULL,
+    registrada_por_nombre TEXT NOT NULL,
+    motivo TEXT,
+    observacion TEXT,
+    corregida_de_id INTEGER UNIQUE REFERENCES notas_operativas(id) ON DELETE RESTRICT,
+    registrada_en TEXT NOT NULL DEFAULT(strftime('%Y-%m-%dT%H:%M:%SZ','now'))
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_nota_operativa_inicial
+ON notas_operativas(voluntario_id,periodo_id,fuente) WHERE corregida_de_id IS NULL;
+CREATE TABLE IF NOT EXISTS respaldo_academico (
+    nota_id INTEGER NOT NULL REFERENCES notas_operativas(id) ON DELETE RESTRICT,
+    capacitacion_id INTEGER NOT NULL REFERENCES capacitaciones(id) ON DELETE RESTRICT,
+    nombre TEXT NOT NULL,
+    entidad TEXT,
+    fecha TEXT,
+    PRIMARY KEY(nota_id,capacitacion_id)
 );

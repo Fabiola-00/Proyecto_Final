@@ -60,6 +60,7 @@ def create_app(test_config=None):
     from .evaluations import evaluations_bp
     from .relaciones_perfil import relaciones_bp
     from .asistencias import asistencias_bp
+    from .seguimiento_5b import seguimiento_bp
 
     db.init_app(app)
     app.register_blueprint(auth_bp)
@@ -68,6 +69,7 @@ def create_app(test_config=None):
     app.register_blueprint(evaluations_bp)
     app.register_blueprint(relaciones_bp)
     app.register_blueprint(asistencias_bp)
+    app.register_blueprint(seguimiento_bp)
 
     @login_manager.user_loader
     def cargar_usuario(user_id):
@@ -122,6 +124,7 @@ def create_app(test_config=None):
     def inicio():
         paneles = {
             "ADMINISTRADOR": "dashboard.administrador",
+            "COMANDANTE_GRUPO": "seguimiento.panel_comandante",
             "JEFE_PERSONAL": "dashboard.jefe_personal",
             "INSTRUCTOR_VOLUNTARIO": "dashboard.instructor_voluntario",
         }

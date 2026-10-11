@@ -1,0 +1,10 @@
+{% extends "_dashboard_base.html" %}
+{% block contenido %}
+<section class="seccion-panel"><h2>Notas por fuente</h2>
+<form id="seguimiento-filtros" class="tarjeta-amplia formulario-inline"><label>Instructor Voluntario<select name="persona" required><option value="">Selecciona una persona</option></select></label><label>Período<select name="periodo" required><option value="">Selecciona un período</option></select></label><button>Consultar</button></form>
+<p id="seguimiento-mensaje" class="mensaje" role="status"></p>
+<div id="seguimiento-perfil"></div><div id="seguimiento-formacion"></div><div id="seguimiento-asistencias"></div>
+<div id="seguimiento-notas" class="rejilla-modulos"></div><div id="seguimiento-historico"></div>
+</section>
+<script src="{{ url_for('static', filename='js/seguimiento_5b.js') }}" defer></script>
+{% endblock %}

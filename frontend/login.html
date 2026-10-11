@@ -24,9 +24,9 @@
       <form id="login-form" novalidate>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label for="username">Nombre de usuario</label>
-        <input id="username" name="username" type="text" autocomplete="username" maxlength="80" required>
+        <input id="username" name="username" type="text" autocomplete="off" maxlength="80" required>
         <label for="password">Contraseña</label>
-        <input id="password" name="password" type="password" autocomplete="current-password" maxlength="256" required>
+        <input id="password" name="password" type="password" autocomplete="off" maxlength="256" required>
         <button id="login-button" type="submit">Ingresar</button>
         <p id="auth-message" class="mensaje" role="status" aria-live="polite"></p>
       </form>

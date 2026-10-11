@@ -1,0 +1,13 @@
+{% extends "_dashboard_base.html" %}
+{% block contenido %}
+<section class="seccion-panel"><h2>Cargo único: Comandante de SBRAB</h2>
+<p>Solo puede haber un Comandante activo. Para cambiar de persona, desactiva la cuenta anterior y crea una nueva; se conserva su autoría histórica.</p>
+<form id="comandante-alta" class="tarjeta-amplia formulario-inline">
+<label>Nombre completo<input name="nombre" maxlength="160" required></label>
+<label>Usuario<input name="username" maxlength="80" required></label>
+<label>Correo<input name="correo" type="email" maxlength="254"></label>
+<label>Contraseña inicial<input name="password" type="password" minlength="12" maxlength="256" autocomplete="new-password" required></label>
+<button type="submit">Crear Comandante</button></form>
+<p id="comandante-mensaje" class="mensaje" role="status"></p><div id="comandantes-lista" class="rejilla-modulos"></div></section>
+<script src="{{ url_for('static', filename='js/seguimiento_5b.js') }}" defer></script>
+{% endblock %}

@@ -811,11 +811,17 @@ if (gradeSelect) {
   const gradeMessage = document.querySelector("#calificacion-mensaje");
   let assignmentsById = new Map();
   let historiesByAssignment = new Map();
+  let revisionHistorial = 0;
+  let historialListo = false;
+  const guardarNota = gradeForm.querySelector("button[type=submit]");
 
   async function cargarAsignacionesInstructor() {
+    const seleccion = gradeSelect.value;
     const { asignaciones } = await apiJson("/api/jefe-personal/asignaciones");
     assignmentsById = new Map(asignaciones.map((item) => [String(item.id), item]));
     gradeSelect.replaceChildren(elemento("option", "Selecciona una evaluación"));
+    gradeSelect.options[0].value = "";
+    gradeSelect.value = "";
     psychometricList.replaceChildren();
     asignaciones.filter((item) => item.categoria === "PSICOMETRICA").forEach((item) => {
       const card = elemento("article", undefined, "tarjeta-modulo");
@@ -842,36 +848,54 @@ if (gradeSelect) {
     asignaciones.filter((item) => item.categoria !== "PSICOMETRICA").forEach((item) => {
       const option = elemento("option", `${item.voluntario} · ${item.evaluacion} · ${item.periodo}`); option.value = item.id; gradeSelect.append(option);
     });
+    gradeSelect.value = assignmentsById.has(seleccion) ? seleccion : "";
+    if (!asignaciones.some((item) => item.categoria !== "PSICOMETRICA")) gradeMessage.textContent = "No hay evaluaciones manuales asignadas al personal activo de tu ámbito.";
   }
 
   async function cargarHistorialNota(assignmentId) {
-    gradeHistory.replaceChildren();
+    const revision = ++revisionHistorial;
+    historialListo = false; guardarNota.disabled = true; gradeHistory.replaceChildren();
     const { historial } = await apiJson(`/api/jefe-personal/asignaciones/${assignmentId}/calificaciones`);
+    if (revision !== revisionHistorial || gradeSelect.value !== String(assignmentId)) return;
     historiesByAssignment.set(String(assignmentId), historial);
+    if (!historial.length) gradeHistory.append(elemento("p", "Sin notas registradas para esta asignación.", "nota-informativa"));
     historial.forEach((record) => {
       const detalle = `Nota ${record.nota_0_100} · ${record.registrada_en} · ${record.registrada_por}${record.corregida_de_id ? ` · corrección de #${record.corregida_de_id}` : ""}`;
       gradeHistory.append(elemento("article", record.observacion ? `${detalle} · ${record.observacion}` : detalle, "tarjeta-modulo"));
     });
+    const cerrada = assignmentsById.get(String(assignmentId))?.periodo_estado === "CERRADO";
+    gradeForm.hidden = cerrada; historialListo = !cerrada; guardarNota.disabled = cerrada;
+    guardarNota.textContent = historial.length ? "Guardar corrección" : "Guardar nota";
+    if (cerrada) gradeMessage.textContent = "Período cerrado: historial disponible, edición bloqueada.";
   }
 
   gradeSelect.addEventListener("change", async () => {
-    gradeForm.hidden = !gradeSelect.value;
+    ++revisionHistorial; historialListo = false; guardarNota.disabled = true;
+    gradeForm.reset(); gradeMessage.textContent = ""; gradeForm.hidden = !gradeSelect.value;
     if (!gradeSelect.value) { gradeHistory.replaceChildren(); return; }
     try { await cargarHistorialNota(gradeSelect.value); }
-    catch (error) { gradeMessage.textContent = error.message; }
+    catch (error) { gradeForm.hidden = true; gradeMessage.textContent = error.message; }
   });
 
   gradeForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const history = historiesByAssignment.get(gradeSelect.value) || [];
+    if (!historialListo || !gradeSelect.value || !gradeForm.reportValidity()) return;
+    const assignmentId = gradeSelect.value;
+    const history = historiesByAssignment.get(assignmentId) || [];
     const latest = history[history.length - 1];
     const body = Object.fromEntries(new FormData(gradeForm).entries()); body.nota_0_100 = Number(body.nota_0_100);
     if (latest) body.corregida_de_id = latest.id;
+    guardarNota.disabled = true; gradeSelect.disabled = true; historialListo = false;
     try {
-      await apiJson(`/api/jefe-personal/asignaciones/${gradeSelect.value}/calificaciones`, { method: "POST", body });
+      await apiJson(`/api/jefe-personal/asignaciones/${assignmentId}/calificaciones`, { method: "POST", body });
       gradeForm.reset(); gradeMessage.textContent = latest ? "Corrección guardada; se conservó la nota anterior." : "Nota guardada.";
-      await Promise.all([cargarHistorialNota(gradeSelect.value), cargarAsignacionesInstructor()]);
-    } catch (error) { gradeMessage.textContent = error.message; }
+      await cargarAsignacionesInstructor();
+      if (gradeSelect.value === assignmentId) await cargarHistorialNota(assignmentId);
+      else gradeForm.hidden = true;
+    } catch (error) {
+      gradeMessage.textContent = error.message;
+      try { await cargarHistorialNota(assignmentId); } catch { gradeForm.hidden = true; }
+    } finally { gradeSelect.disabled = false; }
   });
 
   cargarAsignacionesInstructor().catch((error) => { gradeMessage.textContent = error.message; });

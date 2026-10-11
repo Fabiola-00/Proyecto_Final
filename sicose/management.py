@@ -722,7 +722,7 @@ def restablecer_clave(usuario_id):
     conexion = db.obtener_conexion()
     fila = conexion.execute(
         """SELECT u.id FROM usuarios u JOIN roles r ON r.id=u.rol_id
-           WHERE u.id=? AND r.nombre IN ('JEFE_PERSONAL','INSTRUCTOR_VOLUNTARIO')""", (usuario_id,)
+           WHERE u.id=? AND r.nombre IN ('JEFE_PERSONAL','INSTRUCTOR_VOLUNTARIO','COMANDANTE_GRUPO')""", (usuario_id,)
     ).fetchone()
     if not fila:
         return _fallo("Perfil no encontrado.", "perfil_no_encontrado", 404)

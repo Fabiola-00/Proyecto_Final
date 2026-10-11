@@ -22,6 +22,7 @@ class Usuario(UserMixin):
     def rol_etiqueta(self):
         return {
             "ADMINISTRADOR": "Administrador",
+            "COMANDANTE_GRUPO": "Comandante del Grupo",
             "JEFE_PERSONAL": "Jefe de Personal",
             "INSTRUCTOR_VOLUNTARIO": "Instructor Voluntario",
         }.get(self.rol, self.rol)

@@ -1,4 +1,6 @@
 # Historial de cambios y configuraciones — SICOSE
+Las entradas describen el estado y las verificaciones de cada entrega en su fecha. Los acuerdos posteriores sustituyen los anteriores; el estado actual se consolida en [README.md](README.md) y [AGENTS.md](AGENTS.md). Las cifras históricas de pruebas no son ejecuciones nuevas.
+
 
 ## 2026-10-10 — Acciones visibles en directorios
 
@@ -212,3 +214,67 @@ Verificación actual (2026-10-10): 64 pruebas aprobadas en 31,611 s, con bases a
 Se corrige la desalineación causada por display:flex aplicado a la celda del nombre: celda table-cell y contenedor interno para foto/nombre. Acciones con iconos SVG en una fila, etiquetas accesibles y título descriptivo; padding/anchos ajustados. Ver y Editar conservan sus modales; Desactivar conserva la baja lógica autorizada.
 
 Ocho escenarios Chromium con API simulada: Administrador/Jefe, 360/1447 px y temas claro/oscuro; alturas de celdas alineadas, filas sintéticas de aproximadamente 59 px, tres iconos lado a lado, etiquetas accesibles y modales precargados, sin desborde de página. Captura sintética inspeccionada. Sintaxis JavaScript y git diff --check correctos. No se repitió la suite funcional para este ajuste de presentación; las 64 pruebas de v14 conservan su contexto.
+
+
+## 2026-10-11 — Consolidación documental y siguiente entrega
+
+- README reorganizado por capacidades/permisos vigentes, perfil v14, asistencia/calendario/PDF, catálogo de cursos, operaciones, notas y planificación. Retiradas las afirmaciones actuales que negaban PDF, consulta propia de cursos o gestión del catálogo por Jefe; su evolución sigue documentada en las entradas históricas.
+- AGENTS conserva la guía general y reemplaza bloques de continuidad acumulados por un punto único: esquema v14, acuerdos confirmados, directorio compacto con iconos en fila, límites abiertos y uso del entorno existente. No cambia permisos, código ni esquema.
+- Siguiente entrega recomendada: Notas e historial, revisión de registro/corrección, errores/concurrencia, ámbitos y conservación; luego aceptación integral de asistencia/cursos/notas para 5A. 5B exige definir reglas de períodos/versiones/faltantes/redondeo. No se inicia funcionalidad por esta revisión ni se declara aceptación operativa/institucional.
+- Evidencia funcional anterior preservada: 64 pruebas aprobadas en 31,611 s el 2026-10-10. Se conservan también 42 pruebas de v7 y 43 de v8 del 2026-09-29, y las ejecuciones intermedias en su contexto. No se reejecutó la suite ni las migraciones el 2026-10-11.
+- Verificación de esta revisión: rutas/código/plantillas/pruebas contrastados; 64 pruebas definidas. Consulta SQLite local solo lectura: esquema 14, quick_check=ok y cero infracciones FK. Enlaces locales y git diff --check correctos. Cambios existentes en frontend/login.html preservados, sin atribuirles fecha funcional. .venv, .env y base local conservadas.
+
+
+## 2026-10-11 — Cierre técnico de Fase 5A: seguimiento operativo
+
+- Secuencia completada: Notas e historial → cursos/historial personal → recorrido integral de asistencia/calendario/PDF por rol. Cierre técnico cumplido; aceptación operativa humana pendiente, sin declarar aprobación institucional.
+- Corregidos pérdida de asignación tras guardar nota, opción inicial sin valor vacío, historial/carga con respuestas tardías y guardado habilitado durante error/cierre; formulario hidden respetado. Guardar y corregir mantiene selección/historial; controles bloqueados durante carga/envío.
+- Notas: BEGIN IMMEDIATE serializa comprobación/inserción; dos primeras notas o correcciones sobre una referencia común producen un éxito y un conflicto, sin ramas. Referencia entera positiva, campos admitidos y nota finita 0–100 validados; no se modifica puntuación, precisión ni pesos.
+- Capacitaciones: edición de observación sin cambio de curso_id conserva nombre histórico pese a renombrado del catálogo; fechas falsas/numéricas/listas/no ISO rechazadas. Sin nueva interfaz de asignación ni versionado completo de cursos.
+- Suite final: **68 pruebas aprobadas en 48,333 s**. Cuatro pruebas nuevas de notas/privacidad/cierre, simultaneidad real con dos clientes, preservación de curso/fechas y reasignación. Primeras ejecuciones detectaron fallos en la preparación CSRF del cliente concurrente; se corrigió obteniendo el token del dashboard tras login y siguiendo su redirección. Prueba concurrente aprobada y suite completa repetida.
+- 20 escenarios Chromium con API simulada y datos sintéticos: Administrador/Jefe (notas/cursos/asistencia), Instructor (cursos/calendario), 360/1447 px y vacíos de notas. Sin errores JavaScript ni desborde; guardado/corrección consecutivos, cierre/error y modales comprobados. Dos PDF reales exportados desde fixture aislada, tres páginas cada uno, renderizados e inspeccionados con carimbo/cabeceras/paginación sin solapamiento.
+- Compilación Python, sintaxis JavaScript, enlaces locales y git diff --check correctos. Esquema v14 sin migraciones ni cambios en base local/.env/.venv. Modificación previa de frontend/login.html conservada. Detalle en [cierre 5A](docs/08_cierre_fase_5a.md).
+- Siguiente entrega: definir reglas 5B; no asumir pesos, faltantes, redondeo ni decisiones institucionales. Recorrido humano de aceptación operativa pendiente, separado del cierre técnico.
+
+
+## 2026-10-11 — Inicio de definición de reglas 5B
+
+Confirmados por el solicitante: cálculo independiente con Física/Académica/Desempeño manuales; asistencia separada; períodos anuales enero–diciembre con uno ACTIVO; Administrador gestiona borradores/publicación/cierre/reapertura con motivo y Jefe registra/corrige solo en período activo. Se crea [borrador 5B](docs/09_reglas_fase_5b.md) con estado real del código, acuerdos, propuestas pendientes y criterios futuros. Pesos/faltantes/precisión/versiones/instantáneas continúan en consulta; no se adoptan pesos históricos ni decisiones institucionales. Sin cambios de código, esquema v14, entorno o base; no se reejecutó la suite funcional. Enlaces locales y git diff --check comprobados.
+
+
+### 2026-10-11 — Reglas 5B: faltantes y precisión confirmados
+
+Solicitante confirma Incompleto/No calculable ante alguna nota faltante, sin sustitución por cero ni redistribución; cero registrado válido. Notas nuevas de hasta dos decimales y resultado final a dos decimales, mitad hacia arriba, sin redondeos intermedios ni alteración de históricos. Su respuesta 0–100 puntos se registra como escala por componente; no se infiere promedio simple ni porcentajes. Se consulta combinación, selección de evaluación por componente y congelación de configuración; cierre/reapertura e instantáneas quedan pendientes. Documentación y casos matemáticos actualizados, sin código/cálculo/migración ni cambios en entorno/base. Enlaces y git diff --check correctos; suite no repetida para esta definición.
+
+
+### 2026-10-11 — Reglas 5B: composición anual y Comandante
+
+Confirmados promedio simple de tres componentes y configuración congelada en período activo. Física: dos evaluaciones obligatorias promediadas; Académica: nota global manual respaldada por historial, sin conversión automática de cantidad de cursos a puntos. Desempeño involucra Jefe y Comandante, con combinación interna pendiente. Solicitante requiere rol propio Comandante limitado a grupo; no se crea rol ni se asignan permisos/grupos en esta definición. Se consultan combinación de Desempeño, responsable Académico y estructura del grupo; cierre/instantáneas/permisos siguen pendientes. Sustituida propuesta de una evaluación única por componente en el borrador. Solo documentación: sin código, cálculo, migración ni cambio de entorno/base; enlaces y git diff --check verificados, suite no repetida.
+
+
+### 2026-10-11 — Reglas 5B: Desempeño y grupo único
+
+Solicitante confirma dos notas de Desempeño (Jefe/Comandante) promediadas, ambas obligatorias. Académica la registra/corrige Jefe; Administrador puede corregir con historial. Aclara un único grupo SBRAB y un solo cargo Comandante (nombre modificable, cargo estable); se descarta la propuesta de múltiples grupos. Promedio conjunto de tres componentes equivale a (Física_1 + Física_2 + 2×Académica + Desempeño_Jefe + Desempeño_Comandante)/6, sin promediar las cinco entradas por igual. Acceso del Comandante, respaldo académico y cierre/instantáneas siguen en consulta. Solo documentación; no rol, permiso, grupo ni fórmula implementados. Enlaces y git diff --check correctos.
+
+
+### 2026-10-11 — Definición de reglas 5B acordada
+
+Últimas decisiones confirmadas: Comandante consulta personal/seguimiento/formación/notas/resultados operativos SBRAB sin observaciones ajenas y edita solo su propia aportación de Desempeño; no administra cuentas/permisos/períodos/configuración. Académica requiere motivo y referencias a formación personal, sin formación queda pendiente. Cierre permite personas incompletas identificadas, conserva instantáneas y cada reapertura/cierre posterior, sin cambiar configuración congelada.
+
+Se consolida docs/09_reglas_fase_5b.md: fórmulas exactas, casos de aceptación, permisos, fuentes/respaldo, período anual/activo único, cierre/reapertura y secuencia de implementación. README/AGENTS y bloque 5B del plan alineados. La definición queda acordada para implementar el prototipo; no acredita aprobación institucional de puntuación ni aceptación del piloto. Sin código, rol/grupo/cálculo, esquema, migración ni cambios de entorno/base en esta entrega. Enlaces locales, casos aritméticos y git diff --check verificados; suite funcional no repetida. Evidencia previa de 68 pruebas conserva su fecha y contexto.
+
+
+## Primera entrega implementada de Fase 5B — 2026-10-11 (v15)
+
+- Rol COMANDANTE_GRUPO con panel propio y cargo único SBRAB. Administrador crea/edita/desactiva cuentas y restablece contraseña; una sola cuenta Comandante ACTIVO, garantizada también por triggers SQLite. No se reutiliza una cuenta para otra persona ni se elimina autoría; nombre editable e historial con nombres capturados. No se creó una cuenta automáticamente.
+- Seguimiento 5B para Administrador/Jefe/Comandante: selección de persona activa/período, perfil básico, formación, asistencia y notas sin asignar históricos a nuevas fuentes. Jefe solo personal activo asignado. Comandante consulta seguimiento de personal activo SBRAB y registra/corrige solo su aportación; sin administración ni observaciones/motivos/referencias privadas ajenas. Instructor sin acceso numérico 5B.
+- Cinco fuentes independientes: FISICA_1, FISICA_2, ACADEMICA, DESEMPENO_JEFE y DESEMPENO_COMANDANTE. Notas nuevas 0–100 con hasta dos decimales, almacenadas en centésimas enteras; solo período ACTIVO. Física: Admin/Jefe autorizado. Académica inicial: Jefe; requiere motivo y formación personal referenciada. Desempeño inicial de cada evaluador: Jefe/Comandante correspondiente. Administración puede corregir aportaciones existentes conservando responsable y autor de corrección.
+- Cadena por persona/período/fuente: primera nota única, corrección solo de la vigente, inserción serializada y anteriores conservadas. No admitir autor/responsable arbitrarios en JSON. Jefe/Comandante no corrigen Desempeño de otro titular; si cambió responsable, la corrección histórica requiere Administración. Motivo y referencias se conservan como instantánea de respaldo académico; editar el curso después no altera ese respaldo.
+- Migración v15: ampliar CHECK de roles preservando IDs/referencias y añadir notas_operativas/respaldo_academico; triggers de Comandante único se crean después de ampliar roles. Inicialización local repetida tras respaldo, 24 tablas anteriores preservadas (roles anteriores incluidos), quick_check=ok y cero infracciones FK. Tablas nuevas vacías, sin cuentas ni notas inferidas. .venv/.env/base existente conservados.
+- Verificación: **73 pruebas aprobadas en 80,440 s**, ocho escenarios Chromium (Administración/Jefe/Comandante/gestión de cuenta, 360/1447 px), sin desborde ni errores; modales y envíos, fuentes/roles y período cerrado comprobados. Compilación Python, sintaxis de ambos JavaScript y git diff --check correctos. Pruebas de migración incluyeron esquemas antiguos; se corrigió orden de creación de triggers y fixture de catálogo de roles.
+
+### Límites de esta entrega
+
+Todavía no implementados publicación/configuración congelada, vinculación de fuentes a evaluaciones configuradas, períodos anuales con activo único, cálculo conjunto ni cierre/reapertura con instantáneas de resultados. No se declara cerrada 5B. Las APIs/notas históricas y pantalla de asignaciones anterior se mantienen por compatibilidad; no se convierten ni participan automáticamente en el futuro cálculo 5B. Instructor conserva su avance existente, sin nuevo resultado 5B. La aceptación operativa del solicitante y requisitos institucionales mantienen sus pendientes.
+
+Siguiente entrega concreta: ciclo de períodos y configuración de las fuentes, publicación/congelación y un solo período activo; luego cálculo y cierres. Los permisos/periodicidad más estrictos se aplicarán al ciclo configurado, sin modificar períodos guardados silenciosamente.

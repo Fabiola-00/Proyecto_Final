@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
   <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
 </head>
-<body class="pagina-panel" data-rol="{{ current_user.rol }}">
+<body class="pagina-panel" data-rol="{{ current_user.rol }}" data-usuario-id="{{ current_user.id }}">
   <div class="app-shell">
     <aside class="barra-lateral" id="barra-lateral" aria-label="Navegación principal">
       <a class="marca-panel" href="/" aria-label="SICOSE, ir al inicio">
@@ -31,6 +31,11 @@
           <a class="enlace-nav{% if nav_activo == 'asistencias' %} activo{% endif %}" href="{{ url_for('evaluations.pagina_asistencias') }}" aria-label="Asistencias"><span class="nav-icono" aria-hidden="true">◷</span><span>Asistencias</span></a>
           <span class="enlace-nav deshabilitado" aria-disabled="true" aria-label="Períodos, próximamente" title="Períodos, próximamente"><span class="nav-icono" aria-hidden="true">▦</span><span>Períodos</span><small>Próximamente</small></span>
           <a class="enlace-nav{% if nav_activo == 'configuracion' %} activo{% endif %}" href="{{ url_for('management.pagina_configuracion') }}" aria-label="Configuración" title="Configuración"{% if nav_activo == 'configuracion' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">⚙</span><span>Configuración</span></a>
+          <a class="enlace-nav{% if nav_activo == 'comandante' %} activo{% endif %}" href="{{ url_for('seguimiento.pagina_comandante') }}"><span class="nav-icono" aria-hidden="true">♟</span><span>Comandante SBRAB</span></a>
+          <a class="enlace-nav{% if nav_activo == 'seguimiento_5b' %} activo{% endif %}" href="{{ url_for('seguimiento.pagina_seguimiento') }}"><span class="nav-icono" aria-hidden="true">✓</span><span>Notas operativas 5B</span></a>
+        {% elif current_user.rol == 'COMANDANTE_GRUPO' %}
+          <p class="etiqueta-nav grupo-nav">SBRAB</p>
+          <a class="enlace-nav{% if nav_activo == 'seguimiento_5b' %} activo{% endif %}" href="{{ url_for('seguimiento.pagina_seguimiento') }}"><span class="nav-icono" aria-hidden="true">✓</span><span>Seguimiento SBRAB</span></a>
         {% elif current_user.rol == 'JEFE_PERSONAL' %}
           <p class="etiqueta-nav grupo-nav">SEGUIMIENTO</p>
           <a class="enlace-nav{% if nav_activo == 'voluntarios' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_voluntarios') }}" aria-label="Mis Instructores Voluntarios" title="Mis Instructores Voluntarios"{% if nav_activo == 'voluntarios' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">♙</span><span>Mis Instructores Voluntarios</span></a>
@@ -44,7 +49,7 @@
           <a class="enlace-nav" href="{{ url_for('dashboard.instructor_voluntario') }}#mis-evaluaciones" aria-label="Mis evaluaciones" title="Mis evaluaciones"><span class="nav-icono" aria-hidden="true">✓</span><span>Mis evaluaciones</span></a>
           <a class="enlace-nav{% if nav_activo == 'capacitaciones' %} activo{% endif %}" href="{{ url_for('relaciones.pagina_cursos_propios') }}"><span class="nav-icono" aria-hidden="true">▤</span><span>Mis cursos</span></a>
         {% endif %}
-        <a class="enlace-nav{% if nav_activo == 'operaciones' %} activo{% endif %}" href="{{ url_for('relaciones.pagina_operaciones') }}"><span class="nav-icono" aria-hidden="true">▦</span><span>{{ 'Mis operaciones' if current_user.rol == 'INSTRUCTOR_VOLUNTARIO' else 'Operaciones' }}</span></a>
+        {% if current_user.rol != 'COMANDANTE_GRUPO' %}        <a class="enlace-nav{% if nav_activo == 'operaciones' %} activo{% endif %}" href="{{ url_for('relaciones.pagina_operaciones') }}"><span class="nav-icono" aria-hidden="true">▦</span><span>{{ 'Mis operaciones' if current_user.rol == 'INSTRUCTOR_VOLUNTARIO' else 'Operaciones' }}</span></a>{% endif %}
       </nav>
 
       <div class="lateral-inferior">

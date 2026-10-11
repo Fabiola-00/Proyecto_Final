@@ -1,6 +1,7 @@
 """Catálogo, asistencias, calificaciones y resúmenes de evaluación por rol."""
 
 import math
+import sqlite3
 from datetime import date, datetime, timezone
 
 from flask import Blueprint, jsonify, render_template, request
@@ -265,7 +266,7 @@ def asignaciones_equipo():
     rows = db.obtener_conexion().execute(
         f"""SELECT a.id,a.voluntario_id,a.periodo_id,a.evaluacion_id,a.estado,
                    u.nombre_completo AS voluntario,p.nombre AS periodo,e.nombre AS evaluacion,
-                   e.categoria,e.activo AS evaluacion_activa
+                   e.categoria,e.activo AS evaluacion_activa,p.estado AS periodo_estado
             FROM asignaciones_evaluacion a JOIN voluntarios v ON v.usuario_id=a.voluntario_id
             JOIN usuarios u ON u.id=v.usuario_id JOIN periodos p ON p.id=a.periodo_id
             JOIN evaluaciones e ON e.id=a.evaluacion_id WHERE {where}
@@ -452,8 +453,9 @@ def registrar_capacitacion(volunteer_id):
     for value, limit in ((entity, 160), (note, 2000)):
         if value is not None and (not isinstance(value, str) or len(value) > limit):
             return _bad("Entidad u observación no válida.")
-    if when:
-        try: date.fromisoformat(when)
+    if when not in (None, ""):
+        try:
+            if not isinstance(when, str) or date.fromisoformat(when).isoformat() != when: raise ValueError
         except (ValueError, TypeError): return _bad("La fecha no es válida.")
     connection = db.obtener_conexion()
     query = "SELECT 1 FROM voluntarios v JOIN usuarios u ON u.id=v.usuario_id WHERE v.usuario_id=? AND u.estado='ACTIVO'"
@@ -495,7 +497,7 @@ def editar_capacitacion(training_id):
     from .relaciones_perfil import curso_para_registro
     try: curso = curso_para_registro(connection, data.get("curso_id", row["curso_id"]))
     except ValueError as fallo: return _bad(str(fallo))
-    name = curso["nombre"] if curso is not None else data.get("nombre", row["nombre"])
+    name = (curso["nombre"] if curso["id"] != row["curso_id"] else row["nombre"]) if curso is not None else data.get("nombre", row["nombre"])
     entity = data.get("entidad", row["entidad"])
     when = data.get("fecha", row["fecha"])
     note = data.get("observacion", row["observacion"])
@@ -505,8 +507,9 @@ def editar_capacitacion(training_id):
         return _bad("La entidad no es válida.")
     if note is not None and (not isinstance(note, str) or len(note) > 2000):
         return _bad("La observación no es válida.")
-    if when:
-        try: date.fromisoformat(when)
+    if when not in (None, ""):
+        try:
+            if not isinstance(when, str) or date.fromisoformat(when).isoformat() != when: raise ValueError
         except (ValueError, TypeError): return _bad("La fecha no es válida.")
     connection.execute(
         "UPDATE capacitaciones SET nombre=?,entidad=?,fecha=?,observacion=?,curso_id=? WHERE id=?",
@@ -522,7 +525,9 @@ def editar_capacitacion(training_id):
 @evaluations_bp.post("/api/jefe-personal/asignaciones/<int:assignment_id>/calificaciones")
 @role_required("JEFE_PERSONAL", "ADMINISTRADOR")
 def registrar_calificacion(assignment_id):
-    data = _json() or {}
+    data = _json()
+    if data is None or set(data) - {"nota_0_100", "observacion", "corregida_de_id"}:
+        return _bad("Campos de calificación no válidos.")
     score = data.get("nota_0_100")
     observation = data.get("observacion")
     correction_id = data.get("corregida_de_id")
@@ -530,19 +535,28 @@ def registrar_calificacion(assignment_id):
         return _bad("La nota debe ser un número entre 0 y 100.")
     if observation is not None and (not isinstance(observation, str) or len(observation) > 2000):
         return _bad("La observación admite hasta 2000 caracteres.")
+    if correction_id is not None and (isinstance(correction_id, bool) or not isinstance(correction_id, int) or correction_id < 1):
+        return _bad("La referencia de corrección no es válida.")
     connection = db.obtener_conexion()
+    try:
+        connection.execute("BEGIN IMMEDIATE")
+    except sqlite3.OperationalError:
+        return _bad("La nota está siendo actualizada. Vuelve a cargar el historial.", "nota_en_actualizacion", 409)
+    def rechazar(mensaje, codigo, estado):
+        connection.rollback()
+        return _bad(mensaje, codigo, estado)
     assignment = _authorized_assignment(connection, assignment_id)
     if not assignment:
-        return _bad("Asignación no encontrada en tu ámbito.", "asignacion_no_encontrada", 404)
+        return rechazar("Asignación no encontrada en tu ámbito.", "asignacion_no_encontrada", 404)
     if assignment["categoria"] == "PSICOMETRICA":
-        return _bad("Las calificaciones psicométricas no se editan desde el flujo manual.", "nota_psicometrica_protegida", 403)
+        return rechazar("Las calificaciones psicométricas no se editan desde el flujo manual.", "nota_psicometrica_protegida", 403)
     if assignment["periodo_estado"] == "CERRADO":
-        return _bad("El período está cerrado; no se pueden cambiar sus calificaciones.", "periodo_cerrado", 409)
+        return rechazar("El período está cerrado; no se pueden cambiar sus calificaciones.", "periodo_cerrado", 409)
     latest = connection.execute("SELECT id FROM calificaciones WHERE asignacion_id=? ORDER BY registrada_en DESC,id DESC LIMIT 1", (assignment_id,)).fetchone()
     if latest and correction_id != latest["id"]:
-        return _bad("Ya existe una calificación. Envía su identificador como corregida_de_id para conservar el historial.", "correccion_requerida", 409)
+        return rechazar("Ya existe una calificación. Envía su identificador como corregida_de_id para conservar el historial.", "correccion_requerida", 409)
     if correction_id is not None and (not latest or correction_id != latest["id"]):
-        return _bad("Solo se puede corregir la calificación más reciente.", "correccion_invalida", 409)
+        return rechazar("Solo se puede corregir la calificación más reciente.", "correccion_invalida", 409)
     cursor = connection.execute(
         """INSERT INTO calificaciones (asignacion_id,registrada_por,nota_0_100,observacion,corregida_de_id)
            VALUES (?,?,?,?,?)""",

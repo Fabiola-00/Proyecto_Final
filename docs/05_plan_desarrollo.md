@@ -1,6 +1,6 @@
 # 05. Plan de desarrollo
 
-Revisión documental: **2026-10-10**. El repositorio está en **Fase 5 parcial; Fase 4B tiene cierre técnico y aceptación operativa pendiente**. La base técnica, autenticación y dashboards funcionan para el prototipo local; esto no acredita preparación para un piloto institucional. No hay psicometría aplicada, reportes ni IA.
+Estado revisado: **2026-10-11**. **Fase 5A tiene cierre técnico y aceptación operativa pendiente; Fase 5B tiene primera entrega de rol/fuentes/respaldo implementada y ciclo/cálculo/cierres pendientes**. Fase 4B conserva su cierre técnico y aceptación operativa pendiente. La base técnica, autenticación y dashboards funcionan para el prototipo local; esto no acredita preparación para un piloto institucional. Existen PDF operativos de cursos/asistencia; no hay psicometría aplicada, Excel ni IA.
 
 ## Numeración y orden de entregas
 
@@ -46,21 +46,21 @@ Orden recomendado: consolidación documental → 4A → 4B → 5A → 5B. Fase 6
 
 ## Fase 5A — Cierre del seguimiento operativo
 
-- **Objetivo:** aceptar el flujo operativo de asistencia, capacitaciones y notas manuales.
-- **Alcance:** registro/consulta por Administrador y Jefe dentro del ámbito, correcciones de notas con historial y uso de las pantallas existentes.
-- **Estado actual:** asistencia por fecha/actividad con Asiste, Atraso, Permiso y Falta; filtros por persona, última fecha y rango. Capacitaciones se listan, crean y editan sin borrado físico. Notas no psicométricas se registran/corrigen conservando filas previas. Hay pruebas de estos flujos; la fase aún no tiene aceptación integral documentada.
-- **Pendientes:** revisar casos de duplicados/corrección de asistencia, errores, vacíos y uso móvil; documentar la aceptación operativa y el comportamiento esperado de cambios. No se promete versionado de todas las ediciones de cursos/asistencias.
-- **Dependencias:** personal activo/asignado y catálogo/asignaciones existentes; decisiones sobre correcciones y conservación del seguimiento. El catálogo relacional de cursos de 4B no bloquea aceptar el registro actual con texto libre.
-- **Cierre verificable:** recorrido de registro, filtros y edición con datos sintéticos; rechazos fuera de ámbito; cuatro estados exactos; notas psicométricas rechazadas por el flujo manual; historial de notas preservado y notas/observaciones inaccesibles al Instructor; pruebas y aceptación registradas.
+- **Objetivo:** cerrar técnicamente los flujos de notas/historial, cursos/formación personal y asistencia/calendario/PDF, y registrar su aceptación operativa por separado.
+- **Alcance:** permisos ya aprobados, registros/correcciones y conservación; revisión móvil/escritorio y PDF operativos. Sin nuevas reglas de puntuación, promedios ni psicometría.
+- **Estado actual (2026-10-11):** cierre técnico cumplido. Corregidos selección/carga/guardado de notas, serialización de correcciones simultáneas, formulario oculto y conservación del nombre histórico al editar una capacitación vinculada. Cuatro pruebas nuevas; suite de 68 aprobada y 20 escenarios de interfaz. PDF sintéticos multipágina revisados. Esquema v14 conservado.
+- **Pendientes:** aceptación operativa del solicitante sobre el recorrido visible, registro de incidencias si existen. No se declara aceptación institucional ni versionado completo de ediciones de cursos/capacitaciones.
+- **Dependencias:** personal activo/asignado, períodos/evaluaciones/asignaciones y datos sintéticos. Permisos y fórmula operativa de asistencia ya acordados; no volver a preguntar esos acuerdos.
+- **Cierre verificable:** notas anteriores conservadas, cero válido, rechazo fuera de ámbito/CSRF/psicometría/período cerrado, una sola cadena ante simultaneidad; histórico personal sin observaciones en Instructor; cuatro estados de asistencia y reportes por ámbito; aceptación humana registrada aparte. Evidencias y casos en [cierre de Fase 5A](08_cierre_fase_5a.md).
 
-## Fase 5B — Períodos, ponderaciones y cálculos
+## Fase 5B — Períodos, configuración y cálculo operativo
 
-- **Objetivo:** producir cálculos reproducibles con reglas aprobadas.
-- **Alcance:** ciclo de períodos, versiones de ponderación, faltantes, redondeo y cálculos; catálogo/asignaciones que los sustentan.
-- **Estado actual:** Administrador lista/crea períodos, lista/crea/edita evaluaciones y crea asignaciones. El encabezado usa el año calendario del servidor, sin alterar períodos guardados. Existen `versiones_ponderacion` y `pesos_evaluacion`, pero no gestión completa/publicación de versiones ni promedios oficiales.
-- **Pendientes:** definir cierre/reapertura, publicación y vinculación histórica de pesos; aprobar componentes, faltantes, cero válido, precisión y redondeo. Los seis componentes y pesos de referencia son propuesta; no se adopta una regla de promedio por defecto.
-- **Dependencias:** aprobación del responsable de pesos y reglas de cálculo; 5A para notas operativas. Cualquier uso de puntuaciones psicométricas requiere además Fase 6; no bloquea cálculos operativos con alcance independiente aprobado.
-- **Cierre verificable:** suma de pesos validada transaccionalmente; versiones publicadas inmutables; cero distinto de ausencia; ejemplos aprobados de completos/incompletos y redondeo pasan pruebas; resultados históricos reproducibles; año de cabecera no cambia períodos.
+- **Objetivo:** implementar las reglas operativas acordadas el 2026-10-11 con resultados reproducibles.
+- **Alcance:** Física (dos notas obligatorias promediadas), Académica (nota global con motivo/formación propia), Desempeño (Jefe/Comandante, dos notas obligatorias promediadas). Promedio simple de los tres; asistencia separada y psicometría fuera.
+- **Estado actual:** definición acordada y primera entrega implementada: cuatro roles, esquema v15, Comandante/cuenta única, notas por fuente y respaldo académico. Publicación/activación/ciclo anual, cálculo e instantáneas siguen pendientes; ver [reglas y estado](09_reglas_fase_5b.md).
+- **Pendientes de implementación:** configuración anual congelada y un solo período ACTIVO; faltantes/cero, dos decimales/mitad hacia arriba solo al final; cierre permitido con incompletos e instantáneas por persona; reapertura motivada sin cambiar configuración y preservando cierres anteriores.
+- **Dependencias:** acuerdos confirmados para el prototipo; cierre técnico 5A y prueba de compatibilidad histórica. Aceptación humana/privacidad del piloto no se infiere de aprobar estas reglas. No depende de psicometría.
+- **Cierre verificable:** permisos/CSRF por rol/objeto, notas separadas sin suplantación, respaldo de la persona, exactitud y casos aprobados, un activo bajo concurrencia, configuración inmutable, cierres reproducibles sin perder anteriores. Pruebas y revisión responsiva antes de declarar implementación.
 
 ## Fase 6 — Psicometría independiente y condicionada
 
@@ -75,7 +75,7 @@ Orden recomendado: consolidación documental → 4A → 4B → 5A → 5B. Fase 6
 
 - **Objetivo:** exportar información necesaria con destinatarios y permisos definidos.
 - **Alcance:** entrega operativa (asistencia, capacitaciones, seguimiento/notas permitidas) separada de entrega con resultados psicométricos; PDF/Excel individuales y consolidados según alcance aprobado.
-- **Estado actual:** no hay generación de reportes PDF/Excel ni informes consolidados.
+- **Estado actual:** PDF operativos de cursos y asistencia implementados y revisados en cierre 5A; Excel, informes consolidados y reportes con resultados psicométricos pendientes.
 - **Pendientes:** campos, filtros, destinatarios, exclusiones, auditoría, retención y tratamiento de archivos exportados; diseñar y verificar ambas entregas por separado.
 - **Dependencias:** reportes operativos dependen del alcance/permisos aprobados y datos de 5A; promedios solo tras 5B. Reportes psicométricos dependen además de 6 y autorización específica. Los operativos pueden avanzar sin psicometría.
 - **Cierre verificable:** por cada entrega, exportaciones cotejadas con datos fuente/filtros; pruebas contra acceso ajeno y filtración de campos; archivos legibles y auditados; no se presentan promedios pendientes ni resultados ficticios; retención y destinatarios documentados.
@@ -172,3 +172,24 @@ Verificación final de asistencia (2026-10-10): 62 pruebas aprobadas en 69,702 s
 
 
 Actualización de continuidad (2026-10-10, v14): revisión del perfil/directorio de 4B con grados aprobados, consulta completa en modal y fecha de incorporación única (cálculo por diferencia de años aprobado, sin años completos cumplidos). Alta administrativa Activo/Inactivo; solicitudes pendientes con datos geográficos/foto y grado público reservado. Implementación y 64 pruebas verificadas; históricos preservados. La siguiente entrega sigue siendo aceptación/revisión integral del seguimiento de Fase 5A; esta revisión no completa 5B ni los requisitos de privacidad/retención y aceptación institucional del piloto.
+
+
+Punto vigente del 2026-10-11: 5A cerrada técnicamente según [evidencias](08_cierre_fase_5a.md); aceptación operativa humana pendiente. Siguiente entrega: definición de reglas 5B, sin anticipar pesos, faltantes ni redondeo institucional. Los puntos de control anteriores conservan su fecha y contexto.
+
+
+Definición 5B en curso (2026-10-11): tres componentes manuales y asistencia separada; períodos anuales con uno activo y control administrativo del ciclo confirmados. Pendientes pesos/faltantes/precisión/versiones/instantáneas. Decisiones y propuestas sin implementación en [reglas 5B](09_reglas_fase_5b.md).
+
+
+Decisiones adicionales 5B (2026-10-11): faltantes impiden calcular sin sustituirlos por cero/redistribuir; cero registrado válido; notas nuevas hasta dos decimales y resultado final con dos decimales, mitad hacia arriba sin redondeos intermedios. Escala de cada componente 0–100 puntos; combinación aún por aclarar, sin adoptar ponderaciones. Consultas y casos en [reglas 5B](09_reglas_fase_5b.md).
+
+
+Reglas 5B adicionales confirmadas (2026-10-11): promedio simple de Física/Académica/Desempeño; configuración congelada durante período activo. Física promedia dos notas obligatorias por gestión; Académica es nota global manual respaldada por cursos/capacitaciones; Desempeño involucra Jefe y Comandante y falta definir su combinación. Comandante requiere rol propio limitado a grupo; no existe en código y estructura/permisos aún se consultan. Sin implementación ni cambios de esquema v14. Estado detallado en [reglas 5B](09_reglas_fase_5b.md).
+
+
+Definición 5B ampliada (2026-10-11): Desempeño promedia notas independientes obligatorias de Jefe y Comandante. Académica: Jefe registra/corrige y Administrador puede corregir con historial. Único grupo SBRAB, un cargo Comandante cuyo nombre de responsable puede cambiar; no diseñar varios grupos ni asignaciones multigrupo. Pendientes acceso del nuevo rol, evidencia Académica y cierre/instantáneas. Sin implementación; fórmulas/casos en [reglas 5B](09_reglas_fase_5b.md).
+
+
+Punto vigente 5B (2026-10-11): reglas acordadas; sustituye consultas/propuestas anteriores recogidas en este plan. Cierre con incompletos y cada instantánea conservada, respaldo académico obligatorio y Comandante de único SBRAB limitado a consulta/Desempeño, sin observaciones ajenas. Próxima entrega: implementación de rol/fuentes/respaldo, luego períodos/configuración, cálculo y cierres. Detalle en [reglas definitivas para implementación](09_reglas_fase_5b.md).
+
+
+Punto vigente 5B (2026-10-11, v15): primera entrega implementada y verificada — rol Comandante/cargo único, fuentes separadas, respaldo académico y permisos. 73 pruebas y ocho escenarios UI; históricos preservados. No cerrada 5B: siguiente entrega ciclo de períodos/configuración/publicación/congelación y activo único, seguida de cálculo y cierres. Ver [reglas y estado](09_reglas_fase_5b.md).
