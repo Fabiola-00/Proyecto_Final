@@ -130,6 +130,11 @@ Verificación actual (2026-10-10): 64 pruebas aprobadas en 31,611 s, con bases a
 
 ### Límites de esta entrega
 
-Todavía no implementados publicación/configuración congelada, vinculación de fuentes a evaluaciones configuradas, períodos anuales con activo único, cálculo conjunto ni cierre/reapertura con instantáneas de resultados. No se declara cerrada 5B. Las APIs/notas históricas y pantalla de asignaciones anterior se mantienen por compatibilidad; no se convierten ni participan automáticamente en el futuro cálculo 5B. Instructor conserva su avance existente, sin nuevo resultado 5B. La aceptación operativa del solicitante y requisitos institucionales mantienen sus pendientes.
+Límite histórico v15: configuración/publicación/activación todavía pendientes; implementadas en v16. Cálculo y cierre/reapertura con instantáneas siguen pendientes. No se declara cerrada 5B. Las APIs/notas históricas y pantalla de asignaciones anterior se mantienen por compatibilidad; no se convierten ni participan automáticamente en el futuro cálculo 5B. Instructor conserva su avance existente, sin nuevo resultado 5B. La aceptación operativa del solicitante y requisitos institucionales mantienen sus pendientes.
 
-Siguiente entrega concreta: ciclo de períodos y configuración de las fuentes, publicación/congelación y un solo período activo; luego cálculo y cierres. Los permisos/periodicidad más estrictos se aplicarán al ciclo configurado, sin modificar períodos guardados silenciosamente.
+Siguiente entrega concreta desde v16: cálculo provisional exacto con faltantes/redondeo; después cierre/reapertura con instantáneas.
+
+
+## Períodos y configuración vigentes — v16 (2026-10-11)
+
+Solo Administrador crea borradores anuales, configura cinco fuentes compatibles y publica/activa. Configuración y fuentes se congelan al publicar; una sola activación bajo concurrencia. Borradores incompletos pueden guardarse, pero no publicarse. Notas y correcciones 5B requieren ACTIVO y configuración PUBLICADA; las referencias a configuración/evaluación las establece el servidor. La vía anterior de notas por asignación no permite registrar en períodos configurados 5B. Períodos/notas anteriores conservados sin adopción automática; un activo histórico bloquea nuevas activaciones sin cerrarlo automáticamente. Cálculo y cierre/reapertura siguen pendientes; ver [reglas](09_reglas_fase_5b.md) y [plan](05_plan_desarrollo.md).

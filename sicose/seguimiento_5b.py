@@ -174,7 +174,8 @@ def consultar_persona(identificador):
     historicas = [dict(f) for f in c.execute("""SELECT c.id,c.nota_0_100,c.registrada_en,e.nombre AS evaluacion,e.categoria
                   FROM calificaciones c JOIN asignaciones_evaluacion a ON a.id=c.asignacion_id JOIN evaluaciones e ON e.id=a.evaluacion_id
                   WHERE a.voluntario_id=? AND a.periodo_id=? AND e.categoria!='PSICOMETRICA' ORDER BY c.id""", (identificador, periodo_id))]
-    return jsonify(persona=dict(perfil), periodo=dict(periodo), formacion=formacion,
+    from .periodos_5b import configuracion
+    return jsonify(configuracion=configuracion(c, periodo_id), persona=dict(perfil), periodo=dict(periodo), formacion=formacion,
                    asistencias=asistencia, notas=notas_persona(c, identificador, periodo_id), notas_historicas=historicas)
 
 
@@ -224,6 +225,11 @@ def registrar_nota(identificador):
         return rechazar("Persona o período fuera de tu ámbito.", 404)
     if periodo["estado"] != "ACTIVO":
         return rechazar("Solo se registran/corrigen notas en período activo.", 409)
+    fuente_configurada = c.execute("""SELECT f.configuracion_id,f.evaluacion_id FROM fuentes_configuracion_5b f
+                            JOIN configuraciones_5b c ON c.id=f.configuracion_id
+                            WHERE c.periodo_id=? AND c.estado='PUBLICADA' AND f.fuente=?""", (pid,fuente)).fetchone()
+    if fuente_configurada is None:
+        return rechazar("El período requiere una configuración 5B publicada; no se adoptan históricos automáticamente.",409)
     ultima = c.execute("SELECT * FROM notas_operativas WHERE voluntario_id=? AND periodo_id=? AND fuente=? ORDER BY id DESC LIMIT 1", (identificador, pid, fuente)).fetchone()
     rol = current_user.rol
     if rol == "COMANDANTE_GRUPO" and (fuente != "DESEMPENO_COMANDANTE" or (ultima and ultima["evaluador_id"] != current_user.id)):
@@ -243,8 +249,8 @@ def registrar_nota(identificador):
     evaluador = ultima["evaluador_id"] if ultima else current_user.id
     nombre_evaluador = ultima["evaluador_nombre"] if ultima else current_user.nombre
     nid = c.execute("""INSERT INTO notas_operativas(voluntario_id,periodo_id,fuente,puntos_centesimas,evaluador_id,registrada_por,
-                evaluador_nombre,registrada_por_nombre,motivo,observacion,corregida_de_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
-                (identificador, pid, fuente, int(puntos * 100), evaluador, current_user.id, nombre_evaluador, current_user.nombre, motivo, observacion, correccion)).lastrowid
+                evaluador_nombre,registrada_por_nombre,motivo,observacion,corregida_de_id,configuracion_id,evaluacion_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (identificador, pid, fuente, int(puntos * 100), evaluador, current_user.id, nombre_evaluador, current_user.nombre, motivo, observacion, correccion, fuente_configurada["configuracion_id"], fuente_configurada["evaluacion_id"])).lastrowid
     c.executemany("INSERT INTO respaldo_academico(nota_id,capacitacion_id,nombre,entidad,fecha) VALUES (?,?,?,?,?)",
                   ((nid, fila["id"], fila["nombre"], fila["entidad"], fila["fecha"]) for fila in respaldo))
     db.registrar_auditoria(c, current_user.id, "NOTA_OPERATIVA_CORREGIDA" if ultima else "NOTA_OPERATIVA_REGISTRADA", "EXITOSO")

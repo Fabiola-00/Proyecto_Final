@@ -1,6 +1,6 @@
 # 05. Plan de desarrollo
 
-Estado revisado: **2026-10-11**. **Fase 5A tiene cierre técnico y aceptación operativa pendiente; Fase 5B tiene primera entrega de rol/fuentes/respaldo implementada y ciclo/cálculo/cierres pendientes**. Fase 4B conserva su cierre técnico y aceptación operativa pendiente. La base técnica, autenticación y dashboards funcionan para el prototipo local; esto no acredita preparación para un piloto institucional. Existen PDF operativos de cursos/asistencia; no hay psicometría aplicada, Excel ni IA.
+Estado revisado: **2026-10-11**. **Fase 5A tiene cierre técnico y aceptación operativa pendiente; Fase 5B tiene entregas de rol/fuentes/respaldo y borradores/configuración/publicación/activación implementadas; cálculo y cierres/reaperturas pendientes**. Fase 4B conserva su cierre técnico y aceptación operativa pendiente. La base técnica, autenticación y dashboards funcionan para el prototipo local; esto no acredita preparación para un piloto institucional. Existen PDF operativos de cursos/asistencia; no hay psicometría aplicada, Excel ni IA.
 
 ## Numeración y orden de entregas
 
@@ -57,8 +57,8 @@ Orden recomendado: consolidación documental → 4A → 4B → 5A → 5B. Fase 6
 
 - **Objetivo:** implementar las reglas operativas acordadas el 2026-10-11 con resultados reproducibles.
 - **Alcance:** Física (dos notas obligatorias promediadas), Académica (nota global con motivo/formación propia), Desempeño (Jefe/Comandante, dos notas obligatorias promediadas). Promedio simple de los tres; asistencia separada y psicometría fuera.
-- **Estado actual:** definición acordada y primera entrega implementada: cuatro roles, esquema v15, Comandante/cuenta única, notas por fuente y respaldo académico. Publicación/activación/ciclo anual, cálculo e instantáneas siguen pendientes; ver [reglas y estado](09_reglas_fase_5b.md).
-- **Pendientes de implementación:** configuración anual congelada y un solo período ACTIVO; faltantes/cero, dos decimales/mitad hacia arriba solo al final; cierre permitido con incompletos e instantáneas por persona; reapertura motivada sin cambiar configuración y preservando cierres anteriores.
+- **Estado actual:** definición acordada y dos entregas implementadas: cuatro roles, esquema v16, Comandante/cuenta única, notas por fuente/respaldo y borradores anuales con configuración publicada/congelada y activo único. Cálculo, cierre/reapertura e instantáneas siguen pendientes; ver [reglas y estado](09_reglas_fase_5b.md).
+- **Pendientes de implementación:** cálculo provisional vinculado a configuración y últimas notas válidas, faltantes/cero, dos decimales/mitad hacia arriba solo al final; cierre permitido con incompletos e instantáneas por persona; reapertura motivada sin cambiar configuración y preservando cierres anteriores.
 - **Dependencias:** acuerdos confirmados para el prototipo; cierre técnico 5A y prueba de compatibilidad histórica. Aceptación humana/privacidad del piloto no se infiere de aprobar estas reglas. No depende de psicometría.
 - **Cierre verificable:** permisos/CSRF por rol/objeto, notas separadas sin suplantación, respaldo de la persona, exactitud y casos aprobados, un activo bajo concurrencia, configuración inmutable, cierres reproducibles sin perder anteriores. Pruebas y revisión responsiva antes de declarar implementación.
 
@@ -192,4 +192,17 @@ Definición 5B ampliada (2026-10-11): Desempeño promedia notas independientes o
 Punto vigente 5B (2026-10-11): reglas acordadas; sustituye consultas/propuestas anteriores recogidas en este plan. Cierre con incompletos y cada instantánea conservada, respaldo académico obligatorio y Comandante de único SBRAB limitado a consulta/Desempeño, sin observaciones ajenas. Próxima entrega: implementación de rol/fuentes/respaldo, luego períodos/configuración, cálculo y cierres. Detalle en [reglas definitivas para implementación](09_reglas_fase_5b.md).
 
 
-Punto vigente 5B (2026-10-11, v15): primera entrega implementada y verificada — rol Comandante/cargo único, fuentes separadas, respaldo académico y permisos. 73 pruebas y ocho escenarios UI; históricos preservados. No cerrada 5B: siguiente entrega ciclo de períodos/configuración/publicación/congelación y activo único, seguida de cálculo y cierres. Ver [reglas y estado](09_reglas_fase_5b.md).
+Punto vigente 5B (2026-10-11, v15): primera entrega implementada y verificada — rol Comandante/cargo único, fuentes separadas, respaldo académico y permisos. 73 pruebas y ocho escenarios UI; históricos preservados. Punto histórico v15: el ciclo/configuración todavía estaba pendiente; la entrega v16 siguiente lo implementa. No cerrada 5B. Ver [reglas y estado](09_reglas_fase_5b.md).
+
+
+## Segunda entrega de Fase 5B — 2026-10-11 (v16)
+
+Administrador dispone de **Períodos y configuración**: crea borradores anuales enero–diciembre, configura cinco fuentes mediante modal y publica/activa en una transacción. La revisión del borrador evita sobrescribir cambios concurrentes. Publicación exige fuentes completas con evaluaciones manuales activas de categoría compatible; dos fuentes de la misma categoría pueden usar la misma evaluación de catálogo, manteniendo sus notas independientes. Configuración versión 1 con regla PROMEDIO_TRES_V1 (igual importancia de los tres componentes); no habilita porcentajes arbitrarios ni cálculo aún.
+
+La publicación congela fuentes, nombres/códigos/categorías, autor y fecha UTC. Cambiar el catálogo después no reescribe esas referencias. Un solo período puede activarse bajo concurrencia, también protegido por triggers. No se cierran otros períodos automáticamente. Notas/correcciones 5B requieren período ACTIVO y configuración PUBLICADA; configuración_id/evaluacion_id se resuelven en servidor, sin aceptar esos valores del cliente. La API de calificación anterior no registra notas en períodos configurados 5B; los registros anteriores siguen consultables.
+
+Migración v16 aditiva: configuraciones_5b y fuentes_configuracion_5b, dos referencias nullable en notas_operativas y restricciones. Respaldo local previo, 26 tablas anteriores preservadas, inicialización repetida, quick_check=ok y cero infracciones FK. Períodos y notas históricas sin modificación ni adopción; referencias anteriores NULL. La base local no tenía períodos ACTIVO; una base histórica que sí los tenga bloqueará nuevas activaciones hasta un tratamiento explícito en la entrega de cierre, sin alterar sus estados al migrar.
+
+Verificación actual: **77 pruebas aprobadas en 86,620 s** (bases aisladas), incluyendo publicación concurrente, revisiones obsoletas, fuentes incompletas/categoría inválida, congelación, permisos/CSRF y preservación v15. Ocho escenarios Chromium con API simulada a 360/1447 px: publicación y modal administrativo, notas por los tres roles y bloqueo de edición sin configuración publicada; sin desborde ni errores JavaScript. Compilación Python, sintaxis de los tres JavaScript, enlaces locales y git diff --check correctos.
+
+Pendientes: cálculo provisional exacto/faltantes/redondeo, cierre y reapertura motivada con cada instantánea preservada, aceptación operativa e institucional/privacidad antes del piloto. **No se declara cerrada Fase 5B.** Siguiente entrega: cálculo provisional vinculado a configuración y últimas notas válidas, separado de asistencia y psicometría.

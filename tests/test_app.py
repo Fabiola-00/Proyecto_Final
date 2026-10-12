@@ -236,6 +236,33 @@ class AplicacionTestCase(unittest.TestCase):
         self._login()
         self.assertEqual(len(self.cliente.get(ruta).json['historial']),1)
 
+    def _configurar_periodo_5b(self,pid):
+        from sicose.db import obtener_conexion
+        self._login()
+        with self.app.app_context():
+            c=obtener_conexion();eids={}
+            for categoria in ('FISICA','ACADEMICA','JEFE_PERSONAL'):
+                e=c.execute("SELECT id FROM evaluaciones WHERE categoria=? AND activo=1 AND origen_nota='JEFE_PERSONAL' LIMIT 1",(categoria,)).fetchone()
+                if e is None:
+                    eid=c.execute("INSERT INTO evaluaciones(codigo,nombre,categoria,origen_nota,activo) VALUES (?,?,?,'JEFE_PERSONAL',1)",('CFG-'+categoria,'Evaluación '+categoria,categoria)).lastrowid
+                else:eid=e[0]
+                eids[categoria]=eid
+            c.commit()
+        fuentes={'FISICA_1':eids['FISICA'],'FISICA_2':eids['FISICA'],'ACADEMICA':eids['ACADEMICA'],'DESEMPENO_JEFE':eids['JEFE_PERSONAL'],'DESEMPENO_COMANDANTE':eids['JEFE_PERSONAL']}
+        h={'X-CSRFToken':self._csrf_token()}
+        r=self.cliente.post(f'/api/admin/5b/periodos/{pid}/configuracion',json={'fuentes':fuentes},headers=h);self.assertEqual(r.status_code,201,r.json)
+        return r.json['configuracion'],fuentes
+
+    def _preparar_notas_5b(self):
+        from sicose.db import obtener_conexion
+        aid,pid=self._preparar_notas_5a()
+        with self.app.app_context():
+            c=obtener_conexion();c.execute("UPDATE periodos SET estado='BORRADOR' WHERE id=?",(pid,));c.commit()
+        conf,_=self._configurar_periodo_5b(pid)
+        r=self.cliente.post(f'/api/admin/5b/periodos/{pid}/publicar',json={'revision':conf['revision']},headers={'X-CSRFToken':self._csrf_token()});self.assertEqual(r.status_code,200,r.json)
+        self._login('instructor.demo','Clave instructor 123!')
+        return aid,pid
+
     def _comandante_5b(self):
         self._login()
         r=self.cliente.post('/api/admin/comandantes',json={'nombre':'Comandante DEMO','username':'comandante.demo','password':'Clave comandante 123!'},headers={'X-CSRFToken':self._csrf_token()})
@@ -264,7 +291,7 @@ class AplicacionTestCase(unittest.TestCase):
 
     def test_5b_fuentes_privacidad_autoria_y_correccion(self):
         from sicose.db import obtener_conexion
-        _,pid=self._preparar_notas_5a();uid=self._comandante_5b()
+        _,pid=self._preparar_notas_5b();uid=self._comandante_5b()
         with self.app.app_context():
             c=obtener_conexion();ref=c.execute("INSERT INTO capacitaciones(voluntario_id,nombre) VALUES (3,'Curso propio DEMO')").lastrowid;c.commit()
         self._login('instructor.demo','Clave instructor 123!');h={'X-CSRFToken':self._csrf_token()};ruta='/api/5b/personas/3/notas'
@@ -297,7 +324,7 @@ class AplicacionTestCase(unittest.TestCase):
 
     def test_5b_respaldo_precision_periodo_y_ambito(self):
         from sicose.db import obtener_conexion
-        _,pid=self._preparar_notas_5a();ruta='/api/5b/personas/3/notas';h={'X-CSRFToken':self._csrf_token()}
+        _,pid=self._preparar_notas_5b();ruta='/api/5b/personas/3/notas';h={'X-CSRFToken':self._csrf_token()}
         with self.app.app_context():
             c=obtener_conexion();ref=c.execute("INSERT INTO capacitaciones(voluntario_id,nombre,fecha) VALUES (3,'Nombre respaldo','2026-10-01')").lastrowid;c.commit()
         base={'periodo_id':pid,'fuente':'ACADEMICA','nota_0_100':'0.00','motivo':'Motivo','capacitaciones':[ref]}
@@ -320,7 +347,7 @@ class AplicacionTestCase(unittest.TestCase):
         import threading
         from concurrent.futures import ThreadPoolExecutor
         from sicose.db import obtener_conexion
-        _,pid=self._preparar_notas_5a();clientes=[]
+        _,pid=self._preparar_notas_5b();clientes=[]
         for _ in range(2):
             cli=self.app.test_client();token=re.search(rb'name="csrf_token" value="([^"]+)"',cli.get('/login').data).group(1).decode()
             self.assertEqual(cli.post('/api/auth/login',json={'username':'instructor.demo','password':'Clave instructor 123!'},headers={'X-CSRFToken':token}).status_code,200)
@@ -361,6 +388,94 @@ class AplicacionTestCase(unittest.TestCase):
                 self.assertEqual(c.execute('SELECT COUNT(*) FROM notas_operativas').fetchone()[0],0)
                 self.assertEqual(c.execute('SELECT COUNT(*) FROM usuarios').fetchone()[0],1)
                 self.assertEqual(c.execute('PRAGMA quick_check').fetchone()[0],'ok');self.assertEqual(c.execute('PRAGMA foreign_key_check').fetchall(),[])
+        finally:
+            if ruta.exists():ruta.unlink()
+
+    def test_5b_periodos_anuales_borradores_y_permisos(self):
+        self._login();h={'X-CSRFToken':self._csrf_token()}
+        for datos in ({'nombre':'Año','ano':True},{'nombre':'Año','ano':0},{'nombre':'Año','ano':10000},{'nombre':'Año','ano':2026,'estado':'ACTIVO'}):
+            self.assertEqual(self.cliente.post('/api/admin/5b/periodos',json=datos,headers=h).status_code,400)
+        r=self.cliente.post('/api/admin/5b/periodos',json={'nombre':'Anual DEMO','ano':2026},headers=h);self.assertEqual(r.status_code,201)
+        p=self.cliente.get('/api/admin/5b/periodos').json['periodos'][0]
+        self.assertEqual((p['estado'],p['fecha_inicio'],p['fecha_fin']),('BORRADOR','2026-01-01','2026-12-31'))
+        for estado,inicio,fin in [('ACTIVO','2027-01-01','2027-12-31'),('BORRADOR','2027-02-01','2027-12-31'),('BORRADOR','2027-01-01','2028-12-31')]:
+            self.assertEqual(self.cliente.post('/api/admin/periodos',json={'nombre':'Inválido','fecha_inicio':inicio,'fecha_fin':fin,'estado':estado},headers=h).status_code,400)
+        self.assertEqual(self.cliente.post('/api/admin/5b/periodos',json={'nombre':'Sin CSRF','ano':2027}).status_code,400)
+        self._login('instructor.demo','Clave instructor 123!')
+        self.assertEqual(self.cliente.get('/gestion/periodos-5b').status_code,403)
+        self.assertEqual(self.cliente.get('/api/admin/5b/periodos').status_code,403)
+        self.assertEqual(self.cliente.post(f"/api/admin/5b/periodos/{p['id']}/configuracion",json={'fuentes':{}},headers={'X-CSRFToken':self._csrf_token()}).status_code,403)
+
+    def test_5b_configuracion_completa_revision_congelacion_y_vinculo(self):
+        from sicose.db import obtener_conexion
+        self._login();h={'X-CSRFToken':self._csrf_token()}
+        pid=self.cliente.post('/api/admin/5b/periodos',json={'nombre':'Config DEMO','ano':2026},headers=h).json['id']
+        ruta=f'/api/admin/5b/periodos/{pid}'
+        conf,fuentes=self._configurar_periodo_5b(pid);h={'X-CSRFToken':self._csrf_token()}
+        r=self.cliente.patch(ruta+'/configuracion',json={'fuentes':{'FISICA_1':fuentes['FISICA_1']},'revision':1},headers=h);self.assertEqual(r.status_code,200);self.assertEqual(r.json['configuracion']['revision'],2)
+        self.assertEqual(self.cliente.patch(ruta+'/configuracion',json={'fuentes':fuentes,'revision':1},headers=h).status_code,409)
+        self.assertEqual(self.cliente.post(ruta+'/publicar',json={'revision':2},headers=h).status_code,400)
+        with self.app.app_context():
+            c=obtener_conexion();self.assertEqual(c.execute('SELECT estado FROM periodos WHERE id=?',(pid,)).fetchone()[0],'BORRADOR')
+        self.assertEqual(self.cliente.patch(ruta+'/configuracion',json={'fuentes':{'ACADEMICA':fuentes['FISICA_1']},'revision':2},headers=h).status_code,400)
+        self.assertEqual(self.cliente.patch(ruta+'/configuracion',json={'fuentes':fuentes,'revision':2},headers=h).status_code,200)
+        self.assertEqual(self.cliente.post(ruta+'/publicar',json={'revision':3},headers=h).status_code,200)
+        publicado=self.cliente.get('/api/admin/5b/periodos').json['periodos'][0]['configuracion'];original=next(f['nombre'] for f in publicado['fuentes'] if f['fuente']=='FISICA_1')
+        self.assertEqual(self.cliente.patch(ruta+'/configuracion',json={'fuentes':fuentes,'revision':3},headers=h).status_code,409)
+        self.assertEqual(self.cliente.post(ruta+'/publicar',json={'revision':3},headers=h).status_code,409)
+        self.assertEqual(self.cliente.patch(f"/api/admin/evaluaciones/{fuentes['FISICA_1']}",json={'nombre':'Nombre cambiado','activo':False},headers=h).status_code,200)
+        self.assertEqual(next(f['nombre'] for f in self.cliente.get('/api/admin/5b/periodos').json['periodos'][0]['configuracion']['fuentes'] if f['fuente']=='FISICA_1'),original)
+        with self.app.app_context():
+            c=obtener_conexion();c.execute('INSERT INTO instructores(usuario_id) VALUES (2)');c.execute('INSERT INTO voluntarios(usuario_id,instructor_id) VALUES (3,2)');c.commit()
+            for sql,args in [("UPDATE configuraciones_5b SET estado='BORRADOR' WHERE id=?",(conf['id'],)),('DELETE FROM fuentes_configuracion_5b WHERE configuracion_id=?',(conf['id'],)),("UPDATE periodos SET fecha_fin='2026-12-30' WHERE id=?",(pid,))]:
+                with self.assertRaises(sqlite3.IntegrityError):c.execute(sql,args)
+                c.rollback()
+        self._login('instructor.demo','Clave instructor 123!')
+        r=self.cliente.post('/api/5b/personas/3/notas',json={'periodo_id':pid,'fuente':'FISICA_1','nota_0_100':'80.01'},headers={'X-CSRFToken':self._csrf_token()});self.assertEqual(r.status_code,201,r.json)
+        nota=self.cliente.get(f'/api/5b/personas/3?periodo_id={pid}').json['notas'][0]
+        self.assertEqual((nota['configuracion_id'],nota['evaluacion_id']),(conf['id'],fuentes['FISICA_1']))
+
+    def test_5b_publicacion_concurrente_activo_unico(self):
+        import threading
+        from concurrent.futures import ThreadPoolExecutor
+        self._login();pares=[]
+        for ano in (2026,2027):
+            pid=self.cliente.post('/api/admin/5b/periodos',json={'nombre':f'Gestión {ano}','ano':ano},headers={'X-CSRFToken':self._csrf_token()}).json['id']
+            conf,_=self._configurar_periodo_5b(pid);cli=self.app.test_client();tok=re.search(rb'name="csrf_token" value="([^"]+)"',cli.get('/login').data).group(1).decode()
+            self.assertEqual(cli.post('/api/auth/login',json={'username':'admin.demo','password':'Clave demo segura 123!'},headers={'X-CSRFToken':tok}).status_code,200)
+            tok=re.search(rb'name="csrf_token" value="([^"]+)"',cli.get('/',follow_redirects=True).data).group(1).decode();pares.append((cli,tok,pid,conf['revision']))
+        barrier=threading.Barrier(2)
+        def activar(par):
+            cli,tok,pid,rev=par;barrier.wait(timeout=5)
+            return cli.post(f'/api/admin/5b/periodos/{pid}/publicar',json={'revision':rev},headers={'X-CSRFToken':tok}).status_code
+        with ThreadPoolExecutor(max_workers=2) as pool:estados=list(pool.map(activar,pares))
+        self.assertEqual(sorted(estados),[200,409])
+        periodos=self.cliente.get('/api/admin/5b/periodos').json['periodos']
+        self.assertEqual(sum(p['estado']=='ACTIVO' for p in periodos),1)
+        self.assertEqual(sum(p['configuracion']['estado']=='PUBLICADA' for p in periodos),1)
+
+    def test_5b_migracion_v15_conserva_activos_y_notas_sin_adopcion(self):
+        from contextlib import closing
+        from sicose.db import obtener_conexion
+        ruta=Path('.tmp')/f'v15-{uuid.uuid4().hex}.sqlite3'
+        try:
+            esquema=Path('sicose/schema.sql').read_text(encoding='utf-8').split('CREATE TABLE IF NOT EXISTS configuraciones_5b')[0]
+            esquema=chr(10).join(linea for linea in esquema.splitlines() if "configuracion_id INTEGER REFERENCES" not in linea and "evaluacion_id INTEGER REFERENCES evaluaciones(id) ON DELETE RESTRICT," not in linea)
+            with closing(sqlite3.connect(ruta)) as c:
+                c.executescript(esquema);c.execute("INSERT INTO roles(id,nombre) VALUES (1,'JEFE_PERSONAL'),(2,'INSTRUCTOR_VOLUNTARIO')")
+                c.execute("INSERT INTO usuarios(id,username,nombre_completo,password_hash,rol_id) VALUES (1,'jefe.demo','Jefe DEMO','hash-sintetico',1),(2,'persona.demo','Persona DEMO','hash-sintetico',2)")
+                c.execute('INSERT INTO instructores(usuario_id) VALUES (1)')
+                c.execute('INSERT INTO voluntarios(usuario_id,instructor_id) VALUES (2,1)')
+                c.execute("INSERT INTO periodos(id,nombre,fecha_inicio,fecha_fin,estado) VALUES (1,'Histórico A','2025-02-01','2025-12-01','ACTIVO'),(2,'Histórico B','2026-01-01','2026-12-31','ACTIVO')")
+                c.execute("INSERT INTO notas_operativas(voluntario_id,periodo_id,fuente,puntos_centesimas,evaluador_id,registrada_por,evaluador_nombre,registrada_por_nombre) VALUES (2,1,'FISICA_1',7501,1,1,'Jefe DEMO','Jefe DEMO')");c.commit()
+            app=create_app({'TESTING':True,'SECRET_KEY':'prueba-sintetica','DATABASE':str(ruta.resolve())})
+            with app.app_context():
+                inicializar_base_datos();inicializar_base_datos();c=obtener_conexion()
+                self.assertEqual(c.execute("SELECT COUNT(*) FROM periodos WHERE estado='ACTIVO'").fetchone()[0],2)
+                fila=c.execute('SELECT puntos_centesimas,configuracion_id,evaluacion_id FROM notas_operativas').fetchone();self.assertEqual(tuple(fila),(7501,None,None))
+                self.assertEqual(c.execute('SELECT COUNT(*) FROM configuraciones_5b').fetchone()[0],0)
+                with self.assertRaises(sqlite3.IntegrityError):c.execute("INSERT INTO periodos(nombre,fecha_inicio,fecha_fin,estado) VALUES ('Tercero','2027-01-01','2027-12-31','ACTIVO')")
+                c.rollback();self.assertEqual(c.execute('PRAGMA quick_check').fetchone()[0],'ok');self.assertEqual(c.execute('PRAGMA foreign_key_check').fetchall(),[])
         finally:
             if ruta.exists():ruta.unlink()
 
@@ -555,7 +670,7 @@ class AplicacionTestCase(unittest.TestCase):
             version = conexion.execute(
                 "SELECT valor FROM app_meta WHERE clave = ?", ("schema_version",)
             ).fetchone()[0]
-            self.assertEqual(version, "15")
+            self.assertEqual(version, "16")
             columnas_asistencias = {fila["name"] for fila in conexion.execute("PRAGMA table_info(asistencias)")}
             self.assertIn("estado_detalle", columnas_asistencias)
             self.assertEqual(
@@ -625,7 +740,7 @@ class AplicacionTestCase(unittest.TestCase):
                 self.assertIsNone(conexion.execute("SELECT fecha_nacimiento FROM voluntarios WHERE usuario_id=?", (iv_id,)).fetchone()[0])
                 asistencia_migrada = conexion.execute("SELECT estado,estado_detalle FROM asistencias WHERE voluntario_id=?", (iv_id,)).fetchone()
                 self.assertEqual(tuple(asistencia_migrada), ("PRESENTE", "ASISTE"))
-                self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "15")
+                self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "16")
                 self.assertEqual(conexion.execute("PRAGMA foreign_key_check").fetchall(), [])
         finally:
             if legacy_path.exists():
@@ -865,7 +980,7 @@ class AplicacionTestCase(unittest.TestCase):
     def test_admin_crea_periodo_catalogo_y_asignacion(self):
         self.assertEqual(self._login().status_code, 200)
         periodo = self.cliente.post("/api/admin/periodos", json={
-            "nombre": "Ciclo demo", "fecha_inicio": "2026-01-01", "fecha_fin": "2026-12-31", "estado": "ACTIVO",
+            "nombre": "Ciclo demo", "fecha_inicio": "2026-01-01", "fecha_fin": "2026-12-31", "estado": "BORRADOR",
         }, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(periodo.status_code, 201)
         evaluacion = self.cliente.post("/api/admin/evaluaciones", json={
@@ -874,6 +989,8 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertEqual(evaluacion.status_code, 201)
         activada = self.cliente.patch(f"/api/admin/evaluaciones/{evaluacion.json['id']}", json={"activo": True}, headers={"X-CSRFToken": self._csrf_token()})
         self.assertEqual(activada.status_code, 200)
+        conf,_=self._configurar_periodo_5b(periodo.json['id'])
+        self.assertEqual(self.cliente.post(f"/api/admin/5b/periodos/{periodo.json['id']}/publicar",json={'revision':conf['revision']},headers={'X-CSRFToken':self._csrf_token()}).status_code,200)
         with self.app.app_context():
             from sicose.db import obtener_conexion
             conexion = obtener_conexion()
@@ -1304,7 +1421,7 @@ class AplicacionTestCase(unittest.TestCase):
             for campo in antes.keys(): self.assertEqual(antes[campo], despues[campo])
             for campo in ("pais_residencia", "departamento_residencia", "ano_incorporacion"):
                 self.assertIsNone(despues[campo])
-            self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "15")
+            self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "16")
             self.assertEqual(conexion.execute("PRAGMA quick_check").fetchone()[0], "ok")
             self.assertEqual(conexion.execute("PRAGMA foreign_key_check").fetchall(), [])
 

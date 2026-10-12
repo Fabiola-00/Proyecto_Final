@@ -6,7 +6,7 @@
     <label>Nombre<input name="nombre" maxlength="120" required></label>
     <label>Fecha de inicio<input name="fecha_inicio" type="date" required></label>
     <label>Fecha de fin<input name="fecha_fin" type="date" required></label>
-    <label>Estado inicial<select name="estado"><option value="BORRADOR">Borrador</option><option value="ACTIVO">Activo</option></select></label>
+    <input type="hidden" name="estado" value="BORRADOR"><p>Se crea un borrador anual (enero–diciembre). Configura sus fuentes y publícalo desde <a href="{{ url_for('periodos_5b.pagina') }}">Períodos y configuración</a>.</p>
     <button type="submit">Crear período</button>
   </form>
   <p id="periodo-mensaje" class="mensaje" role="status"></p>

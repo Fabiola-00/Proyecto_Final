@@ -184,11 +184,11 @@ def listar_periodos():
 def crear_periodo():
     data = _json() or {}
     name, start, end, state = (data.get(key) for key in ("nombre", "fecha_inicio", "fecha_fin", "estado"))
-    if not isinstance(name, str) or not 2 <= len(name.strip()) <= 120 or not isinstance(state, str) or state not in {"BORRADOR", "ACTIVO"}:
+    if not isinstance(name, str) or not 2 <= len(name.strip()) <= 120 or not isinstance(state, str) or state != "BORRADOR":
         return _bad("Nombre o estado de período no válido.")
     try:
         start_date, end_date = date.fromisoformat(start), date.fromisoformat(end)
-        if end_date < start_date:
+        if (start_date.month, start_date.day) != (1, 1) or (end_date.month, end_date.day) != (12, 31) or start_date.year != end_date.year:
             raise ValueError
     except (ValueError, TypeError):
         return _bad("El rango de fechas no es válido.")
@@ -548,6 +548,8 @@ def registrar_calificacion(assignment_id):
     assignment = _authorized_assignment(connection, assignment_id)
     if not assignment:
         return rechazar("Asignación no encontrada en tu ámbito.", "asignacion_no_encontrada", 404)
+    if connection.execute("SELECT 1 FROM configuraciones_5b WHERE periodo_id=? AND estado='PUBLICADA'", (assignment["periodo_id"],)).fetchone():
+        return rechazar("Usa Notas operativas 5B para este período configurado.", "periodo_configurado_5b", 409)
     if assignment["categoria"] == "PSICOMETRICA":
         return rechazar("Las calificaciones psicométricas no se editan desde el flujo manual.", "nota_psicometrica_protegida", 403)
     if assignment["periodo_estado"] == "CERRADO":

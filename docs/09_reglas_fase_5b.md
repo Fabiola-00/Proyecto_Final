@@ -1,12 +1,12 @@
 # 09. Definición de reglas de Fase 5B
 
-Fecha: **2026-10-11**. Estado: **primera entrega implementada (v15); ciclo, cálculo y cierres pendientes**. Las decisiones del solicitante configuran el prototipo; no equivalen a validación o aprobación institucional de una puntuación.
+Fecha: **2026-10-11**. Estado: **segunda entrega implementada (v16); cálculo y cierres/reaperturas pendientes**. Las decisiones del solicitante configuran el prototipo; no equivalen a validación o aprobación institucional de una puntuación.
 
 ## Objetivo y estado contrastado
 
-Definir períodos, versiones de ponderación, faltantes, precisión y resultados reproducibles antes de programarlos. Existen períodos BORRADOR/ACTIVO/CERRADO, alta/listado administrativos, asignaciones y notas 0–100 con historial. Hay tablas versiones_ponderacion (BORRADOR/APROBADA/RETIRADA) y pesos_evaluacion (peso entre 0 y 1), pero no API de publicación, validación transaccional de suma, cierre/reapertura ni cálculo de resultados. No hay vínculos de versiones a instantáneas de resultados calculados.
+Definir períodos, versiones de ponderación, faltantes, precisión y resultados reproducibles antes de programarlos. Existen períodos BORRADOR/ACTIVO/CERRADO, alta/listado administrativos, asignaciones y notas 0–100 con historial. Hay tablas versiones_ponderacion (BORRADOR/APROBADA/RETIRADA) y pesos_evaluacion (peso entre 0 y 1), sin gestión completa para pesos arbitrarios. La configuración operativa 5B tiene publicación propia y regla fija PROMEDIO_TRES_V1 en v16; cierre/reapertura y cálculo de resultados siguen pendientes. No hay vínculos de versiones a instantáneas de resultados calculados.
 
-Fase 5A tiene cierre técnico y aceptación operativa humana pendiente. No se modifican datos ni contratos existentes mientras se define 5B. Las fechas de períodos históricos permanecen intactas; cualquier incompatibilidad con las reglas nuevas requerirá tratamiento explícito, sin renombrar/cerrar/ajustar períodos automáticamente.
+Fase 5A tiene cierre técnico y aceptación operativa humana pendiente. Las reglas nuevas se aplican a períodos configurados explícitamente, sin adoptar notas anteriores automáticamente. Las fechas de períodos históricos permanecen intactas; cualquier incompatibilidad con las reglas nuevas requerirá tratamiento explícito, sin renombrar/cerrar/ajustar períodos automáticamente.
 
 ## Decisiones confirmadas por el solicitante
 
@@ -110,7 +110,7 @@ Conservar precisión en promedios internos y redondear solo el resultado final a
 
 Primera entrega v15: rol Comandante/cuenta única/panel, consulta de seguimiento autorizada sin observaciones ajenas, cinco fuentes de notas independientes, respaldo académico y correcciones con responsable/autor preservados. Esquemas anteriores y notas históricas conservados, sin adopción automática.
 
-Aún pendientes ciclo anual/publicación/congelación, asociación de fuentes con evaluaciones configuradas, activo único por período, cálculo y cierres/reaperturas con instantáneas. No confundir instantáneas del respaldo académico con instantáneas de resultado cerrado; estas últimas no existen aún. Pantalla/API de notas por asignación anteriores siguen compatibles y no se incorporan al cálculo 5B automáticamente.
+Segunda entrega v16 implementa borradores anuales/publicación/congelación, asociación de fuentes con evaluaciones configuradas y activo único bajo concurrencia. Aún pendientes cálculo y cierres/reaperturas con instantáneas. No confundir instantáneas del respaldo académico con instantáneas de resultado cerrado; estas últimas no existen aún. Pantalla/API de notas por asignación anteriores siguen para períodos sin configuración; su registro en períodos configurados 5B se rechaza para evitar omitir fuentes/respaldo. No se incorporan al cálculo 5B automáticamente.
 
 No se asignan umbrales de aprobación, apto/no apto, promociones ni decisiones automáticas. Sin aprobación institucional de puntuación ni psicometría; fuera de alcance grupos múltiples. Aceptación de 5A/piloto y privacidad/retención mantienen sus pendientes.
 
@@ -129,8 +129,21 @@ Referencias: [plan](05_plan_desarrollo.md), [cierre 5A](08_cierre_fase_5a.md), [
 ## Secuencia concreta para implementar 5B
 
 1. **Implementado v15:** rol Comandante/cargo único SBRAB, fuentes separadas, respaldo académico y autorización por actor/objeto; migración preservando históricos.
-2. Borradores/configuración anual, publicación/congelación, activación única y guardado/corrección solo en ACTIVO.
+2. **Implementado v16:** borradores/configuración anual, publicación/congelación, activación única y guardado/corrección solo en ACTIVO con configuración PUBLICADA.
 3. Cálculo provisional exacto, faltantes, redondeo y casos de aceptación aprobados.
 4. Cierre con instantáneas, reapertura motivada, conservación/reproducción y revisión por rol.
 
-El siguiente trabajo continúa desde la etapa 2. La base local ya está migrada a v15; no recrear entorno/base ni repetir migración sin necesidad.
+El siguiente trabajo continúa desde la etapa 3. La base local ya está migrada a v16; no recrear entorno/base ni repetir migración sin necesidad.
+
+
+## Segunda entrega de Fase 5B — 2026-10-11 (v16)
+
+Administrador dispone de **Períodos y configuración**: crea borradores anuales enero–diciembre, configura cinco fuentes mediante modal y publica/activa en una transacción. La revisión del borrador evita sobrescribir cambios concurrentes. Publicación exige fuentes completas con evaluaciones manuales activas de categoría compatible; dos fuentes de la misma categoría pueden usar la misma evaluación de catálogo, manteniendo sus notas independientes. Configuración versión 1 con regla PROMEDIO_TRES_V1 (igual importancia de los tres componentes); no habilita porcentajes arbitrarios ni cálculo aún.
+
+La publicación congela fuentes, nombres/códigos/categorías, autor y fecha UTC. Cambiar el catálogo después no reescribe esas referencias. Un solo período puede activarse bajo concurrencia, también protegido por triggers. No se cierran otros períodos automáticamente. Notas/correcciones 5B requieren período ACTIVO y configuración PUBLICADA; configuración_id/evaluacion_id se resuelven en servidor, sin aceptar esos valores del cliente. La API de calificación anterior no registra notas en períodos configurados 5B; los registros anteriores siguen consultables.
+
+Migración v16 aditiva: configuraciones_5b y fuentes_configuracion_5b, dos referencias nullable en notas_operativas y restricciones. Respaldo local previo, 26 tablas anteriores preservadas, inicialización repetida, quick_check=ok y cero infracciones FK. Períodos y notas históricas sin modificación ni adopción; referencias anteriores NULL. La base local no tenía períodos ACTIVO; una base histórica que sí los tenga bloqueará nuevas activaciones hasta un tratamiento explícito en la entrega de cierre, sin alterar sus estados al migrar.
+
+Verificación actual: **77 pruebas aprobadas en 86,620 s** (bases aisladas), incluyendo publicación concurrente, revisiones obsoletas, fuentes incompletas/categoría inválida, congelación, permisos/CSRF y preservación v15. Ocho escenarios Chromium con API simulada a 360/1447 px: publicación y modal administrativo, notas por los tres roles y bloqueo de edición sin configuración publicada; sin desborde ni errores JavaScript. Compilación Python, sintaxis de los tres JavaScript, enlaces locales y git diff --check correctos.
+
+Pendientes: cálculo provisional exacto/faltantes/redondeo, cierre y reapertura motivada con cada instantánea preservada, aceptación operativa e institucional/privacidad antes del piloto. **No se declara cerrada Fase 5B.** Siguiente entrega: cálculo provisional vinculado a configuración y últimas notas válidas, separado de asistencia y psicometría.

@@ -61,7 +61,7 @@ if (seguimientoFiltros) {
     const actual = ++revision; lista.replaceChildren();
     const datos = await apiJson(`/api/5b/personas/${persona}?periodo_id=${periodo}`);
     if (actual !== revision) return;
-    mensaje.textContent = `${datos.persona.nombre} · ${datos.periodo.nombre} · ${datos.periodo.estado}`;
+    mensaje.textContent = `${datos.persona.nombre} · ${datos.periodo.nombre} · ${datos.periodo.estado}${datos.configuracion?.estado !== "PUBLICADA" ? " · Sin configuración 5B publicada" : ""}`;
     document.querySelector("#seguimiento-perfil").replaceChildren(elemento("p", `${datos.persona.codigo_instructor || "Sin código"} · ${datos.persona.grado || "Sin grado"} · ${datos.persona.especialidad_principal || "Sin especialidad"}`));
     const formacion = document.querySelector("#seguimiento-formacion"); formacion.replaceChildren(elemento("h3", "Formación registrada"));
     if (!datos.formacion.length) formacion.append(elemento("p", "Sin formación registrada: Académica pendiente."));
@@ -77,6 +77,8 @@ if (seguimientoFiltros) {
     Object.entries(fuentes).forEach(([fuente, nombre]) => {
       const notas = datos.notas.filter((nota) => nota.fuente === fuente); const ultima = notas[notas.length - 1];
       const tarjeta = elemento("article", undefined, "tarjeta-modulo"); tarjeta.append(elemento("h3", nombre), elemento("p", ultima ? `Nota: ${ultima.nota_0_100}` : "Pendiente"));
+      const configurada = datos.configuracion?.fuentes.find((f) => f.fuente === fuente);
+      if (configurada) tarjeta.append(elemento("p", configurada.nombre));
       if (notas.length) {
         const historial = elemento("div");
         notas.forEach((nota) => {
@@ -90,7 +92,7 @@ if (seguimientoFiltros) {
       let autorizado = rol === "COMANDANTE_GRUPO" ? fuente === "DESEMPENO_COMANDANTE" : rol === "JEFE_PERSONAL" ? fuente !== "DESEMPENO_COMANDANTE" : !!ultima || fuente.startsWith("FISICA_");
       if (["DESEMPENO_COMANDANTE", "DESEMPENO_JEFE"].includes(fuente) && ultima && rol !== "ADMINISTRADOR" && ultima.evaluador_id !== Number(document.body.dataset.usuarioId)) autorizado = false;
       if (fuente === "ACADEMICA" && !datos.formacion.length) autorizado = false;
-      if (datos.periodo.estado === "ACTIVO" && autorizado) {
+      if (datos.periodo.estado === "ACTIVO" && datos.configuracion?.estado === "PUBLICADA" && autorizado) {
         const form = elemento("form", undefined, "formulario-inline"); const label = elemento("label", "Nota de 0 a 100");
         const nota = elemento("input"); nota.name = "nota_0_100"; nota.type = "number"; nota.min = "0"; nota.max = "100"; nota.step = "0.01"; nota.required = true; nota.value = ultima?.nota_0_100 || ""; label.append(nota); form.append(label);
         const observado = elemento("label", "Observación propia (opcional)"); const observacion = elemento("textarea"); observacion.name = "observacion"; observacion.maxLength = 2000; observado.append(observacion); form.append(observado);

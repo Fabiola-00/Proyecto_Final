@@ -1,0 +1,8 @@
+{% extends "_dashboard_base.html" %}
+{% block contenido %}
+<section class="seccion-panel"><h2>Borrador anual</h2>
+<form id="periodo-5b-alta" class="tarjeta-amplia formulario-inline"><label>Nombre<input name="nombre" maxlength="120" required></label><label>Gestión<input name="ano" type="number" min="1" max="9999" step="1" required></label><button>Crear borrador</button></form>
+<p>Los períodos nuevos van del 1 de enero al 31 de diciembre. Solo puede estar activo uno. <a href="{{ url_for('evaluations.pagina_catalogo') }}">Gestionar el catálogo de evaluaciones</a>.</p>
+<p id="periodos-5b-mensaje" class="mensaje" role="status" aria-live="polite"></p><div id="periodos-5b-lista" class="rejilla-modulos"></div>
+</section><script src="{{ url_for('static', filename='js/periodos_5b.js') }}" defer></script>
+{% endblock %}

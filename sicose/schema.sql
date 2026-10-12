@@ -240,6 +240,8 @@ CREATE TABLE IF NOT EXISTS notas_operativas (
     id INTEGER PRIMARY KEY,
     voluntario_id INTEGER NOT NULL REFERENCES voluntarios(usuario_id) ON DELETE RESTRICT,
     periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+    configuracion_id INTEGER REFERENCES configuraciones_5b(id) ON DELETE RESTRICT,
+    evaluacion_id INTEGER REFERENCES evaluaciones(id) ON DELETE RESTRICT,
     fuente TEXT NOT NULL CHECK(fuente IN ('FISICA_1','FISICA_2','ACADEMICA','DESEMPENO_JEFE','DESEMPENO_COMANDANTE')),
     puntos_centesimas INTEGER NOT NULL CHECK(typeof(puntos_centesimas)='integer' AND puntos_centesimas BETWEEN 0 AND 10000),
     evaluador_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
@@ -260,4 +262,25 @@ CREATE TABLE IF NOT EXISTS respaldo_academico (
     entidad TEXT,
     fecha TEXT,
     PRIMARY KEY(nota_id,capacitacion_id)
+);
+
+CREATE TABLE IF NOT EXISTS configuraciones_5b (
+    id INTEGER PRIMARY KEY,
+    periodo_id INTEGER NOT NULL UNIQUE REFERENCES periodos(id) ON DELETE RESTRICT,
+    version INTEGER NOT NULL DEFAULT 1 CHECK(version=1),
+    revision INTEGER NOT NULL DEFAULT 1 CHECK(revision>0),
+    estado TEXT NOT NULL DEFAULT 'BORRADOR' CHECK(estado IN ('BORRADOR','PUBLICADA')),
+    regla TEXT NOT NULL DEFAULT 'PROMEDIO_TRES_V1' CHECK(regla='PROMEDIO_TRES_V1'),
+    creada_por INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+    publicada_por INTEGER REFERENCES usuarios(id) ON DELETE RESTRICT,
+    publicada_en TEXT
+);
+CREATE TABLE IF NOT EXISTS fuentes_configuracion_5b (
+    configuracion_id INTEGER NOT NULL REFERENCES configuraciones_5b(id) ON DELETE RESTRICT,
+    fuente TEXT NOT NULL CHECK(fuente IN ('FISICA_1','FISICA_2','ACADEMICA','DESEMPENO_JEFE','DESEMPENO_COMANDANTE')),
+    evaluacion_id INTEGER NOT NULL REFERENCES evaluaciones(id) ON DELETE RESTRICT,
+    nombre TEXT NOT NULL,
+    codigo TEXT NOT NULL,
+    categoria TEXT NOT NULL,
+    PRIMARY KEY(configuracion_id,fuente)
 );

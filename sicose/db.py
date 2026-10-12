@@ -147,6 +147,11 @@ def inicializar_base_datos():
     columnas_cursos = {fila["name"] for fila in conexion.execute("PRAGMA table_info(capacitaciones)")}
     if "curso_id" not in columnas_cursos:
         conexion.execute("ALTER TABLE capacitaciones ADD COLUMN curso_id INTEGER REFERENCES cursos(id) ON DELETE RESTRICT")
+    columnas_notas = {fila["name"] for fila in conexion.execute("PRAGMA table_info(notas_operativas)")}
+    for campo, tabla in (("configuracion_id", "configuraciones_5b"), ("evaluacion_id", "evaluaciones")):
+        if campo not in columnas_notas:
+            conexion.execute(f"ALTER TABLE notas_operativas ADD COLUMN {campo} INTEGER REFERENCES {tabla}(id) ON DELETE RESTRICT")
+    _asegurar_periodos_5b(conexion)
     columnas_asistencias = {fila["name"] for fila in conexion.execute("PRAGMA table_info(asistencias)")}
     if "estado_detalle" not in columnas_asistencias:
         conexion.execute(
@@ -178,10 +183,44 @@ def inicializar_base_datos():
         ((rol,) for rol in ROLES),
     )
     conexion.execute(
-        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '15')
+        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '16')
            ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor"""
     )
     conexion.commit()
+
+
+def _asegurar_periodos_5b(conexion):
+    """Proteger cambios nuevos sin cerrar ni modificar períodos históricos."""
+    conexion.executescript("""
+    CREATE TRIGGER IF NOT EXISTS periodo_activo_insertar BEFORE INSERT ON periodos
+    WHEN NEW.estado='ACTIVO' AND EXISTS(SELECT 1 FROM periodos WHERE estado='ACTIVO')
+    BEGIN SELECT RAISE(ABORT,'periodo_activo_existente'); END;
+    CREATE TRIGGER IF NOT EXISTS periodo_activo_actualizar BEFORE UPDATE OF estado ON periodos
+    WHEN NEW.estado='ACTIVO' AND OLD.estado!='ACTIVO' AND EXISTS(SELECT 1 FROM periodos WHERE estado='ACTIVO' AND id!=NEW.id)
+    BEGIN SELECT RAISE(ABORT,'periodo_activo_existente'); END;
+    CREATE TRIGGER IF NOT EXISTS configuracion_publicada_actualizar BEFORE UPDATE ON configuraciones_5b
+    WHEN OLD.estado='PUBLICADA' BEGIN SELECT RAISE(ABORT,'configuracion_congelada'); END;
+    CREATE TRIGGER IF NOT EXISTS configuracion_publicada_borrar BEFORE DELETE ON configuraciones_5b
+    WHEN OLD.estado='PUBLICADA' BEGIN SELECT RAISE(ABORT,'configuracion_congelada'); END;
+    CREATE TRIGGER IF NOT EXISTS fuente_publicada_insertar BEFORE INSERT ON fuentes_configuracion_5b
+    WHEN EXISTS(SELECT 1 FROM configuraciones_5b WHERE id=NEW.configuracion_id AND estado='PUBLICADA')
+    BEGIN SELECT RAISE(ABORT,'configuracion_congelada'); END;
+    CREATE TRIGGER IF NOT EXISTS fuente_publicada_actualizar BEFORE UPDATE ON fuentes_configuracion_5b
+    WHEN EXISTS(SELECT 1 FROM configuraciones_5b WHERE id IN (OLD.configuracion_id,NEW.configuracion_id) AND estado='PUBLICADA')
+    BEGIN SELECT RAISE(ABORT,'configuracion_congelada'); END;
+    CREATE TRIGGER IF NOT EXISTS fuente_publicada_borrar BEFORE DELETE ON fuentes_configuracion_5b
+    WHEN EXISTS(SELECT 1 FROM configuraciones_5b WHERE id=OLD.configuracion_id AND estado='PUBLICADA')
+    BEGIN SELECT RAISE(ABORT,'configuracion_congelada'); END;
+    CREATE TRIGGER IF NOT EXISTS periodo_publicado_fechas BEFORE UPDATE OF nombre,fecha_inicio,fecha_fin ON periodos
+    WHEN (NEW.nombre!=OLD.nombre OR NEW.fecha_inicio!=OLD.fecha_inicio OR NEW.fecha_fin!=OLD.fecha_fin)
+    AND EXISTS(SELECT 1 FROM configuraciones_5b WHERE periodo_id=OLD.id AND estado='PUBLICADA')
+    BEGIN SELECT RAISE(ABORT,'periodo_congelado'); END;
+    CREATE TRIGGER IF NOT EXISTS nota_operativa_configurada BEFORE INSERT ON notas_operativas
+    WHEN NOT EXISTS(SELECT 1 FROM configuraciones_5b c JOIN fuentes_configuracion_5b f ON f.configuracion_id=c.id
+                    JOIN periodos p ON p.id=c.periodo_id WHERE c.id=NEW.configuracion_id AND c.periodo_id=NEW.periodo_id
+                    AND c.estado='PUBLICADA' AND p.estado='ACTIVO' AND f.fuente=NEW.fuente AND f.evaluacion_id=NEW.evaluacion_id)
+    BEGIN SELECT RAISE(ABORT,'nota_sin_configuracion_publicada'); END;
+    """)
 
 
 def _asegurar_comandante_unico(conexion):
