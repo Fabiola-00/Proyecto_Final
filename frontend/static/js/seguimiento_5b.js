@@ -66,6 +66,7 @@ if (seguimientoFiltros) {
     const formacion = document.querySelector("#seguimiento-formacion"); formacion.replaceChildren(elemento("h3", "Formación registrada"));
     if (!datos.formacion.length) formacion.append(elemento("p", "Sin formación registrada: Académica pendiente."));
     datos.formacion.forEach((curso) => formacion.append(elemento("p", `${curso.nombre} · ${curso.fecha || "Sin fecha"} · ${curso.entidad || "Sin entidad"}`)));
+    (datos.participaciones_curso || []).forEach((curso) => formacion.append(elemento("p", `${curso.nombre_curso} · ${curso.estado} · ${curso.fecha_finalizacion || "Sin finalización personal"} · ${curso.puntaje === null ? "Sin puntaje obtenido" : curso.puntaje + " puntos"}`)));
     const asistencias = document.querySelector("#seguimiento-asistencias"); asistencias.replaceChildren(elemento("h3", "Asistencias del período"));
     if (!datos.asistencias.length) asistencias.append(elemento("p", "Sin registros de asistencia."));
     datos.asistencias.forEach((registro) => asistencias.append(elemento("p", `${registro.fecha} · ${registro.actividad} · ${registro.estado}`)));
@@ -89,12 +90,14 @@ if (seguimientoFiltros) {
         });
         tarjeta.append(botonEdicion(`Historial · ${nombre}`, historial, "Ver historial"));
       }
-      let autorizado = rol === "COMANDANTE_GRUPO" ? fuente === "DESEMPENO_COMANDANTE" : rol === "JEFE_PERSONAL" ? fuente !== "DESEMPENO_COMANDANTE" : !!ultima || fuente.startsWith("FISICA_");
-      if (["DESEMPENO_COMANDANTE", "DESEMPENO_JEFE"].includes(fuente) && ultima && rol !== "ADMINISTRADOR" && ultima.evaluador_id !== Number(document.body.dataset.usuarioId)) autorizado = false;
-      if (fuente === "ACADEMICA" && !datos.formacion.length) autorizado = false;
-      if (datos.periodo.estado === "ACTIVO" && datos.configuracion?.estado === "PUBLICADA" && autorizado) {
+      const autorizado = ["ADMINISTRADOR", "JEFE_PERSONAL"].includes(rol);
+      const tieneRespaldo = fuente !== "ACADEMICA" || datos.formacion.length > 0;
+      if (datos.periodo.estado === "ACTIVO" && datos.persona.estado === "ACTIVO" && datos.configuracion?.estado === "PUBLICADA" && autorizado && tieneRespaldo && datos.habilitaciones?.[fuente]) {
         const form = elemento("form", undefined, "formulario-inline"); const label = elemento("label", "Nota de 0 a 100");
         const nota = elemento("input"); nota.name = "nota_0_100"; nota.type = "number"; nota.min = "0"; nota.max = "100"; nota.step = "0.01"; nota.required = true; nota.value = ultima?.nota_0_100 || ""; label.append(nota); form.append(label);
+        if (fuente === "DESEMPENO_COMANDANTE") {
+          const jefeLabel = elemento("label", "Nombre del Comandante evaluador"); const jefeInput = elemento("input"); jefeInput.name = "comandante_nombre"; jefeInput.maxLength = 160; jefeInput.required = true; jefeInput.value = ultima?.evaluador_nombre || ""; jefeLabel.append(jefeInput); form.append(jefeLabel);
+        }
         const observado = elemento("label", "Observación propia (opcional)"); const observacion = elemento("textarea"); observacion.name = "observacion"; observacion.maxLength = 2000; observado.append(observacion); form.append(observado);
         let referencias;
         if (fuente === "ACADEMICA") {

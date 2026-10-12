@@ -1,5 +1,6 @@
 {% extends "_dashboard_base.html" %}
 {% block contenido %}
+{% if current_user.rol == 'ADMINISTRADOR' %}
 <section class="seccion-panel">
   <div class="titulo-seccion"><h2>Períodos</h2></div>
   <form id="periodo-form" class="tarjeta-amplia formulario-inline">
@@ -12,6 +13,7 @@
   <p id="periodo-mensaje" class="mensaje" role="status"></p>
   <div id="periodos-lista" class="rejilla-modulos"></div>
 </section>
+{% endif %}
 <section class="seccion-panel">
   <div class="titulo-seccion"><h2>Catálogo</h2></div>
   <div class="tarjeta-amplia"><div><p>Los registros psicométricos quedan inactivos mientras el instrumento no tenga licencia, versión, puntuación y revisión profesional aprobadas. No se cargan reactivos de candidatos pendientes.</p>
@@ -27,6 +29,7 @@
   <div class="titulo-seccion"><h2>Evaluaciones</h2></div>
   <div id="evaluaciones-lista" class="rejilla-modulos"></div>
 </section>
+{% if current_user.rol == 'ADMINISTRADOR' %}
 <section class="seccion-panel">
   <div class="titulo-seccion"><h2>Asignar a Instructor Voluntario</h2></div>
   <form id="asignacion-form" class="tarjeta-amplia formulario-inline">
@@ -38,4 +41,5 @@
   <p id="asignacion-mensaje" class="mensaje" role="status"></p>
 </section>
 <section class="seccion-panel"><div class="titulo-seccion"><h2>Asignaciones</h2></div><div id="asignaciones-admin-lista" class="rejilla-modulos"></div></section>
+{% endif %}
 {% endblock %}

@@ -593,3 +593,82 @@ a.modulo-estado:hover { text-decoration: underline; }
 .accion-icono svg { width: 1.1rem; height: 1.1rem; }
 
 #calificacion-form[hidden] { display: none; }
+
+/* Evaluaciones por año: tabla proporcionada y detalle compacto. */
+.evaluaciones-filtro { display: grid; grid-template-columns: minmax(12rem, 22rem) auto auto; justify-content: start; align-items: end; gap: .75rem; }
+.evaluaciones-filtro label { min-width: 0; margin: 0; }
+.evaluaciones-filtro button { white-space: nowrap; font-size: .8rem; }
+.evaluaciones-filtro button:disabled { cursor: not-allowed; }
+.tabla-evaluaciones { min-width: 54rem; table-layout: fixed; }
+.tabla-evaluaciones th, .tabla-evaluaciones td { vertical-align: middle; padding: .75rem .85rem; }
+.tabla-evaluaciones th { font-size: .72rem; letter-spacing: .015em; }
+.tabla-evaluaciones td { font-size: .8rem; }
+.evaluaciones-col-nombre { width: 30%; }
+.evaluaciones-col-codigo { width: 14%; }
+.evaluaciones-col-estado { width: 12%; }
+.evaluaciones-col-cantidad { width: 11%; }
+.evaluaciones-col-avance { width: 14%; }
+.evaluaciones-col-acciones { width: 8%; }
+.tabla-evaluaciones .evaluaciones-nombre { font-weight: 600; overflow-wrap: anywhere; }
+.tabla-evaluaciones .evaluaciones-codigo, .tabla-evaluaciones .evaluaciones-avance { white-space: nowrap; }
+.tabla-evaluaciones .evaluaciones-cantidad, .tabla-evaluaciones .evaluaciones-acciones { text-align: center; font-variant-numeric: tabular-nums; }
+.tabla-evaluaciones th:nth-child(4), .tabla-evaluaciones th:nth-child(5), .tabla-evaluaciones th:last-child { text-align: center; }
+.tabla-evaluaciones .estado-tabla { white-space: nowrap; }
+.tabla-evaluaciones .accion-icono { display: inline-flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; min-height: 2.25rem; padding: 0; margin: 0; border-radius: .55rem; }
+.detalle-evaluaciones { display: grid; gap: 0; }
+.detalle-evaluacion { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: .75rem; padding: .85rem 0; border-bottom: 1px solid var(--border); }
+.detalle-evaluacion:last-child { border-bottom: 0; }
+.evaluacion-informacion { min-width: 0; }
+.evaluacion-informacion h3 { margin: 0; font-size: .85rem; font-weight: 650; overflow-wrap: anywhere; }
+.evaluacion-informacion small { display: block; margin-top: .3rem; color: var(--muted); font-size: .75rem; }
+.evaluacion-indicadores { display: flex; flex-wrap: wrap; justify-content: end; gap: .4rem; }
+.evaluacion-etiqueta { display: inline-flex; padding: .25rem .5rem; border-radius: 99px; font-size: .67rem; color: var(--muted); background: var(--surface-soft); white-space: nowrap; }
+.evaluacion-habilitada, .evaluacion-finalizada { color: var(--success); background: var(--success-soft); }
+.evaluacion-pendiente, .evaluacion-en_progreso { color: var(--warning); background: var(--warning-soft); }
+.evaluacion-no_cumplida { color: var(--danger); background: var(--danger-soft); }
+.detalle-evaluacion .evaluacion-alternar { min-height: 2rem; padding: .4rem .65rem; font-size: .72rem; }
+.evaluaciones-ayuda { margin: 0 0 .5rem; font-size: .78rem; color: var(--muted); }
+
+.tabla-cursos { min-width: 62rem; table-layout: fixed; }
+.tabla-cursos th:nth-child(1) { width: 25%; }
+.tabla-cursos th:nth-child(2) { width: 16%; }
+.tabla-cursos th:nth-child(3) { width: 13%; }
+.tabla-cursos th:nth-child(4) { width: 13%; }
+.tabla-cursos th:nth-child(5) { width: 7%; }
+.tabla-cursos th:nth-child(6) { width: 11%; }
+.tabla-cursos th:nth-child(7) { width: 15%; }
+.tabla-cursos td, .tabla-participantes-curso td { vertical-align: middle; overflow-wrap: anywhere; }
+.tabla-cursos td small { display: block; color: var(--muted); margin-top: .35rem; }
+.acciones-curso { display: flex; align-items: center; flex-wrap: nowrap; gap: .4rem; }
+.acciones-curso .accion-icono { display: inline-flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; min-height: 2.25rem; flex: 0 0 2.25rem; padding: 0; margin: 0; }
+.acciones-curso .accion-icono:disabled { cursor: not-allowed; }
+.estado-curso { display: inline-flex; padding: .3rem .55rem; border-radius: 99px; font-size: .7rem; font-weight: 650; color: var(--muted); background: var(--surface-soft); }
+.estado-curso-proximo { color: #735600; background: #fff2bf; }
+.estado-curso-en-curso { color: var(--success); background: var(--success-soft); }
+.estado-curso-finalizado { color: var(--danger); background: var(--danger-soft); }
+.curso-estado-previo { display: flex; align-items: center; min-height: 2.6rem; margin-top: .35rem; padding: .6rem .75rem; border-radius: .55rem; background: var(--surface-soft); color: var(--muted); font-size: .8rem; }
+.curso-estado-previo.estado-curso-proximo { color: #735600; background: #fff2bf; }
+.curso-estado-previo.estado-curso-en-curso { color: var(--success); background: var(--success-soft); }
+.curso-estado-previo.estado-curso-finalizado { color: var(--danger); background: var(--danger-soft); }
+.tabla-participantes-curso { min-width: 40rem; }
+.participante-cuenta { display: block; font-size: .65rem; margin-top: .3rem; }
+.participante-activo { color: var(--success); }
+.participante-inactivo { color: var(--danger); }
+.finalizacion-personal { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; grid-column: 1 / -1; }
+.finalizacion-personal[hidden] { display: none; }
+.historial-formacion { padding: .75rem 0; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+.historial-formacion p { font-size: .78rem; margin: .4rem 0 0; color: var(--muted); }
+.curso-personal { padding: .9rem 0; border-bottom: 1px solid var(--border); }
+.curso-personal h3 { margin: 0; font-size: .9rem; }
+.curso-personal p { margin: .35rem 0; color: var(--muted); font-size: .8rem; }
+.curso-personal > strong { font-size: .75rem; color: var(--text); }
+.cursos-exito { color: var(--success); }
+@media (max-width: 640px) {
+  .evaluaciones-filtro { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .evaluaciones-filtro label { grid-column: 1 / -1; }
+  .evaluaciones-filtro button { white-space: normal; padding-inline: .6rem; }
+  .detalle-evaluacion { grid-template-columns: minmax(0, 1fr) auto; gap: .6rem; }
+  .evaluacion-indicadores { grid-column: 1 / -1; grid-row: 2; justify-content: start; }
+  .detalle-evaluacion .evaluacion-alternar { grid-column: 2; grid-row: 1; }
+  .finalizacion-personal { grid-template-columns: minmax(0, 1fr); }
+}

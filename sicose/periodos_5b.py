@@ -64,9 +64,9 @@ def guardar_fuentes(c, cid, filas):
 @periodos_5b_bp.get("/gestion/periodos-5b")
 @role_required("ADMINISTRADOR")
 def pagina():
-    return render_template("gestion_periodos_5b.html", titulo_pagina="Períodos y configuración 5B",
+    return render_template("gestion_periodos_5b.html", titulo_pagina="Gestiones de evaluaciones",
                            nav_activo="periodos_5b", indicadores=[], periodo_actual=db.periodo_actual(),
-                           descripcion="Borradores anuales y configuración de fuentes.")
+                           descripcion="Administración exclusiva de gestiones anuales y su configuración.")
 
 
 @periodos_5b_bp.get("/api/admin/5b/periodos")
@@ -78,6 +78,7 @@ def listar():
         periodo = dict(fila)
         periodo["anual"] = anual(periodo)
         periodo["configuracion"] = configuracion(c, periodo["id"])
+        periodo["tiene_asignaciones"] = bool(c.execute("SELECT 1 FROM asignaciones_evaluacion WHERE periodo_id=? LIMIT 1", (periodo["id"],)).fetchone())
         periodo["tiene_notas_5b"] = bool(c.execute("SELECT 1 FROM notas_operativas WHERE periodo_id=? LIMIT 1", (periodo["id"],)).fetchone())
         periodos.append(periodo)
     return jsonify(periodos=periodos)
@@ -102,6 +103,40 @@ def crear():
         c.rollback()
         return fallo("Ya existe un período con ese nombre.", 409)
     return jsonify(ok=True, id=pid), 201
+
+
+@periodos_5b_bp.patch("/api/admin/5b/periodos/<int:pid>")
+@role_required("ADMINISTRADOR")
+def editar_gestion(pid):
+    datos = request.get_json(silent=True)
+    if not isinstance(datos, dict) or set(datos) != {"nombre", "ano", "nombre_anterior", "ano_anterior"}:
+        return fallo("Ingresa nombre, año y los valores anteriores de la gestión.")
+    nombre, ano = datos["nombre"], datos["ano"]
+    if not isinstance(nombre, str) or not 2 <= len(nombre.strip()) <= 120 or type(ano) is not int or not 1 <= ano <= 9999 or not isinstance(datos["nombre_anterior"], str) or type(datos["ano_anterior"]) is not int:
+        return fallo("Nombre o año no válidos.")
+    c = db.obtener_conexion()
+    try:
+        c.execute("BEGIN IMMEDIATE")
+        periodo = c.execute("SELECT * FROM periodos WHERE id=?", (pid,)).fetchone()
+        if periodo is None:
+            c.rollback(); return fallo("Gestión no encontrada.", 404)
+        conf = configuracion(c, pid)
+        if periodo["estado"] != "BORRADOR" or not anual(periodo) or (conf and conf["estado"] == "PUBLICADA"):
+            c.rollback(); return fallo("Solo se editan gestiones anuales en borrador; las publicadas conservan sus datos.", 409)
+        if c.execute("SELECT 1 FROM notas_operativas WHERE periodo_id=?", (pid,)).fetchone() or c.execute("SELECT 1 FROM asignaciones_evaluacion WHERE periodo_id=?", (pid,)).fetchone():
+            c.rollback(); return fallo("La gestión tiene registros o asignaciones; no se reescribe su historia.", 409)
+        if (datos["nombre_anterior"], datos["ano_anterior"]) != (periodo["nombre"], int(periodo["fecha_inicio"][:4])):
+            c.rollback(); return fallo("La gestión cambió; recarga antes de editar.", 409)
+        if (nombre.strip(), ano) == (periodo["nombre"], int(periodo["fecha_inicio"][:4])):
+            c.rollback(); return jsonify(ok=True, id=pid)
+        c.execute("UPDATE periodos SET nombre=?,fecha_inicio=?,fecha_fin=? WHERE id=?", (nombre.strip(), f"{ano:04d}-01-01", f"{ano:04d}-12-31", pid))
+        if conf:
+            c.execute("UPDATE configuraciones_5b SET revision=revision+1 WHERE id=?", (conf["id"],))
+        db.registrar_auditoria(c, current_user.id, "GESTION_BORRADOR_EDITADA", "EXITOSO")
+        c.commit()
+    except (sqlite3.IntegrityError, sqlite3.OperationalError):
+        c.rollback(); return fallo("Nombre ocupado o edición concurrente; recarga las gestiones.", 409)
+    return jsonify(ok=True, id=pid)
 
 
 @periodos_5b_bp.post("/api/admin/5b/periodos/<int:pid>/configuracion")

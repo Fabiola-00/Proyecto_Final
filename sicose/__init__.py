@@ -72,6 +72,10 @@ def create_app(test_config=None):
     app.register_blueprint(asistencias_bp)
     app.register_blueprint(seguimiento_bp)
     app.register_blueprint(periodos_5b_bp)
+    from .tabla_evaluaciones import tabla_bp
+    app.register_blueprint(tabla_bp)
+    from .formacion import formacion_bp
+    app.register_blueprint(formacion_bp)
 
     @login_manager.user_loader
     def cargar_usuario(user_id):

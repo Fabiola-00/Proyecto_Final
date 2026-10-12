@@ -1,11 +1,12 @@
 {% extends "_dashboard_base.html" %}
 {% macro campos_curso() %}
 <label>Tipo<select name="tipo" required><option value="">Seleccione…</option>{% for tipo in ['Capacitación','Especialización','Actualización','Taller','Seminario (Webinar)'] %}<option>{{ tipo }}</option>{% endfor %}</select></label>
-<label>Entidad organizadora<input name="entidad" maxlength="160"></label>
+<label>Entidad organizadora<input name="entidad" maxlength="160" required></label>
 <label>Nombre del curso<input name="nombre" required maxlength="160"></label>
-<label>Fecha de inicio<input name="fecha_inicio" type="date"></label>
-<label>Fecha de fin<input name="fecha_fin" type="date"></label>
-<label>Estado<select name="estado" required><option value="">Seleccione…</option>{% for estado in ['Próximo','En curso','Finalizado'] %}<option>{{ estado }}</option>{% endfor %}</select></label>
+<label>Fecha de inicio<input name="fecha_inicio" type="date" required></label>
+<label>Fecha de fin<input name="fecha_fin" type="date" required></label>
+<label>Puntaje del curso<input name="puntaje" type="number" min="0" max="100" step="1" required></label>
+<label>Estado automático<output class="curso-estado-previo" aria-live="polite">Completa las fechas</output></label>
 <label class="campo-ancho">Observaciones adicionales (opcional)<textarea name="observaciones" maxlength="2000"></textarea></label>
 {% endmacro %}
 {% block contenido %}
@@ -13,7 +14,7 @@
 <section class="seccion-panel"><h2>Registro de curso</h2><form id="curso-catalogo-form" class="tarjeta-amplia formulario-inline">{{ campos_curso() }}<button type="submit">Registrar curso</button></form></section>
 <template id="curso-edicion-template"><form class="formulario-inline">{{ campos_curso() }}<button type="submit">Guardar cambios</button></form></template>
 {% endif %}
-<section class="seccion-panel"><h2>Capacitaciones y Cursos</h2><div id="curso-catalogo-lista" class="rejilla-modulos"></div><p id="curso-catalogo-mensaje" class="mensaje" role="status" aria-live="polite"></p></section>
+<section class="seccion-panel"><h2>Capacitaciones y Cursos</h2><p class="evaluaciones-ayuda">El estado del curso se calcula por sus fechas. Cada participante tiene su propia finalización y puntaje, con historial de cambios.</p><div id="curso-catalogo-lista"></div><p id="curso-catalogo-mensaje" class="mensaje" role="status" aria-live="polite"></p></section>
 <section class="seccion-panel"><h2>Reporte de cursos</h2>
 <form id="reporte-cursos-form" action="{{ url_for('relaciones.reporte_cursos') }}" method="get" class="tarjeta-amplia formulario-inline">
 <label>Inicio del curso desde<input name="desde" type="date" required></label>
@@ -23,4 +24,5 @@
 <button type="submit">Generar reporte PDF</button>
 <p class="campo-ancho">Rango inclusivo por fecha de inicio. Los cursos sin fecha de inicio quedan fuera del reporte.</p>
 </form><p id="reporte-cursos-mensaje" class="mensaje" role="status"></p></section>
+<script src="{{ url_for('static', filename='js/cursos.js') }}" defer></script>
 {% endblock %}

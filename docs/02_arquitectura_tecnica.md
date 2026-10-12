@@ -115,3 +115,25 @@ Pendientes: cálculo provisional exacto/faltantes/redondeo, cierre y reapertura 
 ### Módulo y contratos de períodos 5B
 
 `sicose.periodos_5b` expone la página administrativa `/gestion/periodos-5b`, GET/POST `/api/admin/5b/periodos`, POST/PATCH `/api/admin/5b/periodos/<id>/configuracion` y POST `/api/admin/5b/periodos/<id>/publicar`. POST de período recibe nombre/ano; PATCH de configuración y publicación exigen revisión vigente. BEGIN IMMEDIATE serializa publicación y edición; conflictos devuelven 409 y revierten toda la transacción. Los triggers protegen activo único, congelación y notas vinculadas. CSRF y role_required se mantienen. El alta anterior `/api/admin/periodos` solo admite BORRADOR anual.
+
+
+## Primera entrega de la reformulación — 2026-10-12 (v17)
+
+Jefe único activo con alcance global sin filtro de asignación; Comandante retirado del acceso operativo, conservado solo en datos históricos. Desempeño del Comandante transcrito por Administrador/Jefe con nombre del evaluador y autor de transcripción separados. Tabla Evaluaciones por gestión y consulta modal de activos/inactivos, habilitación individual con historial y notas 5B bloqueadas al deshabilitar; PDF administrativo con carimbo SBRAB. Instructor consulta habilitación/estado/avance por gestión, todavía sin notas publicadas.
+
+Acuerdos complementarios: Académica acumulará puntos enteros con tope 100; puntos individuales ajustables, gestión de finalización personal y cómputo único. Administrador/Jefe publicarán; después de corrección se conservará la versión publicada anterior hasta republicar. **Cursos con puntos, programación/reprogramación física, No cumplida=0, acumulación y publicación/republicación aún pendientes.** El flujo manual académico anterior y configuraciones congeladas no se convierten automáticamente. Psicometría continúa bloqueada; Fase 5B no cerrada.
+
+Evidencia vigente: 81 pruebas aprobadas en 45,711 s; ocho escenarios UI, PDF sintético de cinco páginas, compilación/sintaxis/enlaces/diff correctos. Migración v17 tras respaldo, 28 tablas anteriores preservadas, inicialización repetida, quick_check=ok, FK=0. Detalles en [reglas y estado](10_reformulacion_evaluaciones.md). Siguiente entrega: cursos con puntaje y asignación/finalización individual con historial.
+
+
+## Cursos y formación personal implementados — 2026-10-12 (v18)
+
+Administrador/Jefe registran/editar catálogo con puntaje entero 0–100, fechas/entidad obligatorias en cursos nuevos y estado automático de Bolivia. Asignación personal/múltiple sin duplicados, finalización independiente con puntaje y fecha explícitos, correcciones con actor/fecha/motivo/revisión y valores anteriores preservados. Edición del catálogo no reescribe datos capturados al asignar. Inactivos solo consulta/historial. Instructor ve sus estados y formación histórica, sin puntajes hasta publicación; Dashboard/seguimiento enlazan las participaciones. PDF de catálogo filtra estado calculado. Histórico sin datos completos permanece intacto y sin puntos inferidos.
+
+Verificación vigente: 86 pruebas aprobadas en 87,375 s; 12 escenarios UI, sin desborde/errores; migración local tras respaldo e inicialización repetida preservando 29 tablas, quick_check=ok y FK=0. Compilación, sintaxis, enlaces y diff correctos. Detalles en [reglas y entrega v18](11_cursos_formacion.md). Pendientes acumulado académico hasta 100, físicas/reprogramación/No cumplida, publicación/republicación y cierres; no se declara cierre 5B ni del piloto.
+
+
+sicose.formacion concentra validación de puntaje/fechas, fecha de Bolivia, proyección de estado del catálogo y API de participaciones. sicose.relaciones_perfil conserva las rutas existentes del catálogo/PDF, usando esa proyección. frontend/static/js/cursos.js reemplaza el bloque previo de cursos en app.js y atiende catálogo/modales y consulta propia; no agrega frameworks ni dependencias.
+
+
+Edición administrativa de gestión: PATCH `/api/admin/5b/periodos/<id>` recibe nombre/ano y nombre_anterior/ano_anterior. BEGIN IMMEDIATE, comparación de valores anteriores y bloqueo de registros/configuración publicada; actualiza fechas anuales e incrementa revisión de configuración borrador para evitar publicación desde una vista obsoleta. Auditada, con conflictos 409; role_required ADMINISTRADOR. Consulta por año del Jefe/Instructor sigue en `/api/evaluaciones/gestiones`. Sin migración de esquema.

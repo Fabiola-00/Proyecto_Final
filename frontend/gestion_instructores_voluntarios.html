@@ -5,7 +5,7 @@
   <details id="agregar-instructor-voluntario" class="bloque-alta-manual">
     <summary class="alta-manual-resumen"><span class="alta-manual-mas" aria-hidden="true">+</span><span><strong>Agregar Instructor Voluntario</strong><small>{{ 'Crear una cuenta manualmente' if current_user.rol == 'ADMINISTRADOR' else 'Solicitar alta para tu equipo' }}</small></span></summary>
     <div class="tarjeta-amplia alta-manual-contenido"><div>
-      <p>{% if current_user.rol == 'ADMINISTRADOR' %}Registra una cuenta activa o inactiva desde administración.{% else %}La solicitud quedará pendiente de aprobación administrativa y asignada a tu equipo.{% endif %} Comparte las credenciales iniciales únicamente por un canal seguro.</p>
+      <p>{% if current_user.rol == 'ADMINISTRADOR' %}Registra una cuenta activa o inactiva desde administración.{% else %}La solicitud quedará pendiente de aprobación administrativa.{% endif %} Comparte las credenciales iniciales únicamente por un canal seguro.</p>
       <form id="instructor-voluntario-form" class="formulario-inline" enctype="multipart/form-data">
         <label>Nombres<input name="nombres" maxlength="120" required></label>
         <label>Apellido paterno<input name="apellido_paterno" maxlength="80" required></label>
@@ -33,7 +33,7 @@
   {% if current_user.rol == 'ADMINISTRADOR' %}
   <section class="seccion-panel"><div class="titulo-seccion"><h2>Solicitudes pendientes</h2></div><div id="solicitudes-lista" class="rejilla-modulos"></div></section>
   {% endif %}
-  <div id="perfiles-registrados" class="titulo-seccion"><div><p class="sobrelinea">DIRECTORIO</p><h2 id="lista-voluntarios-titulo">{{ 'Todos los Instructores Voluntarios' if current_user.rol == 'ADMINISTRADOR' else 'Instructores Voluntarios activos de mi equipo' }}</h2></div></div>
+  <div id="perfiles-registrados" class="titulo-seccion"><div><p class="sobrelinea">DIRECTORIO</p><h2 id="lista-voluntarios-titulo">{{ 'Todos los Instructores Voluntarios' if current_user.rol == 'ADMINISTRADOR' else 'Instructores Voluntarios de SBRAB' }}</h2></div></div>
   <div class="tabla-contenedor"><table class="tabla-registros tabla-directorio tabla-instructores"><thead><tr><th scope="col">Nombre completo</th><th scope="col">Código</th><th scope="col">Grado</th><th scope="col">Especialidad Principal</th><th scope="col">Estado</th><th scope="col">Antigüedad</th><th scope="col">Acciones</th></tr></thead><tbody id="voluntarios-lista" aria-live="polite"></tbody></table></div>
   <p id="gestion-mensaje" class="mensaje" role="status" aria-live="polite"></p>
 </section>

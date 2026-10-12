@@ -78,7 +78,7 @@ def obtener_usuario_por_id(user_id, solo_activo=False):
                   WHERE u.id = ?"""
     parametros = [user_id]
     if solo_activo:
-        consulta += " AND u.estado = ?"
+        consulta += " AND r.nombre != 'COMANDANTE_GRUPO' AND u.estado = ?"
         parametros.append("ACTIVO")
     return _usuario_desde_fila(obtener_conexion().execute(consulta, parametros).fetchone())
 
@@ -95,7 +95,7 @@ def obtener_usuario_por_username(username):
 
 def validar_credenciales(username, password):
     fila = obtener_usuario_por_username(username)
-    if fila is None or fila["estado"] != "ACTIVO":
+    if fila is None or fila["estado"] != "ACTIVO" or fila["rol"] == "COMANDANTE_GRUPO":
         return None
     if not check_password_hash(fila["password_hash"], password):
         return None
@@ -108,6 +108,7 @@ def inicializar_base_datos():
     conexion.executescript(esquema.read_text(encoding="utf-8"))
     _migrar_nombres_rol(conexion)
     _asegurar_comandante_unico(conexion)
+    _asegurar_jefe_unico(conexion)
     columnas = {fila["name"] for fila in conexion.execute("PRAGMA table_info(usuarios)")}
     if "password_version" not in columnas:
         conexion.execute("ALTER TABLE usuarios ADD COLUMN password_version INTEGER NOT NULL DEFAULT 1")
@@ -140,6 +141,7 @@ def inicializar_base_datos():
         "entidad": "TEXT", "fecha_inicio": "TEXT", "fecha_fin": "TEXT",
         "estado": "TEXT CHECK(estado IS NULL OR estado IN ('Próximo','En curso','Finalizado'))",
         "observaciones": "TEXT",
+        "puntaje": "INTEGER CHECK(puntaje IS NULL OR (typeof(puntaje)='integer' AND puntaje BETWEEN 0 AND 100))",
     }
     for campo, definicion in campos_catalogo.items():
         if campo not in columnas_catalogo:
@@ -183,7 +185,7 @@ def inicializar_base_datos():
         ((rol,) for rol in ROLES),
     )
     conexion.execute(
-        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '16')
+        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '18')
            ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor"""
     )
     conexion.commit()
@@ -220,6 +222,20 @@ def _asegurar_periodos_5b(conexion):
                     JOIN periodos p ON p.id=c.periodo_id WHERE c.id=NEW.configuracion_id AND c.periodo_id=NEW.periodo_id
                     AND c.estado='PUBLICADA' AND p.estado='ACTIVO' AND f.fuente=NEW.fuente AND f.evaluacion_id=NEW.evaluacion_id)
     BEGIN SELECT RAISE(ABORT,'nota_sin_configuracion_publicada'); END;
+    """)
+
+
+def _asegurar_jefe_unico(conexion):
+    """Bloquear nuevos titulares simultáneos sin borrar los históricos."""
+    conexion.executescript("""
+    CREATE TRIGGER IF NOT EXISTS jefe_unico_insertar BEFORE INSERT ON usuarios
+    WHEN NEW.estado='ACTIVO' AND NEW.rol_id IN (SELECT id FROM roles WHERE nombre='JEFE_PERSONAL')
+    AND EXISTS(SELECT 1 FROM usuarios u JOIN roles r ON r.id=u.rol_id WHERE r.nombre='JEFE_PERSONAL' AND u.estado='ACTIVO')
+    BEGIN SELECT RAISE(ABORT,'jefe_activo_existente'); END;
+    CREATE TRIGGER IF NOT EXISTS jefe_unico_actualizar BEFORE UPDATE OF estado,rol_id ON usuarios
+    WHEN NEW.estado='ACTIVO' AND NEW.rol_id IN (SELECT id FROM roles WHERE nombre='JEFE_PERSONAL')
+    AND EXISTS(SELECT 1 FROM usuarios u JOIN roles r ON r.id=u.rol_id WHERE r.nombre='JEFE_PERSONAL' AND u.estado='ACTIVO' AND u.id!=NEW.id)
+    BEGIN SELECT RAISE(ABORT,'jefe_activo_existente'); END;
     """)
 
 

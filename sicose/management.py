@@ -71,7 +71,7 @@ def pagina_gestion_voluntarios():
                            nav_activo="voluntarios", indicadores=[], grados=GRADOS_INSTRUCTOR, departamentos=DEPARTAMENTOS_BOLIVIA, paises=PAISES_RESIDENCIA, ano_actual=date.today().year,
                            descripcion=("Alta manual, solicitudes pendientes y administración integral de perfiles."
                                         if current_user.rol == "ADMINISTRADOR" else
-                                        "Solicita altas y gestiona tu equipo activo asignado."),
+                                        "Solicita altas y gestiona el personal de SBRAB."),
                            periodo_actual=db.periodo_actual())
 
 
@@ -610,7 +610,7 @@ def crear_instructor():
     except Exception as error:
         conexion.rollback()
         if error.__class__.__name__ == "IntegrityError":
-            return _fallo("El nombre de usuario o correo ya está asociado a otra cuenta.", "cuenta_duplicada", 409)
+            return _fallo("Ya existe un Jefe activo o el usuario/correo está ocupado.", "cuenta_duplicada", 409)
         raise
     return jsonify(ok=True, id=usuario_id, estado="ACTIVO"), 201
 
@@ -747,8 +747,8 @@ def foto_perfil(usuario_id):
         return _fallo("Perfil no encontrado.", "perfil_no_encontrado", 404)
     es_admin = current_user.rol == "ADMINISTRADOR"
     es_propio = current_user.id == usuario_id
-    es_equipo = current_user.rol == "JEFE_PERSONAL" and fila["estado"] == "ACTIVO" and fila["rol"] == "INSTRUCTOR_VOLUNTARIO" and conexion.execute(
-        "SELECT 1 FROM voluntarios WHERE usuario_id=? AND instructor_id=?", (usuario_id, current_user.id)
+    es_equipo = current_user.rol == "JEFE_PERSONAL" and fila["estado"] in ("ACTIVO","INACTIVO") and fila["rol"] == "INSTRUCTOR_VOLUNTARIO" and conexion.execute(
+        "SELECT 1 FROM voluntarios WHERE usuario_id=?", (usuario_id,)
     ).fetchone()
     if request.method == "PUT":
         if not (es_admin or es_propio):
@@ -872,9 +872,7 @@ def _alcance_voluntario(conexion, usuario_id):
                   FROM usuarios u JOIN voluntarios v ON v.usuario_id=u.id
                   JOIN roles r ON r.id=u.rol_id WHERE u.id=? AND r.nombre='INSTRUCTOR_VOLUNTARIO'"""
     fila = conexion.execute(consulta, (usuario_id,)).fetchone()
-    if fila and current_user.rol == "JEFE_PERSONAL" and (
-        fila["instructor_id"] != current_user.id or fila["estado"] != "ACTIVO"
-    ):
+    if fila and current_user.rol == "JEFE_PERSONAL" and fila["estado"] not in ("ACTIVO", "INACTIVO"):
         return None
     if fila:
         fila = dict(fila); fila.update(leer_geografia(conexion, usuario_id))
@@ -898,8 +896,7 @@ def listar_voluntarios():
                   ORDER BY u.nombre_completo, u.id"""
     parametros = ()
     if current_user.rol == "JEFE_PERSONAL":
-        consulta = consulta.replace("ORDER BY", "WHERE v.instructor_id = ? AND u.estado = 'ACTIVO' ORDER BY")
-        parametros = (current_user.id,)
+        consulta = consulta.replace("ORDER BY", "WHERE u.estado IN ('ACTIVO','INACTIVO') ORDER BY")
     filas = conexion.execute(consulta, parametros).fetchall()
     # La antigüedad se calcula al consultar, sin persistir un resultado que envejezca.
     perfiles = [dict(fila) for fila in filas]
@@ -921,6 +918,8 @@ def editar_voluntario(usuario_id):
     voluntario = _alcance_voluntario(conexion, usuario_id)
     if not voluntario:
         return _fallo("Instructor Voluntario no encontrado en tu ámbito.", "instructor_voluntario_no_encontrado", 404)
+    if current_user.rol == "JEFE_PERSONAL" and voluntario["estado"] != "ACTIVO":
+        return _fallo("La cuenta inactiva es de consulta; reactívala desde Administración.", "cuenta_inactiva", 409)
     campos = {}
     identidad = None
     secundarias = None

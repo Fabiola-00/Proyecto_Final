@@ -17,6 +17,21 @@ if (periodo5bAlta) {
         conf.fuentes.forEach((f) => tarjeta.append(elemento("p", `${nombres[f.fuente]}: ${f.nombre} (${f.codigo})`)));
       }
       if (periodo.estado === "BORRADOR" && periodo.anual && !periodo.tiene_notas_5b && conf?.estado !== "PUBLICADA") {
+        const gestion = elemento("form", undefined, "formulario-inline");
+        [["nombre", "Nombre de la gestión", "text", periodo.nombre], ["ano", "Gestión (año)", "number", periodo.fecha_inicio.slice(0, 4)]].forEach(([campo, etiqueta, tipo, valor]) => {
+          const label = elemento("label", etiqueta); const input = elemento("input"); input.name = campo; input.type = tipo; input.required = true; input.value = valor;
+          if (tipo === "number") { input.min = "1"; input.max = "9999"; input.step = "1"; } else input.maxLength = 120;
+          label.append(input); gestion.append(label);
+        });
+        const guardarGestion = elemento("button", "Guardar gestión"); gestion.append(guardarGestion);
+        gestion.addEventListener("submit", async (event) => {
+          event.preventDefault(); if (!gestion.reportValidity()) return; guardarGestion.disabled = true;
+          const body = Object.fromEntries(new FormData(gestion)); body.ano = Number(body.ano); body.nombre_anterior = periodo.nombre; body.ano_anterior = Number(periodo.fecha_inicio.slice(0, 4));
+          try { await apiJson(`/api/admin/5b/periodos/${periodo.id}`, { method: "PATCH", body }); cerrarEdicion(); mensaje.textContent = "Gestión actualizada."; await cargarPeriodos5b(); }
+          catch (error) { mostrarErrorEdicion(error); }
+          finally { guardarGestion.disabled = false; }
+        });
+        if (!periodo.tiene_asignaciones) tarjeta.append(botonEdicion(`Editar gestión · ${periodo.nombre}`, gestion, "Editar gestión"));
         const form = elemento("form", undefined, "formulario-inline");
         Object.entries(nombres).forEach(([fuente, nombre]) => {
           const label = elemento("label", nombre); const select = elemento("select"); select.name = fuente;

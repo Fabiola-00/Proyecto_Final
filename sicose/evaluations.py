@@ -35,24 +35,22 @@ def _authorized_assignment(connection, assignment_id):
     sql = """SELECT a.id, a.voluntario_id, a.periodo_id, a.evaluacion_id, a.estado,
                     e.codigo, e.nombre AS evaluacion, e.categoria, e.activo,
                     i.estado_aprobacion AS estado_instrumento, p.estado AS periodo_estado,
-                    u.nombre_completo AS voluntario, v.instructor_id
+                    u.nombre_completo AS voluntario, u.estado AS cuenta_estado, v.instructor_id
              FROM asignaciones_evaluacion a
              JOIN evaluaciones e ON e.id=a.evaluacion_id
              JOIN voluntarios v ON v.usuario_id=a.voluntario_id
              JOIN usuarios u ON u.id=v.usuario_id
              JOIN periodos p ON p.id=a.periodo_id
              LEFT JOIN instrumentos i ON i.id=e.instrumento_id
-             WHERE a.id=? AND u.estado='ACTIVO'"""
+             WHERE a.id=? AND u.estado IN ('ACTIVO','INACTIVO')"""
     row = connection.execute(sql, (assignment_id,)).fetchone()
-    if row and current_user.rol == "JEFE_PERSONAL" and row["instructor_id"] != current_user.id:
-        return None
     if row and current_user.rol == "INSTRUCTOR_VOLUNTARIO" and row["voluntario_id"] != current_user.id:
         return None
     return row
 
 
 @evaluations_bp.get("/gestion/evaluaciones")
-@role_required("ADMINISTRADOR")
+@role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def pagina_catalogo():
     return render_template("gestion_evaluaciones.html", titulo_pagina="Catálogo de evaluaciones",
                            nav_activo="evaluaciones", indicadores=[],
@@ -88,7 +86,7 @@ def pagina_calificaciones():
 
 
 @evaluations_bp.get("/api/admin/evaluaciones")
-@role_required("ADMINISTRADOR")
+@role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def listar_evaluaciones():
     rows = db.obtener_conexion().execute(
         """SELECT e.id,e.codigo,e.nombre,e.categoria,e.origen_nota,e.instrumento_id,
@@ -100,7 +98,7 @@ def listar_evaluaciones():
 
 
 @evaluations_bp.post("/api/admin/evaluaciones")
-@role_required("ADMINISTRADOR")
+@role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def crear_evaluacion():
     data = _json()
     if data is None:
@@ -138,7 +136,7 @@ def crear_evaluacion():
 
 
 @evaluations_bp.patch("/api/admin/evaluaciones/<int:evaluation_id>")
-@role_required("ADMINISTRADOR")
+@role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def editar_evaluacion(evaluation_id):
     data = _json()
     if data is None:
@@ -260,9 +258,6 @@ def voluntarios_activos_admin():
 @role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def asignaciones_equipo():
     params, where = [], "u.estado='ACTIVO'"
-    if current_user.rol == "JEFE_PERSONAL":
-        where += " AND v.instructor_id=?"
-        params.append(current_user.id)
     rows = db.obtener_conexion().execute(
         f"""SELECT a.id,a.voluntario_id,a.periodo_id,a.evaluacion_id,a.estado,
                    u.nombre_completo AS voluntario,p.nombre AS periodo,e.nombre AS evaluacion,
@@ -287,14 +282,18 @@ def cambiar_estado_asignacion(assignment_id):
     assignment = _authorized_assignment(connection, assignment_id)
     if not assignment:
         return _bad("Asignación no encontrada en tu ámbito.", "asignacion_no_encontrada", 404)
+    if assignment["cuenta_estado"] != "ACTIVO":
+        return _bad("Reactiva la cuenta antes de modificar evaluaciones.", "cuenta_inactiva", 409)
     if assignment["categoria"] != "PSICOMETRICA":
         return _bad("Solo las pruebas psicométricas se habilitan por voluntario.", "categoria_incompatible", 400)
     instrument = connection.execute("SELECT estado_aprobacion FROM instrumentos WHERE id=(SELECT instrumento_id FROM evaluaciones WHERE id=?)", (assignment["evaluacion_id"],)).fetchone()
     if state == "HABILITADA" and (not assignment["activo"] or not instrument or instrument["estado_aprobacion"] != "APROBADO"):
         return _bad("El instrumento no está aprobado y activo; no se puede habilitar.", "instrumento_no_autorizado", 409)
-    connection.execute("UPDATE asignaciones_evaluacion SET estado=?, habilitada_por=?, habilitada_en=? WHERE id=?",
+    connection.execute("UPDATE asignaciones_evaluacion SET estado=CASE WHEN estado IN ('COMPLETADA','EN_PROGRESO') THEN estado ELSE ? END, habilitada_por=?, habilitada_en=? WHERE id=?",
                        (state, current_user.id if state == "HABILITADA" else None,
                         _now() if state == "HABILITADA" else None, assignment_id))
+    connection.execute("INSERT INTO habilitaciones_operativas(voluntario_id,periodo_id,clave,habilitada,registrada_por,registrada_en) VALUES (?,?,?,?,?,?)",
+                       (assignment["voluntario_id"], assignment["periodo_id"], f'PSICO:{assignment["evaluacion_id"]}', int(state=="HABILITADA"), current_user.id, _now()))
     _audit(connection, "PRUEBA_HABILITADA" if state == "HABILITADA" else "PRUEBA_DESHABILITADA")
     connection.commit()
     return jsonify(ok=True, estado=state), 200
@@ -329,9 +328,6 @@ def registrar_asistencias():
             sql = """SELECT 1 FROM voluntarios v JOIN usuarios u ON u.id=v.usuario_id
                      WHERE v.usuario_id=? AND u.estado='ACTIVO'"""
             args = [item["voluntario_id"]]
-            if current_user.rol == "JEFE_PERSONAL":
-                sql += " AND v.instructor_id=?"
-                args.append(current_user.id)
             if not connection.execute(sql, args).fetchone():
                 raise ValueError("Uno o más voluntarios no pertenecen a tu ámbito activo.")
             detail = {"PRESENTE": "ASISTE", "AUSENTE": "FALTA", "JUSTIFICADO": "PERMISO"}.get(item["estado"], item["estado"])
@@ -382,9 +378,6 @@ def listar_asistencias():
     connection = db.obtener_conexion()
     scope = ""
     scope_params = []
-    if current_user.rol == "JEFE_PERSONAL":
-        scope = " AND v.instructor_id=? AND v.usuario_id IN (SELECT id FROM usuarios WHERE estado='ACTIVO')"
-        scope_params.append(current_user.id)
     if person_id is not None:
         scope += " AND a.voluntario_id=?"
         scope_params.append(person_id)
@@ -425,8 +418,6 @@ def listar_capacitaciones():
         except ValueError:
             return _bad("El Instructor Voluntario no es válido.")
         where += " AND c.voluntario_id=?"; params.append(volunteer_id)
-    if current_user.rol == "JEFE_PERSONAL":
-        where += " AND v.instructor_id=? AND u.estado='ACTIVO'"; params.append(current_user.id)
     rows = db.obtener_conexion().execute(
         """SELECT c.id,c.voluntario_id,u.nombre_completo AS voluntario,c.nombre,c.entidad,
                   c.fecha,c.observacion,c.creado_en,c.curso_id
@@ -460,8 +451,6 @@ def registrar_capacitacion(volunteer_id):
     connection = db.obtener_conexion()
     query = "SELECT 1 FROM voluntarios v JOIN usuarios u ON u.id=v.usuario_id WHERE v.usuario_id=? AND u.estado='ACTIVO'"
     args = [volunteer_id]
-    if current_user.rol == "JEFE_PERSONAL":
-        query += " AND v.instructor_id=?"; args.append(current_user.id)
     if not connection.execute(query, args).fetchone():
         return _bad("Instructor Voluntario no encontrado en el ámbito activo.", "instructor_voluntario_no_encontrado", 404)
     cursor = connection.execute(
@@ -489,8 +478,8 @@ def editar_capacitacion(training_id):
         return _bad("Capacitación no encontrada.", "capacitacion_no_encontrada", 404)
     if current_user.rol == "JEFE_PERSONAL":
         allowed = connection.execute(
-            "SELECT 1 FROM voluntarios v JOIN usuarios u ON u.id=v.usuario_id WHERE v.usuario_id=? AND v.instructor_id=? AND u.estado='ACTIVO'",
-            (row["voluntario_id"], current_user.id),
+            "SELECT 1 FROM voluntarios v JOIN usuarios u ON u.id=v.usuario_id WHERE v.usuario_id=? AND u.estado='ACTIVO'",
+            (row["voluntario_id"],),
         ).fetchone()
         if not allowed:
             return _bad("Capacitación fuera de tu ámbito.", "sin_permiso", 403)
@@ -548,6 +537,8 @@ def registrar_calificacion(assignment_id):
     assignment = _authorized_assignment(connection, assignment_id)
     if not assignment:
         return rechazar("Asignación no encontrada en tu ámbito.", "asignacion_no_encontrada", 404)
+    if assignment["cuenta_estado"] != "ACTIVO":
+        return _bad("Reactiva la cuenta antes de modificar evaluaciones.", "cuenta_inactiva", 409)
     if connection.execute("SELECT 1 FROM configuraciones_5b WHERE periodo_id=? AND estado='PUBLICADA'", (assignment["periodo_id"],)).fetchone():
         return rechazar("Usa Notas operativas 5B para este período configurado.", "periodo_configurado_5b", 409)
     if assignment["categoria"] == "PSICOMETRICA":
@@ -629,6 +620,9 @@ def iniciar_intento(assignment_id):
     assignment = _authorized_assignment(connection, assignment_id)
     if not assignment or assignment["categoria"] != "PSICOMETRICA":
         return _bad("Evaluación no disponible.", "evaluacion_no_disponible", 404)
+    from .tabla_evaluaciones import habilitada
+    if not habilitada(connection, current_user.id, assignment["periodo_id"], f'PSICO:{assignment["evaluacion_id"]}'):
+        return _bad("Evaluación deshabilitada.", "evaluacion_deshabilitada", 409)
     instrument = connection.execute("SELECT estado_aprobacion FROM instrumentos WHERE id=(SELECT instrumento_id FROM evaluaciones WHERE id=?)", (assignment["evaluacion_id"],)).fetchone()
     if not assignment["activo"] or assignment["estado"] != "HABILITADA" or not instrument or instrument["estado_aprobacion"] != "APROBADO":
         return _bad("La evaluación no está habilitada con un instrumento autorizado.", "instrumento_no_autorizado", 409)

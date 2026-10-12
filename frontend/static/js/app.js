@@ -283,6 +283,7 @@ function configurarResidencia(formulario) {
 function iconoAccionInstructor(boton, tipo, etiqueta) {
   const trazos = {
     ver: ["M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7", "M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0"],
+    asignar: ["M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0", "M20 8v6", "M17 11h6"],
     editar: ["M16 3l5 5-12 12-6 1 1-6L16 3Z", "M13 6l5 5"],
     desactivar: ["M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0", "M6 6l12 12"]
   };
@@ -422,7 +423,7 @@ if (volunteerList) {
           }
           catch (error) { managementMessage.textContent = error.message; mostrarErrorEdicion(error); }
         });
-        contenidoAcciones.append(iconoAccionInstructor(botonEdicion(`Editar perfil · ${voluntario.nombre}`, form, "Editar perfil"), "editar", `Editar perfil de ${voluntario.nombre}`));
+        if (esAdministrador || voluntario.estado === "ACTIVO") contenidoAcciones.append(iconoAccionInstructor(botonEdicion(`Editar perfil · ${voluntario.nombre}`, form, "Editar perfil"), "editar", `Editar perfil de ${voluntario.nombre}`));
         if (esAdministrador) {
 
           const resetForm = elemento("form", undefined, "formulario-inline");
@@ -626,25 +627,28 @@ if (evaluationForm) {
       card.append(button); evaluationList.append(card);
     });
     const active = evaluaciones.filter((item) => item.activo);
+    if (!assignmentForm) return;
     const select = assignmentForm.elements.evaluacion_id;
     select.replaceChildren();
     active.forEach((item) => { const option = elemento("option", `${item.nombre} · ${item.categoria}`); option.value = item.id; select.append(option); });
   }
 
   async function cargarAsignacionesAdmin() {
+    if (!assignmentList) return;
     const { asignaciones } = await apiJson("/api/jefe-personal/asignaciones");
     assignmentList.replaceChildren();
     asignaciones.forEach((item) => assignmentList.append(elemento("article", `${item.voluntario} · ${item.periodo} · ${item.evaluacion} · ${item.estado}`, "tarjeta-modulo")));
   }
 
   async function cargarPeriodos() {
+    if (!periodsList) return;
     const { periodos } = await apiJson("/api/admin/periodos"); periodsList.replaceChildren();
     periodos.forEach((period) => periodsList.append(elemento("article", `${period.nombre} · ${period.fecha_inicio} – ${period.fecha_fin} · ${period.estado}`, "tarjeta-modulo")));
     const select = assignmentForm.elements.periodo_id; select.replaceChildren();
     periodos.filter((period) => period.estado === "ACTIVO").forEach((period) => { const option = elemento("option", period.nombre); option.value = period.id; select.append(option); });
   }
 
-  periodForm.addEventListener("submit", async (event) => {
+  periodForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     try {
       await apiJson("/api/admin/periodos", { method: "POST", body: Object.fromEntries(new FormData(periodForm).entries()) });
@@ -662,7 +666,7 @@ if (evaluationForm) {
     } catch (error) { formMessage.textContent = error.message; }
   });
 
-  assignmentForm.addEventListener("submit", async (event) => {
+  assignmentForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const body = Object.fromEntries(new FormData(assignmentForm).entries());
     ["voluntario_id", "periodo_id", "evaluacion_id"].forEach((key) => { body[key] = Number(body[key]); });
@@ -672,12 +676,12 @@ if (evaluationForm) {
 
   Promise.all([
     cargarCatalogo(), cargarAsignacionesAdmin(),
-    apiJson("/api/admin/instructores-voluntarios-activos").then(({ voluntarios }) => {
+    assignmentForm ? apiJson("/api/admin/instructores-voluntarios-activos").then(({ voluntarios }) => {
       const select = assignmentForm.elements.voluntario_id;
       select.replaceChildren(); voluntarios.forEach((v) => { const option = elemento("option", v.nombre); option.value = v.id; select.append(option); });
-    }),
+    }) : Promise.resolve(),
     cargarPeriodos(),
-  ]).catch((error) => { assignmentMessage.textContent = error.message; });
+  ]).catch((error) => { (assignmentMessage || formMessage).textContent = error.message; });
 }
 
 const attendanceForm = document.querySelector("#asistencias-form");
@@ -919,38 +923,6 @@ if (perfilPropioForm) {
   });
 }
 
-const catalogoCursoForm = document.querySelector('#curso-catalogo-form');
-const catalogoCursosLista = document.querySelector('#curso-catalogo-lista');
-if (catalogoCursosLista) {
-  const mensaje=document.querySelector('#curso-catalogo-mensaje');
-  async function guardarCurso(formulario,id) {
-    if (!formulario.reportValidity()) return;
-    await apiJson(`/api/cursos${id ? `/${id}` : ''}`,{method:id?'PATCH':'POST',body:Object.fromEntries(new FormData(formulario))});
-  }
-  async function cargarCursos() {
-    const {cursos}=await apiJson('/api/cursos');catalogoCursosLista.replaceChildren();
-    if(!cursos.length)catalogoCursosLista.append(elemento('p','Sin cursos registrados.'));
-    cursos.forEach((curso)=>{
-      const tarjeta=elemento('article',undefined,'tarjeta-modulo');tarjeta.append(elemento('h3',curso.nombre));
-      [curso.tipo||'Tipo sin registrar',curso.entidad||'Entidad sin registrar',`${curso.fecha_inicio||'Sin inicio'} — ${curso.fecha_fin||'Sin fin'}`,curso.estado||'Estado sin registrar',curso.observaciones||''].filter(Boolean).forEach((valor)=>tarjeta.append(elemento('p',valor)));
-      if(catalogoCursoForm){
-        const edicion=document.querySelector('#curso-edicion-template').content.firstElementChild.cloneNode(true);
-        ['nombre','tipo','entidad','fecha_inicio','fecha_fin','estado','observaciones'].forEach((campo)=>{edicion.elements[campo].value=curso[campo]||'';});
-        edicion.addEventListener('submit',async(e)=>{e.preventDefault();try{await guardarCurso(edicion,curso.id);cerrarEdicion();mensaje.textContent='Curso actualizado.';await cargarCursos();}catch(error){mostrarErrorEdicion(error);}});
-        tarjeta.append(botonEdicion(`Editar curso · ${curso.nombre}`,edicion,'Editar curso'));
-      }catalogoCursosLista.append(tarjeta);
-    });
-  }
-  if(catalogoCursoForm)catalogoCursoForm.addEventListener('submit',async(e)=>{e.preventDefault();try{await guardarCurso(catalogoCursoForm);catalogoCursoForm.reset();mensaje.textContent='Curso registrado.';await cargarCursos();}catch(error){mensaje.textContent=error.message;}});
-  cargarCursos().catch((error)=>{mensaje.textContent=error.message;});
-}
-const cursosPropiosLista = document.querySelector('#cursos-propios-lista');
-if (cursosPropiosLista) {
-  apiJson('/api/instructor-voluntario/capacitaciones').then(({capacitaciones}) => {
-    if (!capacitaciones.length) cursosPropiosLista.append(elemento('p','Sin cursos registrados.'));
-    capacitaciones.forEach((curso) => {const tarjeta=elemento('article',undefined,'tarjeta-modulo');tarjeta.append(elemento('h3',curso.nombre),elemento('p',`${curso.fecha || 'Sin fecha'} · ${curso.entidad || 'Sin entidad'}`));cursosPropiosLista.append(tarjeta);});
-  }).catch((error)=>{document.querySelector('#cursos-propios-mensaje').textContent=error.message;});
-}
 const operacionesLista = document.querySelector('#operaciones-lista');
 if (operacionesLista) {
   const form = document.querySelector('#operacion-form'); const mensaje = document.querySelector('#operaciones-mensaje');

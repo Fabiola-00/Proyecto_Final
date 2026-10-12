@@ -210,7 +210,8 @@ CREATE TABLE IF NOT EXISTS cursos (
  tipo TEXT CHECK(tipo IS NULL OR tipo IN ('Capacitación','Especialización','Actualización','Taller','Seminario (Webinar)')),
  entidad TEXT, fecha_inicio TEXT, fecha_fin TEXT,
  estado TEXT CHECK(estado IS NULL OR estado IN ('Próximo','En curso','Finalizado')),
- observaciones TEXT
+ observaciones TEXT,
+ puntaje INTEGER CHECK(puntaje IS NULL OR (typeof(puntaje)='integer' AND puntaje BETWEEN 0 AND 100))
 );
 CREATE TABLE IF NOT EXISTS operaciones (
  id INTEGER PRIMARY KEY, tipo_evento TEXT NOT NULL, lugar TEXT NOT NULL,
@@ -283,4 +284,45 @@ CREATE TABLE IF NOT EXISTS fuentes_configuracion_5b (
     codigo TEXT NOT NULL,
     categoria TEXT NOT NULL,
     PRIMARY KEY(configuracion_id,fuente)
+);
+
+CREATE TABLE IF NOT EXISTS habilitaciones_operativas (
+    id INTEGER PRIMARY KEY,
+    voluntario_id INTEGER NOT NULL REFERENCES voluntarios(usuario_id) ON DELETE RESTRICT,
+    periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+    clave TEXT NOT NULL,
+    habilitada INTEGER NOT NULL CHECK(habilitada IN (0,1)),
+    registrada_por INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+    registrada_en TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS habilitacion_persona_periodo ON habilitaciones_operativas(voluntario_id,periodo_id,clave,id);
+
+CREATE TABLE IF NOT EXISTS participaciones_curso (
+ id INTEGER PRIMARY KEY,
+ curso_id INTEGER NOT NULL REFERENCES cursos(id) ON DELETE RESTRICT,
+ voluntario_id INTEGER NOT NULL REFERENCES voluntarios(usuario_id) ON DELETE RESTRICT,
+ nombre_curso TEXT NOT NULL, entidad_curso TEXT NOT NULL, tipo_curso TEXT NOT NULL,
+ inicio_curso TEXT NOT NULL, fin_curso TEXT NOT NULL,
+ puntaje_base INTEGER NOT NULL CHECK(typeof(puntaje_base)='integer' AND puntaje_base BETWEEN 0 AND 100),
+ estado TEXT NOT NULL DEFAULT 'Asignado' CHECK(estado IN ('Asignado','En curso','Finalizado','No completado')),
+ puntaje INTEGER CHECK(puntaje IS NULL OR (typeof(puntaje)='integer' AND puntaje BETWEEN 0 AND 100)),
+ fecha_finalizacion TEXT,
+ revision INTEGER NOT NULL DEFAULT 1 CHECK(revision>0),
+ creado_por INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ creado_en TEXT NOT NULL,
+ CHECK((estado='Finalizado' AND puntaje IS NOT NULL AND fecha_finalizacion IS NOT NULL)
+       OR (estado!='Finalizado' AND puntaje IS NULL AND fecha_finalizacion IS NULL)),
+ UNIQUE(curso_id,voluntario_id)
+);
+CREATE TABLE IF NOT EXISTS historial_participaciones_curso (
+ id INTEGER PRIMARY KEY,
+ participacion_id INTEGER NOT NULL REFERENCES participaciones_curso(id) ON DELETE RESTRICT,
+ revision INTEGER NOT NULL,
+ estado TEXT NOT NULL CHECK(estado IN ('Asignado','En curso','Finalizado','No completado')),
+ puntaje INTEGER, fecha_finalizacion TEXT,
+ motivo TEXT,
+ registrada_por INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ responsable_nombre TEXT NOT NULL,
+ registrada_en TEXT NOT NULL,
+ UNIQUE(participacion_id,revision)
 );

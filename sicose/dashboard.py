@@ -80,26 +80,24 @@ def jefe_personal():
     voluntarios = conexion.execute(
         """SELECT COUNT(*) AS total FROM voluntarios v
            JOIN usuarios u ON u.id = v.usuario_id
-           WHERE v.instructor_id = ? AND u.estado = 'ACTIVO'""",
-        (current_user.id,),
+           WHERE u.estado = 'ACTIVO'""",
     ).fetchone()["total"]
     asignaciones_pendientes = conexion.execute(
         """SELECT COUNT(*) AS total FROM asignaciones_evaluacion a
            JOIN voluntarios v ON v.usuario_id = a.voluntario_id
            JOIN usuarios u ON u.id = v.usuario_id
-           WHERE v.instructor_id = ? AND u.estado = 'ACTIVO'
+           WHERE u.estado = 'ACTIVO'
              AND a.estado IN ('HABILITADA', 'EN_PROGRESO')""",
-        (current_user.id,),
     ).fetchone()["total"]
     return _renderizar_panel(
         "dashboard_jefe_personal.html",
         "Panel del Jefe de Personal",
         "inicio",
         [
-            {"etiqueta": "Instructores Voluntarios asignados", "valor": voluntarios, "detalle": "Perfiles activos"},
+            {"etiqueta": "Instructores Voluntarios activos", "valor": voluntarios, "detalle": "Perfiles activos"},
             {"etiqueta": "Evaluaciones pendientes", "valor": asignaciones_pendientes, "detalle": "Habilitadas o en progreso"},
         ],
-        "Seguimiento de tus asignaciones y de los Instructores Voluntarios autorizados.",
+        "Seguimiento del personal de SBRAB.",
     )
 
 
@@ -120,6 +118,8 @@ def instructor_voluntario():
         "SELECT COUNT(*) AS total FROM capacitaciones WHERE voluntario_id = ?",
         (current_user.id,),
     ).fetchone()["total"]
+    cursos_asignados = conexion.execute("SELECT COUNT(*) FROM participaciones_curso WHERE voluntario_id=?", (current_user.id,)).fetchone()[0]
+    cursos_finalizados = conexion.execute("SELECT COUNT(*) FROM participaciones_curso WHERE voluntario_id=? AND estado='Finalizado'", (current_user.id,)).fetchone()[0]
     evaluaciones = conexion.execute(
         """SELECT e.nombre AS evaluacion,p.nombre AS periodo,a.estado
            FROM asignaciones_evaluacion a JOIN evaluaciones e ON e.id=a.evaluacion_id
@@ -134,7 +134,8 @@ def instructor_voluntario():
             {"etiqueta": "Evaluaciones asignadas", "valor": total, "detalle": "En todos los períodos"},
             {"etiqueta": "Completadas", "valor": completadas, "detalle": "Según el estado registrado"},
             {"etiqueta": "Pendientes", "valor": total - completadas, "detalle": "Aún no completadas"},
-            {"etiqueta": "Capacitaciones", "valor": capacitaciones, "detalle": "Registros en tu perfil"},
+            {"etiqueta": "Formación histórica", "valor": capacitaciones, "detalle": "Registros anteriores de tu perfil"},
+            {"etiqueta": "Cursos asignados", "valor": cursos_asignados, "detalle": f"{cursos_finalizados} finalizados individualmente"},
         ],
         "Consulta tu avance personal y la información asociada a tu cuenta de Instructor Voluntario.",
         evaluaciones_resumen=[dict(fila) for fila in evaluaciones],

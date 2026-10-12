@@ -5,13 +5,12 @@ from decimal import Decimal, InvalidOperation
 
 from flask import Blueprint, jsonify, render_template, request
 from flask_login import current_user
-from werkzeug.security import generate_password_hash
 
 from . import db
 from .permissions import role_required
 
 seguimiento_bp = Blueprint("seguimiento", __name__)
-GESTORES = ("ADMINISTRADOR", "JEFE_PERSONAL", "COMANDANTE_GRUPO")
+GESTORES = ("ADMINISTRADOR", "JEFE_PERSONAL")
 FUENTES = ("FISICA_1", "FISICA_2", "ACADEMICA", "DESEMPENO_JEFE", "DESEMPENO_COMANDANTE")
 
 
@@ -31,11 +30,8 @@ def texto(datos, nombre, limite, requerido=False):
 def persona(conexion, identificador):
     sql = """SELECT u.id,u.nombre_completo AS nombre,u.estado,v.codigo_instructor,
              v.grado,v.especialidad_principal,v.instructor_id FROM voluntarios v
-             JOIN usuarios u ON u.id=v.usuario_id WHERE u.id=? AND u.estado='ACTIVO'"""
+             JOIN usuarios u ON u.id=v.usuario_id WHERE u.id=? AND u.estado IN ('ACTIVO','INACTIVO')"""
     args = [identificador]
-    if current_user.rol == "JEFE_PERSONAL":
-        sql += " AND v.instructor_id=?"
-        args.append(current_user.id)
     return conexion.execute(sql, args).fetchone()
 
 
@@ -60,7 +56,7 @@ def pagina_seguimiento():
 @seguimiento_bp.get("/gestion/comandante")
 @role_required("ADMINISTRADOR")
 def pagina_comandante():
-    return pagina("Comandante de SBRAB", "comandante", "gestion_comandante.html")
+    return fallo("La cuenta operativa de Comandante está retirada. Usa la transcripción en Notas operativas.", 410)
 
 
 @seguimiento_bp.get("/api/admin/comandantes")
@@ -76,50 +72,7 @@ def listar_comandantes():
 @seguimiento_bp.patch("/api/admin/comandantes/<int:identificador>")
 @role_required("ADMINISTRADOR")
 def guardar_comandante(identificador=None):
-    datos = request.get_json(silent=True)
-    permitidos = {"nombre", "correo", "estado"} | ({"username", "password"} if identificador is None else set())
-    if not isinstance(datos, dict) or not datos or set(datos) - permitidos:
-        return fallo("Campos de cuenta no válidos.")
-    c = db.obtener_conexion()
-    anterior = c.execute("""SELECT u.* FROM usuarios u JOIN roles r ON r.id=u.rol_id
-                            WHERE u.id=? AND r.nombre='COMANDANTE_GRUPO'""", (identificador,)).fetchone() if identificador else None
-    if identificador and anterior is None:
-        return fallo("Comandante no encontrado.", 404)
-    valores = dict(anterior) if anterior else {"estado": "ACTIVO"}
-    if anterior:
-        valores["nombre"] = anterior["nombre_completo"]
-    valores.update(datos)
-    try:
-        nombre = texto(valores, "nombre", 160, True)
-        correo = texto(valores, "correo", 254)
-        if correo and ("@" not in correo or any(ch.isspace() for ch in correo)):
-            raise ValueError("Correo no válido.")
-        estado = valores["estado"]
-        if estado not in ("ACTIVO", "INACTIVO"):
-            raise ValueError("Selecciona Activo o Inactivo.")
-        if identificador is None:
-            username = texto(valores, "username", 80, True)
-            password = datos.get("password")
-            if not db.USERNAME_RE.fullmatch(username) or not isinstance(password, str) or not 12 <= len(password) <= 256:
-                raise ValueError("Usuario o contraseña no válidos; mínimo 12 caracteres de contraseña.")
-            hash_clave = generate_password_hash(password)
-    except (ValueError, TypeError) as error:
-        return fallo(str(error))
-    try:
-        c.execute("BEGIN IMMEDIATE")
-        if identificador is None:
-            rol = c.execute("SELECT id FROM roles WHERE nombre='COMANDANTE_GRUPO'").fetchone()[0]
-            identificador = c.execute("""INSERT INTO usuarios(username,nombre_completo,correo,password_hash,rol_id,estado)
-                                        VALUES (?,?,?,?,?,?)""", (username, nombre, correo.casefold() if correo else None, hash_clave, rol, estado)).lastrowid
-        else:
-            c.execute("UPDATE usuarios SET nombre_completo=?,correo=?,estado=?,actualizado_en=? WHERE id=?",
-                      (nombre, correo.casefold() if correo else None, estado, db._ahora_utc(), identificador))
-        db.registrar_auditoria(c, current_user.id, "COMANDANTE_GUARDADO", "EXITOSO")
-        c.commit()
-    except sqlite3.IntegrityError:
-        c.rollback()
-        return fallo("Ya hay un Comandante activo o los datos de cuenta están ocupados.", 409)
-    return jsonify(ok=True, id=identificador), 201 if request.method == "POST" else 200
+    return fallo("El cargo Comandante se registra en la nota; su cuenta operativa está retirada.", 410)
 
 
 @seguimiento_bp.get("/api/5b/opciones")
@@ -127,11 +80,8 @@ def guardar_comandante(identificador=None):
 def opciones():
     c = db.obtener_conexion()
     sql = """SELECT u.id,u.nombre_completo AS nombre FROM voluntarios v
-             JOIN usuarios u ON u.id=v.usuario_id WHERE u.estado='ACTIVO'"""
+             JOIN usuarios u ON u.id=v.usuario_id WHERE u.estado IN ('ACTIVO','INACTIVO')"""
     args = []
-    if current_user.rol == "JEFE_PERSONAL":
-        sql += " AND v.instructor_id=?"
-        args.append(current_user.id)
     personal = [dict(f) for f in c.execute(sql + " ORDER BY u.nombre_completo", args)]
     periodos = [dict(f) for f in c.execute("SELECT id,nombre,estado,fecha_inicio,fecha_fin FROM periodos ORDER BY fecha_inicio DESC,id DESC")]
     return jsonify(personal=personal, periodos=periodos)
@@ -174,8 +124,10 @@ def consultar_persona(identificador):
     historicas = [dict(f) for f in c.execute("""SELECT c.id,c.nota_0_100,c.registrada_en,e.nombre AS evaluacion,e.categoria
                   FROM calificaciones c JOIN asignaciones_evaluacion a ON a.id=c.asignacion_id JOIN evaluaciones e ON e.id=a.evaluacion_id
                   WHERE a.voluntario_id=? AND a.periodo_id=? AND e.categoria!='PSICOMETRICA' ORDER BY c.id""", (identificador, periodo_id))]
+    formacion_personal = [dict(f) for f in c.execute("SELECT id,curso_id,nombre_curso,entidad_curso,estado,puntaje,fecha_finalizacion FROM participaciones_curso WHERE voluntario_id=? ORDER BY id",(identificador,))]
     from .periodos_5b import configuracion
-    return jsonify(configuracion=configuracion(c, periodo_id), persona=dict(perfil), periodo=dict(periodo), formacion=formacion,
+    from .tabla_evaluaciones import habilitada
+    return jsonify(participaciones_curso=formacion_personal, habilitaciones={f:habilitada(c,identificador,periodo_id,f) for f in FUENTES}, configuracion=configuracion(c, periodo_id), persona=dict(perfil), periodo=dict(periodo), formacion=formacion,
                    asistencias=asistencia, notas=notas_persona(c, identificador, periodo_id), notas_historicas=historicas)
 
 
@@ -183,7 +135,7 @@ def consultar_persona(identificador):
 @role_required(*GESTORES)
 def registrar_nota(identificador):
     datos = request.get_json(silent=True)
-    if not isinstance(datos, dict) or set(datos) - {"periodo_id", "fuente", "nota_0_100", "corregida_de_id", "motivo", "observacion", "capacitaciones"}:
+    if not isinstance(datos, dict) or set(datos) - {"periodo_id", "fuente", "nota_0_100", "corregida_de_id", "motivo", "observacion", "capacitaciones", "comandante_nombre"}:
         return fallo("Campos de nota no válidos.")
     try:
         pid, fuente = datos.get("periodo_id"), datos.get("fuente")
@@ -197,6 +149,9 @@ def registrar_nota(identificador):
         puntos = Decimal(str(valor))
         if not puntos.is_finite() or not 0 <= puntos <= 100 or puntos * 100 != (puntos * 100).to_integral_value():
             raise ValueError("Nota entre 0 y 100 con hasta dos decimales.")
+        comandante_nombre = texto(datos, "comandante_nombre", 160, fuente == "DESEMPENO_COMANDANTE")
+        if fuente != "DESEMPENO_COMANDANTE" and comandante_nombre:
+            raise ValueError("Nombre del Comandante solo para su aportación.")
         motivo = texto(datos, "motivo", 2000, fuente == "ACADEMICA")
         observacion = texto(datos, "observacion", 2000)
         referencias = datos.get("capacitaciones", [])
@@ -223,6 +178,8 @@ def registrar_nota(identificador):
     periodo = c.execute("SELECT estado FROM periodos WHERE id=?", (pid,)).fetchone()
     if perfil is None or periodo is None:
         return rechazar("Persona o período fuera de tu ámbito.", 404)
+    if perfil["estado"] != "ACTIVO":
+        return rechazar("Reactiva la cuenta antes de registrar notas.", 409)
     if periodo["estado"] != "ACTIVO":
         return rechazar("Solo se registran/corrigen notas en período activo.", 409)
     fuente_configurada = c.execute("""SELECT f.configuracion_id,f.evaluacion_id FROM fuentes_configuracion_5b f
@@ -230,14 +187,10 @@ def registrar_nota(identificador):
                             WHERE c.periodo_id=? AND c.estado='PUBLICADA' AND f.fuente=?""", (pid,fuente)).fetchone()
     if fuente_configurada is None:
         return rechazar("El período requiere una configuración 5B publicada; no se adoptan históricos automáticamente.",409)
+    from .tabla_evaluaciones import habilitada
+    if not habilitada(c, identificador, pid, fuente):
+        return rechazar("La evaluación está deshabilitada para esta persona y gestión.", 409)
     ultima = c.execute("SELECT * FROM notas_operativas WHERE voluntario_id=? AND periodo_id=? AND fuente=? ORDER BY id DESC LIMIT 1", (identificador, pid, fuente)).fetchone()
-    rol = current_user.rol
-    if rol == "COMANDANTE_GRUPO" and (fuente != "DESEMPENO_COMANDANTE" or (ultima and ultima["evaluador_id"] != current_user.id)):
-        return rechazar("Solo puedes registrar/corregir tu propia aportación de Desempeño.", 403)
-    if rol == "JEFE_PERSONAL" and (fuente == "DESEMPENO_COMANDANTE" or (fuente == "DESEMPENO_JEFE" and ultima and ultima["evaluador_id"] != current_user.id)):
-        return rechazar("Aportación de otro evaluador.", 403)
-    if rol == "ADMINISTRADOR" and ultima is None and fuente in ("ACADEMICA", "DESEMPENO_JEFE", "DESEMPENO_COMANDANTE"):
-        return rechazar("Esta aportación inicial corresponde a su evaluador; Administración puede corregirla con historial.", 403)
     if (ultima and correccion != ultima["id"]) or (correccion is not None and (ultima is None or correccion != ultima["id"])):
         return rechazar("Recarga el historial; solo puede corregirse la nota vigente.", 409)
     respaldo = []
@@ -247,7 +200,10 @@ def registrar_nota(identificador):
             return rechazar("La formación referenciada no pertenece a esa persona.", 400)
         respaldo.append(fila)
     evaluador = ultima["evaluador_id"] if ultima else current_user.id
-    nombre_evaluador = ultima["evaluador_nombre"] if ultima else current_user.nombre
+    nombre_evaluador = comandante_nombre if fuente == "DESEMPENO_COMANDANTE" else (ultima["evaluador_nombre"] if ultima else current_user.nombre)
+    # Sin vincular al evaluador externo con una cuenta operativa: guardar nombre y transcriptor.
+    if fuente == "DESEMPENO_COMANDANTE":
+        evaluador = ultima["evaluador_id"] if ultima else current_user.id
     nid = c.execute("""INSERT INTO notas_operativas(voluntario_id,periodo_id,fuente,puntos_centesimas,evaluador_id,registrada_por,
                 evaluador_nombre,registrada_por_nombre,motivo,observacion,corregida_de_id,configuracion_id,evaluacion_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (identificador, pid, fuente, int(puntos * 100), evaluador, current_user.id, nombre_evaluador, current_user.nombre, motivo, observacion, correccion, fuente_configurada["configuracion_id"], fuente_configurada["evaluacion_id"])).lastrowid

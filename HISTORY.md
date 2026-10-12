@@ -291,3 +291,42 @@ Migración v16 aditiva: configuraciones_5b y fuentes_configuracion_5b, dos refer
 Verificación actual: **77 pruebas aprobadas en 86,620 s** (bases aisladas), incluyendo publicación concurrente, revisiones obsoletas, fuentes incompletas/categoría inválida, congelación, permisos/CSRF y preservación v15. Ocho escenarios Chromium con API simulada a 360/1447 px: publicación y modal administrativo, notas por los tres roles y bloqueo de edición sin configuración publicada; sin desborde ni errores JavaScript. Compilación Python, sintaxis de los tres JavaScript, enlaces locales y git diff --check correctos.
 
 Pendientes: cálculo provisional exacto/faltantes/redondeo, cierre y reapertura motivada con cada instantánea preservada, aceptación operativa e institucional/privacidad antes del piloto. **No se declara cerrada Fase 5B.** Siguiente entrega: cálculo provisional vinculado a configuración y últimas notas válidas, separado de asistencia y psicometría.
+
+
+## 2026-10-12 — Acuerdos de reformulación de evaluaciones y cursos (documental)
+
+Se registran las respuestas del solicitante en [reglas nuevas](docs/10_reformulacion_evaluaciones.md): Comandante sin rol operativo propio, transcripción con evaluador/autor separados, Jefe único sin asignación necesaria, habilitación por evaluación/gestión, inactivos consultables sin nuevas habilitaciones/notas, físicas reprogramables con No cumplida=0, notas físicas/académicas publicadas al Instructor, acumulación académica entera, participantes con estados/historial, estado de cursos derivado de fechas, avance y PDF consolidado. Pendientes de aclaración: límites/imputación académica, alcance global del Jefe y corrección/republicación. Sin cambios funcionales, de permisos, esquema o base. Sin nueva ejecución de suite; evidencia v16 del 2026-10-11 sigue histórica. Enlaces locales y git diff --check verificados.
+
+
+## 2026-10-12 — Primera entrega de la reformulación (v17)
+
+Jefe único activo con alcance global sin filtro de asignación; Comandante retirado del acceso operativo, conservado solo en datos históricos. Desempeño del Comandante transcrito por Administrador/Jefe con nombre del evaluador y autor de transcripción separados. Tabla Evaluaciones por gestión y consulta modal de activos/inactivos, habilitación individual con historial y notas 5B bloqueadas al deshabilitar; PDF administrativo con carimbo SBRAB. Instructor consulta habilitación/estado/avance por gestión, todavía sin notas publicadas.
+
+Acuerdos complementarios: Académica acumulará puntos enteros con tope 100; puntos individuales ajustables, gestión de finalización personal y cómputo único. Administrador/Jefe publicarán; después de corrección se conservará la versión publicada anterior hasta republicar. **Cursos con puntos, programación/reprogramación física, No cumplida=0, acumulación y publicación/republicación aún pendientes.** El flujo manual académico anterior y configuraciones congeladas no se convierten automáticamente. Psicometría continúa bloqueada; Fase 5B no cerrada.
+
+Evidencia vigente: 81 pruebas aprobadas en 45,711 s; ocho escenarios UI, PDF sintético de cinco páginas, compilación/sintaxis/enlaces/diff correctos. Migración v17 tras respaldo, 28 tablas anteriores preservadas, inicialización repetida, quick_check=ok, FK=0. Detalles en [reglas y estado](docs/10_reformulacion_evaluaciones.md). Siguiente entrega: cursos con puntaje y asignación/finalización individual con historial.
+
+
+## 2026-10-12 — Estilo de Evaluaciones por gestión
+
+Gestión se presenta como año derivado de fecha_inicio del período, sin renombrar ni modificar fechas guardadas. El listado de gestiones añade ese dato a su proyección; conserva IDs y distingue borradores del mismo año cuando sea necesario. Filtro proporcionado, botón Generar reporte PDF (no enlace), tabla con anchos y espaciado consistentes, estado horizontal con color y acción Ver por icono con nombre accesible. Modal con filas compactas, etiquetas de habilitación/finalización y controles breves; adaptación móvil y ambos temas. Instructor conserva proyección sin notas ni controles administrativos.
+
+El PDF queda deshabilitado al cambiar año o durante la consulta, habilitándose solo tras una respuesta vigente; descarga institucional existente conservada. Sin cambios de permisos, puntuación, esquema ni base. Cambios locales previos y frontend/login.html preservados.
+
+Verificación: cuatro pruebas relevantes de reformulación aprobadas en 3,164 s; 12 escenarios Chromium con API simulada (tres roles, 360/1447 px, claro/oscuro), descarga PDF, año, iconos accesibles, modal compacto y cuentas inactivas sin escritura comprobados; sin desborde ni errores JavaScript. Compilación Python del módulo, sintaxis JavaScript y git diff --check correctos. La suite completa de 81 pruebas de la entrega v17 sigue como evidencia histórica, no se repitió para esta corrección visual.
+
+
+## 2026-10-12 — Cursos, participantes y finalización individual (v18)
+
+Administrador/Jefe registran/editar catálogo con puntaje entero 0–100, fechas/entidad obligatorias en cursos nuevos y estado automático de Bolivia. Asignación personal/múltiple sin duplicados, finalización independiente con puntaje y fecha explícitos, correcciones con actor/fecha/motivo/revisión y valores anteriores preservados. Edición del catálogo no reescribe datos capturados al asignar. Inactivos solo consulta/historial. Instructor ve sus estados y formación histórica, sin puntajes hasta publicación; Dashboard/seguimiento enlazan las participaciones. PDF de catálogo filtra estado calculado. Histórico sin datos completos permanece intacto y sin puntos inferidos.
+
+Verificación vigente: 86 pruebas aprobadas en 87,375 s; 12 escenarios UI, sin desborde/errores; migración local tras respaldo e inicialización repetida preservando 29 tablas, quick_check=ok y FK=0. Compilación, sintaxis, enlaces y diff correctos. Detalles en [reglas y evidencias](docs/11_cursos_formacion.md). Pendientes acumulado académico hasta 100, físicas/reprogramación/No cumplida, publicación/republicación y cierres; no se declara cierre 5B ni del piloto.
+
+
+## Gestiones de evaluaciones: administración exclusiva — 2026-10-12
+
+Menú/pantalla Gestiones de evaluaciones solo para Administrador. Jefe e Instructor conservan Gestión (año) únicamente para consultar evaluaciones, conforme a la aclaración del solicitante. Creación/configuración/publicación y nueva edición de nombre/año se comprueban en servidor mediante role_required ADMINISTRADOR, incluidos accesos directos a APIs.
+
+PATCH /api/admin/5b/periodos/<id> edita un borrador anual sin asignaciones ni notas y sin configuración publicada. Valida nombre/año y valores anteriores para rechazar ediciones obsoletas; conserva enero–diciembre. Incrementa la revisión de configuración en borrador cuando existe, invalidando publicaciones/configuraciones de pestañas antiguas; cambios auditados. Las gestiones publicadas, cerradas, no anuales o con registros conservan sus datos. Edición mediante modal administrativo. Sin cambios de esquema ni migración/local SQLite.
+
+Verificación: 10 pruebas relevantes de Fase 5B aprobadas en 7,090 s (bases aisladas), con denegación para Jefe/Instructor de creación, edición, configuración/publicación y consulta de administración; consulta por año preservada. Seis escenarios Chromium con API simulada (tres roles, 360/1447 px), edición modal y navegación por permisos correctas, sin desborde ni errores. Compilación Python, sintaxis JavaScript y git diff --check correctos. La suite completa de 86 de cursos sigue como evidencia histórica, no se repitió para esta corrección.

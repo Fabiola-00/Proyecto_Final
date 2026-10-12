@@ -4,9 +4,9 @@
 
 ## Estado actual — 2026-10-11
 
-El proyecto tiene **Fase 5A cerrada técnicamente, con aceptación operativa pendiente**, con Fases 4A/4B implementadas técnicamente y aceptación operativa pendiente. El esquema vigente es **SQLite v16**. Existen perfiles y gestión por rol, asistencia con correcciones, calendario propio, registro de cursos, operaciones relacionadas y notas manuales con historial. Hay PDF operativos de cursos y asistencia. Psicometría aplicada, promedios oficiales, Excel e IA siguen pendientes.
+El proyecto tiene **Fase 5A cerrada técnicamente, con aceptación operativa pendiente**, con Fases 4A/4B implementadas técnicamente y aceptación operativa pendiente. El esquema vigente es **SQLite v18**. La actualización del 2026-10-12 al final detalla las reglas nuevas y sus límites. Existen perfiles y gestión por rol, asistencia con correcciones, calendario propio, registro de cursos, operaciones relacionadas y notas manuales con historial. Hay PDF operativos de cursos y asistencia. Psicometría aplicada, promedios oficiales, Excel e IA siguen pendientes.
 
-Verificación actual de la segunda entrega 5B (2026-10-11): **77 pruebas aprobadas en 86,620 s**, ocho escenarios de interfaz y esquema local v16 verificado tras respaldo. Evidencia histórica de la primera entrega: 73 pruebas en 80,440 s y migración v15. Cierre técnico 5A previo: 68 pruebas en 48,333 s, registrado en [HISTORY.md](HISTORY.md). 5B sigue parcial: rol/fuentes/respaldo y configuración/publicación/activación implementados; cálculo y cierres/reaperturas pendientes.
+Verificación histórica de la segunda entrega 5B (2026-10-11): **77 pruebas aprobadas en 86,620 s**, ocho escenarios de interfaz y esquema local v16 verificado tras respaldo. Evidencia histórica de la primera entrega: 73 pruebas en 80,440 s y migración v15. Cierre técnico 5A previo: 68 pruebas en 48,333 s, registrado en [HISTORY.md](HISTORY.md). 5B sigue parcial: rol/fuentes/respaldo y configuración/publicación/activación implementados; cálculo y cierres/reaperturas pendientes.
 
 ## Capacidades y permisos
 
@@ -17,12 +17,12 @@ La autorización se comprueba en servidor para páginas, APIs y objetos. Cuentas
 | Personal | Lista, crea, consulta, edita y desactiva perfiles; administra Jefes, asignaciones y aprobación/rechazo de solicitudes. | Solicita altas pendientes para su equipo; consulta, edita y desactiva únicamente personal activo asignado. | Consulta sus datos permitidos; edita exclusivamente correo y foto propios. |
 | Grado y especialidades | Asigna/edita grado y especialidades. | Lo hace dentro de su ámbito activo asignado; puede proponer grado en su solicitud de alta. | Consulta grado y especialidades propios, sin editar. |
 | Asistencia | Registra, consulta y corrige en su ámbito global; historial y PDF. | Registra, consulta, corrige y reporta solo personal activo asignado. | Calendario anual propio y totales de cuatro estados, sin edición, observaciones ni datos de terceros. |
-| Cursos | Crea/edita catálogo común; consulta y genera PDF filtrado. | Crea/edita el mismo catálogo y genera PDF. | Consulta su historial personal de formación sin observaciones. |
+| Cursos | Crea/edita catálogo común; consulta y genera PDF filtrado. | Crea/edita el mismo catálogo y genera PDF. | Consulta asignaciones y formación histórica propias, sin puntajes ni observaciones hasta publicación. |
 | Operaciones | Crea/edita eventos y vincula participantes activos. | Vincula únicamente personal activo asignado a eventos existentes. | Consulta solo sus participaciones, sin información de terceros ni observaciones. |
 | Notas manuales | Registra/corrige notas no psicométricas y consulta historial autorizado. | Mismas operaciones dentro del ámbito asignado. | Consulta estado/avance de evaluaciones; no recibe notas ni observaciones. |
 | Credenciales y fotos | Gestiona su perfil/clave y restablece claves de personal; fotos privadas. | No restablece claves ajenas. | Autoservicio de correo/foto; no restablece claves ajenas. |
 
-Comandante del Grupo (`COMANDANTE_GRUPO`): panel y consulta de seguimiento SBRAB sin observaciones ajenas; solo registra/corrige su aportación de Desempeño. Su cuenta única activa la gestiona Administrador. No administra personas, permisos, períodos ni configuración.
+Desde 2026-10-12 Comandante es un evaluador externo registrado por nombre en su nota de Desempeño; Administrador/Jefe transcriben. El rol previo se conserva en históricos, sin acceso operativo.
 
 ### Altas, perfil y directorio
 
@@ -45,7 +45,7 @@ El reporte matricial usa rango inclusivo de fechas, columnas por fecha/actividad
 
 ### Cursos, operaciones y notas
 
-**Capacitaciones y Cursos** registra cursos independientes de personas: nombre, tipo, entidad organizadora, inicio/fin, estado y observaciones opcionales. Tipos: Capacitación, Especialización, Actualización, Taller y Seminario (Webinar). Estados: Próximo, En curso y Finalizado. Nombre/tipo/estado obligatorios; fin requiere inicio y no puede precederlo. Estado elegido manualmente; edición en modal. No hay formulario de asignación de personas en esta pantalla.
+**Capacitaciones y Cursos** registra catálogo con nombre, tipo, entidad, fechas obligatorias y puntaje entero 0–100; observaciones opcionales. Tipos: Capacitación, Especialización, Actualización, Taller y Seminario (Webinar). Estado automático por fecha de Bolivia: Próximo amarillo, En curso verde (inicio/fin inclusive), Finalizado rojo. Edición y asignación en modales; participantes con estados personales, puntaje/fecha explícitos al finalizar y correcciones con historial. Instructor consulta solo lo propio, sin puntajes hasta publicación. Históricos conservados sin adopción automática; ver [formación v18](docs/11_cursos_formacion.md).
 
 Se conservan registros personales en `capacitaciones`, APIs por ámbito y vínculo opcional `curso_id`; no se enlazan históricos automáticamente ni se reescriben sus nombres al renombrar el catálogo. Mis cursos muestra formación propia sin observaciones. El PDF del catálogo filtra por rango inclusivo de fecha de inicio y tipo/estado opcionales; excluye cursos sin inicio. Incluye carimbo SBRAB, no datos personales ni observaciones; resultado vacío válido.
 
@@ -56,7 +56,7 @@ Las notas manuales se validan entre 0 y 100. Una corrección agrega una fila enl
 ## Próxima entrega y decisiones abiertas
 
 1. **Aceptación operativa de 5A:** el solicitante revisa el recorrido visible de notas, cursos, asistencia, calendario y PDF con datos sintéticos; registrar aceptación o incidencias. El cierre técnico ya está verificado.
-2. **Siguiente entrega — implementación de Fase 5B:** las reglas del prototipo ya están acordadas. Primera entrega rol Comandante/cargo único, fuentes separadas y respaldo académico implementada; continuar con períodos/configuración congelada, cálculo e instantáneas según [reglas 5B](docs/09_reglas_fase_5b.md).
+2. **Continuación de Fase 5B:** tabla/habilitación por gestión y cursos/formación individual implementados. Siguen acumulado académico, programación/reprogramación física, publicación y cierres, conforme a [reglas actualizadas](docs/10_reformulacion_evaluaciones.md).
 
 La Fase 6 depende de aprobación institucional/profesional, licencia, idioma, puntuación, intentos y retención. Fase 7 ya tiene PDF operativos acotados; Excel, informes consolidados y reportes psicométricos siguen pendientes. Preparación del piloto requiere respaldo/restauración, HTTPS/WSGI, operación, privacidad y aceptación institucional. Fase 8 (IA) es opcional y queda fuera del cierre básico. No se asumen respuestas institucionales, porcentajes ni fechas de entrega.
 
@@ -170,3 +170,27 @@ Migración v16 aditiva: configuraciones_5b y fuentes_configuracion_5b, dos refer
 Verificación actual: **77 pruebas aprobadas en 86,620 s** (bases aisladas), incluyendo publicación concurrente, revisiones obsoletas, fuentes incompletas/categoría inválida, congelación, permisos/CSRF y preservación v15. Ocho escenarios Chromium con API simulada a 360/1447 px: publicación y modal administrativo, notas por los tres roles y bloqueo de edición sin configuración publicada; sin desborde ni errores JavaScript. Compilación Python, sintaxis de los tres JavaScript, enlaces locales y git diff --check correctos.
 
 Pendientes: cálculo provisional exacto/faltantes/redondeo, cierre y reapertura motivada con cada instantánea preservada, aceptación operativa e institucional/privacidad antes del piloto. **No se declara cerrada Fase 5B.** Siguiente entrega: cálculo provisional vinculado a configuración y últimas notas válidas, separado de asistencia y psicometría.
+
+
+## Reglas nuevas acordadas — 2026-10-12
+
+La [reformulación de evaluaciones y formación](docs/10_reformulacion_evaluaciones.md) sustituye acuerdos anteriores incompatibles: Comandante sin cuenta operativa propia, Jefe único sin asignaciones necesarias, publicación de notas físicas/académicas al Instructor, No cumplida física con cero y formación acumulativa en enteros. Primera entrega de autorización/tabla/habilitación/PDF implementada en v17; el resto queda pendiente según la actualización siguiente. Configuraciones/históricos anteriores se conservan; no aplicar las reglas nuevas retrospectivamente. Límite/imputación académica, alcance global del Jefe y publicación/republicación quedaron confirmados; ver la actualización siguiente. La próxima entrega se reordena conforme a ese documento; las verificaciones del 2026-10-11 permanecen históricas.
+
+
+## Primera entrega de la reformulación — 2026-10-12 (v17)
+
+Jefe único activo con alcance global sin filtro de asignación; Comandante retirado del acceso operativo, conservado solo en datos históricos. Desempeño del Comandante transcrito por Administrador/Jefe con nombre del evaluador y autor de transcripción separados. Tabla Evaluaciones por gestión y consulta modal de activos/inactivos, habilitación individual con historial y notas 5B bloqueadas al deshabilitar; PDF administrativo con carimbo SBRAB. Instructor consulta habilitación/estado/avance por gestión, todavía sin notas publicadas.
+
+Acuerdos complementarios: Académica acumulará puntos enteros con tope 100; puntos individuales ajustables, gestión de finalización personal y cómputo único. Administrador/Jefe publicarán; después de corrección se conservará la versión publicada anterior hasta republicar. **Cursos con puntos, programación/reprogramación física, No cumplida=0, acumulación y publicación/republicación aún pendientes.** El flujo manual académico anterior y configuraciones congeladas no se convierten automáticamente. Psicometría continúa bloqueada; Fase 5B no cerrada.
+
+Evidencia vigente: 81 pruebas aprobadas en 45,711 s; ocho escenarios UI, PDF sintético de cinco páginas, compilación/sintaxis/enlaces/diff correctos. Migración v17 tras respaldo, 28 tablas anteriores preservadas, inicialización repetida, quick_check=ok, FK=0. Detalles en [reglas y estado](docs/10_reformulacion_evaluaciones.md). Siguiente entrega: cursos con puntaje y asignación/finalización individual con historial.
+
+
+## Cursos y formación personal implementados — 2026-10-12 (v18)
+
+Administrador/Jefe registran/editar catálogo con puntaje entero 0–100, fechas/entidad obligatorias en cursos nuevos y estado automático de Bolivia. Asignación personal/múltiple sin duplicados, finalización independiente con puntaje y fecha explícitos, correcciones con actor/fecha/motivo/revisión y valores anteriores preservados. Edición del catálogo no reescribe datos capturados al asignar. Inactivos solo consulta/historial. Instructor ve sus estados y formación histórica, sin puntajes hasta publicación; Dashboard/seguimiento enlazan las participaciones. PDF de catálogo filtra estado calculado. Histórico sin datos completos permanece intacto y sin puntos inferidos.
+
+Verificación vigente: 86 pruebas aprobadas en 87,375 s; 12 escenarios UI, sin desborde/errores; migración local tras respaldo e inicialización repetida preservando 29 tablas, quick_check=ok y FK=0. Compilación, sintaxis, enlaces y diff correctos. Detalles en [reglas y entrega v18](docs/11_cursos_formacion.md). Pendientes acumulado académico hasta 100, físicas/reprogramación/No cumplida, publicación/republicación y cierres; no se declara cierre 5B ni del piloto.
+
+
+Administración de **Gestiones de evaluaciones** exclusiva del Administrador: crea y edita nombre/año de borradores sin registros, configura y publica. Jefe/Instructor mantienen el selector de año para consultar; sin acciones de administración. Gestiones publicadas/históricas protegidas y acceso validado en servidor. Corrección del 2026-10-12 registrada en HISTORY.

@@ -5,6 +5,7 @@ from flask import Blueprint, jsonify, request, render_template
 from flask_login import current_user
 from . import db
 from .permissions import role_required
+from .formacion import proyectar_curso, validar_puntaje, fecha, hoy_bolivia, TIPOS
 
 relaciones_bp = Blueprint('relaciones', __name__)
 
@@ -21,8 +22,6 @@ def auditar(conexion, accion):
 def personal_permitido(conexion, usuario_id):
     consulta = "SELECT 1 FROM voluntarios v JOIN usuarios u ON u.id=v.usuario_id WHERE v.usuario_id=? AND u.estado='ACTIVO'"
     parametros = [usuario_id]
-    if current_user.rol == 'JEFE_PERSONAL':
-        consulta += ' AND v.instructor_id=?'; parametros.append(current_user.id)
     return conexion.execute(consulta, parametros).fetchone() is not None
 
 def curso_para_registro(conexion, valor):
@@ -35,14 +34,14 @@ def curso_para_registro(conexion, valor):
 @relaciones_bp.get('/api/cursos')
 @role_required('ADMINISTRADOR', 'JEFE_PERSONAL')
 def listar_cursos():
-    return jsonify(cursos=[dict(f) for f in db.obtener_conexion().execute('SELECT * FROM cursos ORDER BY nombre,id')])
+    return jsonify(hoy=hoy_bolivia().isoformat(), cursos=[proyectar_curso(f) for f in db.obtener_conexion().execute("SELECT c.*,(SELECT COUNT(*) FROM participaciones_curso p WHERE p.curso_id=c.id) AS participantes_total,(SELECT COUNT(*) FROM participaciones_curso p WHERE p.curso_id=c.id AND p.estado='Finalizado') AS finalizados_total FROM cursos c ORDER BY c.nombre,c.id")])
 
 @relaciones_bp.post('/api/cursos')
 @relaciones_bp.patch('/api/cursos/<int:curso_id>')
 @role_required('ADMINISTRADOR','JEFE_PERSONAL')
 def guardar_curso(curso_id=None):
     entrada = datos()
-    campos = ("nombre", "tipo", "entidad", "fecha_inicio", "fecha_fin", "estado", "observaciones")
+    campos = ("nombre", "tipo", "entidad", "fecha_inicio", "fecha_fin", "puntaje", "observaciones")
     if entrada is None or not entrada or set(entrada)-set(campos): return error("Campos de curso no válidos.")
     conexion = db.obtener_conexion()
     anterior = conexion.execute("SELECT * FROM cursos WHERE id=?", (curso_id,)).fetchone() if curso_id else None
@@ -55,20 +54,22 @@ def guardar_curso(curso_id=None):
             if valor is not None and (not isinstance(valor,str) or len(valor.strip())>limite): raise ValueError("Texto del curso no válido.")
             valores[campo] = valor.strip() or None if valor is not None else None
         if not valores["nombre"]: raise ValueError("El nombre es obligatorio.")
-        for campo,opciones in (("tipo",("Capacitación","Especialización","Actualización","Taller","Seminario (Webinar)")),("estado",("Próximo","En curso","Finalizado"))):
-            if valores.get(campo) not in opciones and (curso_id is None or campo in entrada): raise ValueError("Selecciona tipo y estado válidos.")
+        if (curso_id is None or "entidad" in entrada) and not valores["entidad"]: raise ValueError("La entidad organizadora es obligatoria.")
+        if (curso_id is None or "tipo" in entrada) and valores.get("tipo") not in TIPOS: raise ValueError("Selecciona un tipo válido.")
+        if curso_id is None or "puntaje" in entrada: validar_puntaje(valores.get("puntaje"))
         for campo in ("fecha_inicio","fecha_fin"):
             valor = valores.get(campo)
-            if valor is not None and not isinstance(valor,str): raise ValueError("Fecha no válida.")
-            valores[campo] = date.fromisoformat(valor).isoformat() if valor else None
-        if valores["fecha_fin"] and (not valores["fecha_inicio"] or valores["fecha_fin"]<valores["fecha_inicio"]): raise ValueError("El fin requiere inicio y no puede precederlo.")
+            if curso_id is None or campo in entrada:
+                valores[campo] = fecha(valor).isoformat()
+        if curso_id is None or {"fecha_inicio","fecha_fin"}.intersection(entrada):
+            if not valores.get("fecha_inicio") or not valores.get("fecha_fin") or valores["fecha_fin"] < valores["fecha_inicio"]: raise ValueError("Inicio y fin son obligatorios; el fin no puede preceder al inicio.")
     except (ValueError,TypeError) as fallo: return error(str(fallo))
     registro=tuple(valores.get(c) for c in campos)
     try:
         if curso_id is None:
-            curso_id=conexion.execute("INSERT INTO cursos(nombre,tipo,entidad,fecha_inicio,fecha_fin,estado,observaciones) VALUES (?,?,?,?,?,?,?)",registro).lastrowid
+            curso_id=conexion.execute("INSERT INTO cursos(nombre,tipo,entidad,fecha_inicio,fecha_fin,puntaje,observaciones) VALUES (?,?,?,?,?,?,?)",registro).lastrowid
         else:
-            conexion.execute("UPDATE cursos SET nombre=?,tipo=?,entidad=?,fecha_inicio=?,fecha_fin=?,estado=?,observaciones=? WHERE id=?",(*registro,curso_id))
+            conexion.execute("UPDATE cursos SET nombre=?,tipo=?,entidad=?,fecha_inicio=?,fecha_fin=?,puntaje=?,observaciones=? WHERE id=?",(*registro,curso_id))
         auditar(conexion,'CURSO_GUARDADO'); conexion.commit()
     except sqlite3.IntegrityError:
         conexion.rollback(); return error('Ya existe un curso con ese nombre.',409)
@@ -108,7 +109,6 @@ def listar_operaciones():
         q='''SELECT p.voluntario_id,u.nombre_completo AS nombre FROM participaciones_operacion p
              JOIN voluntarios v ON v.usuario_id=p.voluntario_id JOIN usuarios u ON u.id=v.usuario_id WHERE p.operacion_id=?'''
         args=[evento['id']]
-        if current_user.rol=='JEFE_PERSONAL': q+=" AND v.instructor_id=? AND u.estado='ACTIVO'";args.append(current_user.id)
         if current_user.rol=='INSTRUCTOR_VOLUNTARIO': q+=' AND p.voluntario_id=?';args.append(current_user.id)
         evento['participantes']=[dict(f) for f in conexion.execute(q+' ORDER BY u.nombre_completo',args)]
     return jsonify(operaciones=eventos)
@@ -172,12 +172,13 @@ def reporte_cursos():
     tipo=argumentos.get('tipo','');estado=argumentos.get('estado','')
     if tipo and tipo not in ('Capacitación','Especialización','Actualización','Taller','Seminario (Webinar)'):return error('Tipo no válido.')
     if estado and estado not in ('Próximo','En curso','Finalizado'):return error('Estado no válido.')
-    consulta='SELECT nombre,tipo,entidad,fecha_inicio,fecha_fin,estado FROM cursos WHERE fecha_inicio>=? AND fecha_inicio<=?'
+    consulta='SELECT nombre,tipo,entidad,fecha_inicio,fecha_fin,estado,puntaje FROM cursos WHERE fecha_inicio>=? AND fecha_inicio<=?'
     parametros=[desde,hasta]
-    for campo,valor in (('tipo',tipo),('estado',estado)):
+    for campo,valor in (('tipo',tipo),):
         if valor: consulta+=f' AND {campo}=?';parametros.append(valor)
     conexion=db.obtener_conexion()
-    filas=[dict(f) for f in conexion.execute(consulta+' ORDER BY fecha_inicio,nombre,id',parametros)]
+    filas=[proyectar_curso(f) for f in conexion.execute(consulta+' ORDER BY fecha_inicio,nombre,id',parametros)]
+    if estado: filas=[f for f in filas if f['estado']==estado]
     archivo=generar_pdf_cursos(filas,desde,hasta,tipo,estado)
     auditar(conexion,'REPORTE_CURSOS_GENERADO');conexion.commit()
     respuesta=send_file(archivo,mimetype='application/pdf',as_attachment=True,download_name=f'cursos-{desde}-{hasta}.pdf',max_age=0)

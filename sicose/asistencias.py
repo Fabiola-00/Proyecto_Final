@@ -16,8 +16,6 @@ def alcance(conexion,identificador):
     consulta='''SELECT a.* FROM asistencias a JOIN voluntarios v ON v.usuario_id=a.voluntario_id
                 JOIN usuarios u ON u.id=v.usuario_id WHERE a.id=?'''
     parametros=[identificador]
-    if current_user.rol=='JEFE_PERSONAL':
-        consulta+=" AND v.instructor_id=? AND u.estado='ACTIVO'";parametros.append(current_user.id)
     return conexion.execute(consulta,parametros).fetchone()
 
 @asistencias_bp.patch('/api/jefe-personal/asistencias/<int:identificador>')
@@ -27,6 +25,7 @@ def corregir_asistencia(identificador):
     if not isinstance(entrada,dict) or set(entrada)!={'estado'} or entrada['estado'] not in ESTADOS:return fallo('Selecciona uno de los cuatro estados.')
     conexion=db.obtener_conexion();fila=alcance(conexion,identificador)
     if fila is None:return fallo('Asistencia fuera de tu ámbito.',404)
+    if conexion.execute("SELECT estado FROM usuarios WHERE id=?",(fila['voluntario_id'],)).fetchone()[0]!='ACTIVO':return fallo('Reactiva la cuenta antes de corregir asistencia.',409)
     estado=entrada['estado']
     anterior=fila['estado_detalle'] or {'PRESENTE':'ASISTE','AUSENTE':'FALTA','JUSTIFICADO':'PERMISO'}[fila['estado']]
     if anterior==estado:return jsonify(ok=True)
@@ -80,7 +79,6 @@ def datos_reporte():
         u.nombre_completo AS nombre,v.codigo_instructor AS codigo FROM asistencias a
         JOIN voluntarios v ON v.usuario_id=a.voluntario_id JOIN usuarios u ON u.id=v.usuario_id WHERE a.fecha BETWEEN ? AND ?'''
     parametros=[desde,hasta]
-    if current_user.rol=='JEFE_PERSONAL':consulta+=" AND v.instructor_id=? AND u.estado='ACTIVO'";parametros.append(current_user.id)
     filas=db.obtener_conexion().execute(consulta+' ORDER BY a.fecha,a.actividad,u.nombre_completo,a.id',parametros).fetchall()
     llamadas=sorted({(f['fecha'],f['actividad'] or '') for f in filas})
     personas={}

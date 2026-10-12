@@ -1,0 +1,10 @@
+{% extends "_dashboard_base.html" %}
+{% block contenido %}
+<section class="seccion-panel" id="tabla-evaluaciones" data-propia="{{ 'si' if current_user.rol == 'INSTRUCTOR_VOLUNTARIO' else 'no' }}">
+  <form id="gestion-evaluaciones-filtro" class="formulario-inline evaluaciones-filtro"><label>Gestión (año)<select name="periodo_id" required><option value="">Seleccionar año</option></select></label><button>Consultar</button>
+  {% if current_user.rol != 'INSTRUCTOR_VOLUNTARIO' %}<button id="reporte-evaluaciones" class="boton-editar" type="button" disabled>Generar reporte PDF</button>{% endif %}</form>
+  <p id="tabla-evaluaciones-mensaje" class="mensaje" role="status" aria-live="polite"></p>
+  <div id="evaluaciones-resultado"></div>
+</section>
+<script src="{{ url_for('static', filename='js/tabla_evaluaciones.js') }}" defer></script>
+{% endblock %}
