@@ -185,7 +185,7 @@ def inicializar_base_datos():
         ((rol,) for rol in ROLES),
     )
     conexion.execute(
-        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '18')
+        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '22')
            ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor"""
     )
     conexion.commit()
@@ -194,11 +194,13 @@ def inicializar_base_datos():
 def _asegurar_periodos_5b(conexion):
     """Proteger cambios nuevos sin cerrar ni modificar períodos históricos."""
     conexion.executescript("""
+    DROP TRIGGER IF EXISTS periodo_activo_insertar;
+    DROP TRIGGER IF EXISTS periodo_activo_actualizar;
     CREATE TRIGGER IF NOT EXISTS periodo_activo_insertar BEFORE INSERT ON periodos
-    WHEN NEW.estado='ACTIVO' AND EXISTS(SELECT 1 FROM periodos WHERE estado='ACTIVO')
+    WHEN NEW.estado='ACTIVO' AND EXISTS(SELECT 1 FROM periodos WHERE estado='ACTIVO' AND NOT EXISTS(SELECT 1 FROM bajas_gestion b WHERE b.periodo_id=periodos.id))
     BEGIN SELECT RAISE(ABORT,'periodo_activo_existente'); END;
     CREATE TRIGGER IF NOT EXISTS periodo_activo_actualizar BEFORE UPDATE OF estado ON periodos
-    WHEN NEW.estado='ACTIVO' AND OLD.estado!='ACTIVO' AND EXISTS(SELECT 1 FROM periodos WHERE estado='ACTIVO' AND id!=NEW.id)
+    WHEN NEW.estado='ACTIVO' AND OLD.estado!='ACTIVO' AND EXISTS(SELECT 1 FROM periodos WHERE estado='ACTIVO' AND id!=NEW.id AND NOT EXISTS(SELECT 1 FROM bajas_gestion b WHERE b.periodo_id=periodos.id))
     BEGIN SELECT RAISE(ABORT,'periodo_activo_existente'); END;
     CREATE TRIGGER IF NOT EXISTS configuracion_publicada_actualizar BEFORE UPDATE ON configuraciones_5b
     WHEN OLD.estado='PUBLICADA' BEGIN SELECT RAISE(ABORT,'configuracion_congelada'); END;

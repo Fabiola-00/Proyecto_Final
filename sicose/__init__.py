@@ -76,6 +76,16 @@ def create_app(test_config=None):
     app.register_blueprint(tabla_bp)
     from .formacion import formacion_bp
     app.register_blueprint(formacion_bp)
+    from .fisicas import fisicas_bp
+    app.register_blueprint(fisicas_bp)
+    from .gestiones import gestiones_bp
+    from .calculos_5b import calculos_bp
+    app.register_blueprint(gestiones_bp)
+    app.register_blueprint(calculos_bp)
+    from .publicaciones_5b import publicaciones_bp
+    app.register_blueprint(publicaciones_bp)
+    from .cierres_5b import cierres_bp
+    app.register_blueprint(cierres_bp)
 
     @login_manager.user_loader
     def cargar_usuario(user_id):

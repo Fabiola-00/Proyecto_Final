@@ -47,3 +47,20 @@ Migración local v17→v18 tras respaldo: 29 tablas anteriores preservadas, camp
 **12 escenarios Chromium** con API simulada: tres roles, 360/1447 px, claro/oscuro; edición, asignación, finalización con cero, historial, cursos incompletos e inactivos sin escritura y privacidad propia. Sin desbordes ni errores JavaScript. Compilación Python, sintaxis JavaScript, enlaces locales y git diff --check correctos. Frontend/login.html y cambios locales anteriores preservados.
 
 Pendientes: acumulación académica hasta 100, programación/reprogramación física/No cumplida, publicación/republicación de notas permitidas al Instructor y cierre/reapertura con instantáneas. Fase 5B y piloto no están cerrados. Psicometría y decisiones institucionales siguen condicionadas según el plan.
+
+
+Actualización posterior — 2026-10-13: programación/reprogramación física y No cumplida implementadas en [5B.1/v19](13_programacion_fisica.md). La evidencia v18 anterior conserva su fecha. Acumulación académica, cálculos, publicación/republicación y cierres continúan pendientes; no se modificó el cómputo de cursos en esta entrega.
+
+
+Actualización posterior — 2026-10-13, v20: [5B.2 y Gestiones](14_calculos_y_gestiones.md) implementa acumulado académico/cálculos provisionales mediante activación explícita, CRUD compartido de gestiones con baja lógica y activación anual separada de habilitación individual. Sustituye los pendientes de cálculo y la exclusividad de CRUD de gestiones de los bloques anteriores; configuración/publicación del ciclo siguen administrativas. Pendientes 5B.3 publicación y 5B.4 cierres. La evidencia anterior conserva su fecha/contexto.
+
+
+Actualización posterior — 2026-10-13, v21: [5B.3 publicación/republicación](15_publicacion_notas.md) implementa versiones físicas/académicas propias, publicación parcial y ocultación mientras la fuente esté deshabilitada o Gestión retirada. Mis cursos muestra puntos desde snapshot publicado; correcciones mantienen versión/fecha anterior hasta republicar. Desempeño/conjunto y fuentes privadas no se publican. La evidencia de esta entrega anterior conserva su contexto. Siguiente pendiente 5B.4 cierre/reapertura con instantáneas.
+
+### Ajuste de interfaz — 2026-10-13
+
+«Asignar participantes» permite seleccionar varias personas mediante casillas con nombre/código y muestra la cantidad seleccionada. Solo lista personal activo aún no asignado; el botón se habilita al marcar al menos una persona. El envío conserva el contrato y la asignación atómica existentes. Si hay un error, la selección permanece para reintentar.
+
+### Formación y cierres — 2026-10-14
+
+En 5B.4 se confirmó bloquear registrar/corregir una finalización si su año anterior o nuevo corresponde a una Gestión anual cerrada. Incluye retirar una finalización o moverla a otro año; exige reapertura administrativa previa. Una petición sin cambios no crea revisión. Catálogo y asignaciones permanecen separados del cálculo y no modifican instantáneas. [Ciclo y bloqueos](16_cierres_reaperturas.md).

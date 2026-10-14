@@ -148,6 +148,11 @@ def actualizar(identificador):
         final = finalizacion.isoformat() if finalizacion else None
         if (entrada['estado'], puntos, final) == (fila['estado'], fila['puntaje'], fila['fecha_finalizacion']):
             c.rollback(); return jsonify(ok=True, revision=fila['revision'])
+        # Tanto retirar una imputación anterior como agregar una nueva afecta al año.
+        anos = {f[:4] for f in (fila['fecha_finalizacion'], final) if f}
+        for ano in anos:
+            if c.execute("SELECT 1 FROM periodos p WHERE p.estado='CERRADO' AND substr(p.fecha_inicio,1,4)=? AND p.fecha_inicio=? AND p.fecha_fin=? LIMIT 1", (ano, f'{ano}-01-01', f'{ano}-12-31')).fetchone():
+                c.rollback(); return fallo('La finalización anterior o nueva pertenece a una Gestión cerrada. El Administrador debe reabrirla antes de corregir formación.', 409)
         c.execute('UPDATE participaciones_curso SET estado=?,puntaje=?,fecha_finalizacion=?,revision=revision+1 WHERE id=?', (entrada['estado'], puntos, final, identificador))
         actual = c.execute('SELECT * FROM participaciones_curso WHERE id=?', (identificador,)).fetchone()
         registrar_version(c, actual, motivo.strip())
@@ -165,6 +170,18 @@ def actualizar(identificador):
 def propias():
     if request.args:
         return fallo("La consulta de formación es propia y no admite seleccionar otra persona.")
-    # No exponer puntajes, motivo, autoría ni datos de terceros antes de publicación.
-    filas = db.obtener_conexion().execute('SELECT id,curso_id,nombre_curso,entidad_curso,tipo_curso,inicio_curso,fin_curso,estado,fecha_finalizacion FROM participaciones_curso WHERE voluntario_id=? ORDER BY inicio_curso DESC,id DESC', (current_user.id,))
-    return jsonify(participaciones=[dict(f) for f in filas])
+    # Datos vigentes sin puntos; valores numéricos solo en versiones publicadas propias.
+    c = db.obtener_conexion()
+    c.execute("BEGIN")
+    filas = c.execute('SELECT id,curso_id,nombre_curso,entidad_curso,tipo_curso,inicio_curso,fin_curso,estado,fecha_finalizacion FROM participaciones_curso WHERE voluntario_id=? ORDER BY inicio_curso DESC,id DESC', (current_user.id,))
+    participaciones = [dict(f) for f in filas]
+    from .publicaciones_5b import proyeccion
+    publicaciones = []
+    for p in c.execute("SELECT DISTINCT p.periodo_id,substr(g.fecha_inicio,1,4) AS gestion FROM publicaciones_5b p JOIN periodos g ON g.id=p.periodo_id WHERE p.voluntario_id=? ORDER BY gestion DESC", (current_user.id,)):
+        valor = proyeccion(c, current_user.id, p["periodo_id"])
+        if valor and valor["academica"] is not None:
+            publicaciones.append({"periodo_id": p["periodo_id"], "gestion": p["gestion"], "academica": valor["academica"]})
+    c.commit()
+    respuesta = jsonify(participaciones=participaciones, publicaciones=publicaciones)
+    respuesta.headers['Cache-Control'] = 'private, no-store'
+    return respuesta

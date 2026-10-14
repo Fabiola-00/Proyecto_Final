@@ -46,6 +46,9 @@ def _authorized_assignment(connection, assignment_id):
     row = connection.execute(sql, (assignment_id,)).fetchone()
     if row and current_user.rol == "INSTRUCTOR_VOLUNTARIO" and row["voluntario_id"] != current_user.id:
         return None
+    from .gestiones import retirada
+    if row and request.method != "GET" and retirada(connection, row["periodo_id"]):
+        return None
     return row
 
 
@@ -54,7 +57,7 @@ def _authorized_assignment(connection, assignment_id):
 def pagina_catalogo():
     return render_template("gestion_evaluaciones.html", titulo_pagina="Catálogo de evaluaciones",
                            nav_activo="evaluaciones", indicadores=[],
-                           descripcion="Administra el catálogo y las asignaciones de cada período.",
+                           descripcion="Catálogo común de evaluaciones; la activación por año se administra en Gestiones.",
                            periodo_actual=db.periodo_actual())
 
 
@@ -164,7 +167,7 @@ def editar_evaluacion(evaluation_id):
 @evaluations_bp.get("/api/admin/periodos-activos")
 @role_required("ADMINISTRADOR")
 def periodos_activos():
-    rows = db.obtener_conexion().execute("SELECT id,nombre FROM periodos WHERE estado='ACTIVO' ORDER BY fecha_inicio DESC").fetchall()
+    rows = db.obtener_conexion().execute("SELECT id,nombre FROM periodos WHERE estado='ACTIVO' AND NOT EXISTS(SELECT 1 FROM bajas_gestion b WHERE b.periodo_id=periodos.id) ORDER BY fecha_inicio DESC").fetchall()
     return jsonify(periodos=[dict(row) for row in rows]), 200
 
 
@@ -172,7 +175,7 @@ def periodos_activos():
 @role_required("ADMINISTRADOR")
 def listar_periodos():
     rows = db.obtener_conexion().execute(
-        "SELECT id,nombre,fecha_inicio,fecha_fin,estado FROM periodos ORDER BY fecha_inicio DESC,id DESC"
+        "SELECT id,nombre,fecha_inicio,fecha_fin,estado FROM periodos WHERE NOT EXISTS(SELECT 1 FROM bajas_gestion b WHERE b.periodo_id=periodos.id) ORDER BY fecha_inicio DESC,id DESC"
     ).fetchall()
     return jsonify(periodos=[dict(row) for row in rows]), 200
 
@@ -214,18 +217,25 @@ def asignar_evaluacion():
     if any(not isinstance(value, int) or isinstance(value, bool) for value in ids):
         return _bad("Voluntario, período y evaluación son obligatorios.")
     connection = db.obtener_conexion()
+    try:
+        connection.execute('BEGIN IMMEDIATE')
+    except sqlite3.OperationalError:
+        return _bad('Hay una actualización en curso; recarga la gestión.', 'conflicto_gestion', 409)
     volunteer = connection.execute(
         """SELECT 1 FROM voluntarios v JOIN usuarios u ON u.id=v.usuario_id
            WHERE v.usuario_id=? AND u.estado='ACTIVO'""", (ids[0],)
     ).fetchone()
     period = connection.execute("SELECT 1 FROM periodos WHERE id=? AND estado='ACTIVO'", (ids[1],)).fetchone()
     evaluation = connection.execute("SELECT id,activo,categoria,instrumento_id FROM evaluaciones WHERE id=?", (ids[2],)).fetchone()
-    if not volunteer or not period or not evaluation or not evaluation["activo"]:
+    from .gestiones import retirada, activa
+    if not volunteer or not period or not evaluation or not evaluation["activo"] or retirada(connection, ids[1]):
         return _bad("Se requiere un voluntario activo, período activo y evaluación habilitada.", "asignacion_invalida", 400)
     if evaluation["categoria"] == "PSICOMETRICA":
         instrument = connection.execute("SELECT estado_aprobacion FROM instrumentos WHERE id=?", (evaluation["instrumento_id"],)).fetchone()
         if not instrument or instrument["estado_aprobacion"] != "APROBADO":
             return _bad("No se puede asignar: el instrumento no está autorizado.", "instrumento_no_autorizado", 409)
+        if not activa(connection, ids[1], 'PSICOMETRICAS'):
+            return _bad('Psicométricas desactivadas en esta gestión.', 'evaluacion_gestion_inactiva', 409)
     try:
         cursor = connection.execute(
             """INSERT INTO asignaciones_evaluacion (voluntario_id,periodo_id,evaluacion_id)
@@ -279,16 +289,26 @@ def cambiar_estado_asignacion(assignment_id):
     if state not in {"HABILITADA", "NO_HABILITADA"}:
         return _bad("El estado debe ser HABILITADA o NO_HABILITADA.")
     connection = db.obtener_conexion()
+    try:
+        connection.execute('BEGIN IMMEDIATE')
+    except sqlite3.OperationalError:
+        return _bad('Hay una actualización en curso; recarga la gestión.', 'conflicto_gestion', 409)
     assignment = _authorized_assignment(connection, assignment_id)
     if not assignment:
         return _bad("Asignación no encontrada en tu ámbito.", "asignacion_no_encontrada", 404)
     if assignment["cuenta_estado"] != "ACTIVO":
         return _bad("Reactiva la cuenta antes de modificar evaluaciones.", "cuenta_inactiva", 409)
+    if assignment["periodo_estado"] != "ACTIVO":
+        connection.rollback()
+        return _bad("La Gestión debe estar activa para cambiar habilitaciones.", "periodo_cerrado", 409)
     if assignment["categoria"] != "PSICOMETRICA":
         return _bad("Solo las pruebas psicométricas se habilitan por voluntario.", "categoria_incompatible", 400)
     instrument = connection.execute("SELECT estado_aprobacion FROM instrumentos WHERE id=(SELECT instrumento_id FROM evaluaciones WHERE id=?)", (assignment["evaluacion_id"],)).fetchone()
     if state == "HABILITADA" and (not assignment["activo"] or not instrument or instrument["estado_aprobacion"] != "APROBADO"):
         return _bad("El instrumento no está aprobado y activo; no se puede habilitar.", "instrumento_no_autorizado", 409)
+    from .gestiones import activa
+    if state == 'HABILITADA' and not activa(connection, assignment['periodo_id'], 'PSICOMETRICAS'):
+        return _bad('Psicométricas desactivadas en esta gestión.', 'evaluacion_gestion_inactiva', 409)
     connection.execute("UPDATE asignaciones_evaluacion SET estado=CASE WHEN estado IN ('COMPLETADA','EN_PROGRESO') THEN estado ELSE ? END, habilitada_por=?, habilitada_en=? WHERE id=?",
                        (state, current_user.id if state == "HABILITADA" else None,
                         _now() if state == "HABILITADA" else None, assignment_id))

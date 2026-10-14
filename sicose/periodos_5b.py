@@ -8,6 +8,8 @@ from flask_login import current_user
 from . import db
 from .permissions import role_required
 from .seguimiento_5b import FUENTES
+from .gestiones import retirada, estado_evaluaciones
+from .calculos_5b import regla
 
 periodos_5b_bp = Blueprint("periodos_5b", __name__)
 CATEGORIAS_FUENTE = {"FISICA_1": "FISICA", "FISICA_2": "FISICA", "ACADEMICA": "ACADEMICA",
@@ -62,30 +64,39 @@ def guardar_fuentes(c, cid, filas):
 
 
 @periodos_5b_bp.get("/gestion/periodos-5b")
-@role_required("ADMINISTRADOR")
+@role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def pagina():
-    return render_template("gestion_periodos_5b.html", titulo_pagina="Gestiones de evaluaciones",
+    return render_template("gestion_periodos_5b.html", titulo_pagina="Gestiones (año)",
                            nav_activo="periodos_5b", indicadores=[], periodo_actual=db.periodo_actual(),
-                           descripcion="Administración exclusiva de gestiones anuales y su configuración.")
+                           descripcion="Gestiona los años evaluados y activa sus evaluaciones; el catálogo es independiente.")
 
 
 @periodos_5b_bp.get("/api/admin/5b/periodos")
-@role_required("ADMINISTRADOR")
+@role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def listar():
     c = db.obtener_conexion()
     periodos = []
+    retiradas = []
     for fila in c.execute("SELECT * FROM periodos ORDER BY fecha_inicio DESC,id DESC"):
         periodo = dict(fila)
         periodo["anual"] = anual(periodo)
         periodo["configuracion"] = configuracion(c, periodo["id"])
         periodo["tiene_asignaciones"] = bool(c.execute("SELECT 1 FROM asignaciones_evaluacion WHERE periodo_id=? LIMIT 1", (periodo["id"],)).fetchone())
         periodo["tiene_notas_5b"] = bool(c.execute("SELECT 1 FROM notas_operativas WHERE periodo_id=? LIMIT 1", (periodo["id"],)).fetchone())
-        periodos.append(periodo)
-    return jsonify(periodos=periodos)
+        periodo["retirada"] = retirada(c, periodo["id"])
+        periodo["evaluaciones_gestion"] = estado_evaluaciones(c, periodo["id"])
+        periodo["regla_calculo"] = regla(c, periodo["id"])
+        from .cierres_5b import resumen
+        periodo["cierres"] = resumen(c, periodo["id"])
+        periodo["historial_activaciones"] = [dict(r) for r in c.execute("SELECT * FROM activaciones_gestion WHERE periodo_id=? ORDER BY id", (periodo["id"],))]
+        periodo["historial_ediciones"] = [dict(r) for r in c.execute("SELECT * FROM historial_gestiones WHERE periodo_id=? ORDER BY id", (periodo["id"],))]
+        periodo["baja"] = dict(c.execute("SELECT * FROM bajas_gestion WHERE periodo_id=?", (periodo["id"],)).fetchone()) if periodo["retirada"] else None
+        (retiradas if periodo["retirada"] else periodos).append(periodo)
+    return jsonify(periodos=periodos, retiradas=retiradas)
 
 
 @periodos_5b_bp.post("/api/admin/5b/periodos")
-@role_required("ADMINISTRADOR")
+@role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def crear():
     datos = request.get_json(silent=True)
     if not isinstance(datos, dict) or set(datos) != {"nombre", "ano"}:
@@ -106,7 +117,7 @@ def crear():
 
 
 @periodos_5b_bp.patch("/api/admin/5b/periodos/<int:pid>")
-@role_required("ADMINISTRADOR")
+@role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def editar_gestion(pid):
     datos = request.get_json(silent=True)
     if not isinstance(datos, dict) or set(datos) != {"nombre", "ano", "nombre_anterior", "ano_anterior"}:
@@ -121,7 +132,7 @@ def editar_gestion(pid):
         if periodo is None:
             c.rollback(); return fallo("Gestión no encontrada.", 404)
         conf = configuracion(c, pid)
-        if periodo["estado"] != "BORRADOR" or not anual(periodo) or (conf and conf["estado"] == "PUBLICADA"):
+        if retirada(c, pid) or periodo["estado"] != "BORRADOR" or not anual(periodo) or (conf and conf["estado"] == "PUBLICADA"):
             c.rollback(); return fallo("Solo se editan gestiones anuales en borrador; las publicadas conservan sus datos.", 409)
         if c.execute("SELECT 1 FROM notas_operativas WHERE periodo_id=?", (pid,)).fetchone() or c.execute("SELECT 1 FROM asignaciones_evaluacion WHERE periodo_id=?", (pid,)).fetchone():
             c.rollback(); return fallo("La gestión tiene registros o asignaciones; no se reescribe su historia.", 409)
@@ -130,6 +141,7 @@ def editar_gestion(pid):
         if (nombre.strip(), ano) == (periodo["nombre"], int(periodo["fecha_inicio"][:4])):
             c.rollback(); return jsonify(ok=True, id=pid)
         c.execute("UPDATE periodos SET nombre=?,fecha_inicio=?,fecha_fin=? WHERE id=?", (nombre.strip(), f"{ano:04d}-01-01", f"{ano:04d}-12-31", pid))
+        c.execute("INSERT INTO historial_gestiones(periodo_id,nombre_anterior,nombre_nuevo,ano_anterior,ano_nuevo,actor_id,actor_nombre,registrada_en) VALUES (?,?,?,?,?,?,?,?)", (pid,periodo["nombre"],nombre.strip(),int(periodo["fecha_inicio"][:4]),ano,current_user.id,current_user.nombre,db._ahora_utc()))
         if conf:
             c.execute("UPDATE configuraciones_5b SET revision=revision+1 WHERE id=?", (conf["id"],))
         db.registrar_auditoria(c, current_user.id, "GESTION_BORRADOR_EDITADA", "EXITOSO")
@@ -155,7 +167,7 @@ def editar_configuracion(pid):
         periodo = c.execute("SELECT * FROM periodos WHERE id=?", (pid,)).fetchone()
         if periodo is None:
             c.rollback(); return fallo("Período no encontrado.", 404)
-        if periodo["estado"] != "BORRADOR" or not anual(periodo) or c.execute("SELECT 1 FROM notas_operativas WHERE periodo_id=?", (pid,)).fetchone():
+        if retirada(c, pid) or periodo["estado"] != "BORRADOR" or not anual(periodo) or c.execute("SELECT 1 FROM notas_operativas WHERE periodo_id=?", (pid,)).fetchone():
             c.rollback(); return fallo("Configura un borrador anual sin notas previas; los históricos se conservan.", 409)
         existente = c.execute("SELECT * FROM configuraciones_5b WHERE periodo_id=?", (pid,)).fetchone()
         if request.method == "POST" and existente:
@@ -193,9 +205,9 @@ def publicar(pid):
         conf = configuracion(c, pid)
         if periodo is None or conf is None:
             c.rollback(); return fallo("Período o configuración no encontrados.", 404)
-        if periodo["estado"] != "BORRADOR" or not anual(periodo) or conf["estado"] != "BORRADOR" or conf["revision"] != datos["revision"]:
+        if retirada(c, pid) or periodo["estado"] != "BORRADOR" or not anual(periodo) or conf["estado"] != "BORRADOR" or conf["revision"] != datos["revision"]:
             c.rollback(); return fallo("Recarga un borrador anual y su revisión vigente.", 409)
-        if c.execute("SELECT 1 FROM periodos WHERE estado='ACTIVO' AND id!=?", (pid,)).fetchone():
+        if c.execute("SELECT 1 FROM periodos WHERE estado='ACTIVO' AND id!=? AND NOT EXISTS(SELECT 1 FROM bajas_gestion b WHERE b.periodo_id=periodos.id)", (pid,)).fetchone():
             c.rollback(); return fallo("Ya hay un período activo. No se cerrará ni modificará automáticamente.", 409)
         if c.execute("SELECT 1 FROM notas_operativas WHERE periodo_id=?", (pid,)).fetchone():
             c.rollback(); return fallo("No se adoptan notas previas automáticamente.", 409)

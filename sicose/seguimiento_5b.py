@@ -50,7 +50,7 @@ def panel_comandante():
 @seguimiento_bp.get("/gestion/seguimiento-operativo")
 @role_required(*GESTORES)
 def pagina_seguimiento():
-    return pagina("Notas operativas por fuente", "seguimiento_5b", "seguimiento_operativo.html")
+    return pagina("Notas y resultados", "seguimiento_5b", "seguimiento_operativo.html")
 
 
 @seguimiento_bp.get("/gestion/comandante")
@@ -83,7 +83,7 @@ def opciones():
              JOIN usuarios u ON u.id=v.usuario_id WHERE u.estado IN ('ACTIVO','INACTIVO')"""
     args = []
     personal = [dict(f) for f in c.execute(sql + " ORDER BY u.nombre_completo", args)]
-    periodos = [dict(f) for f in c.execute("SELECT id,nombre,estado,fecha_inicio,fecha_fin FROM periodos ORDER BY fecha_inicio DESC,id DESC")]
+    periodos = [dict(f) for f in c.execute("SELECT id,nombre,estado,fecha_inicio,fecha_fin FROM periodos WHERE NOT EXISTS(SELECT 1 FROM bajas_gestion b WHERE b.periodo_id=periodos.id) ORDER BY fecha_inicio DESC,id DESC")]
     return jsonify(personal=personal, periodos=periodos)
 
 
@@ -93,6 +93,8 @@ def notas_persona(c, identificador, periodo_id):
     for fila in filas:
         nota = dict(fila)
         nota["nota_0_100"] = f"{Decimal(nota.pop('puntos_centesimas')) / 100:.2f}"
+        resultado = c.execute('SELECT estado,fecha_realizacion,programacion_id,reprogramacion_id FROM resultados_fisicos WHERE nota_id=?', (nota['id'],)).fetchone()
+        nota['fisica'] = dict(resultado) if resultado else None
         if current_user.rol == "COMANDANTE_GRUPO" and nota["registrada_por"] != current_user.id:
             nota.pop("motivo")
             nota.pop("observacion")
@@ -127,7 +129,12 @@ def consultar_persona(identificador):
     formacion_personal = [dict(f) for f in c.execute("SELECT id,curso_id,nombre_curso,entidad_curso,estado,puntaje,fecha_finalizacion FROM participaciones_curso WHERE voluntario_id=? ORDER BY id",(identificador,))]
     from .periodos_5b import configuracion
     from .tabla_evaluaciones import habilitada
-    return jsonify(participaciones_curso=formacion_personal, habilitaciones={f:habilitada(c,identificador,periodo_id,f) for f in FUENTES}, configuracion=configuracion(c, periodo_id), persona=dict(perfil), periodo=dict(periodo), formacion=formacion,
+    from .fisicas import vigente
+    fisicas = {f: vigente(c, periodo_id, f, identificador) for f in ('FISICA_1', 'FISICA_2')}
+    historial_fisicas = [dict(r) for r in c.execute('SELECT * FROM reprogramaciones_fisicas WHERE periodo_id=? AND voluntario_id=? ORDER BY id', (periodo_id, identificador))]
+    from .gestiones import estado_evaluaciones
+    from .calculos_5b import regla
+    return jsonify(regla_calculo=regla(c, periodo_id), activaciones=estado_evaluaciones(c, periodo_id), fisicas=fisicas, historial_fisicas=historial_fisicas, participaciones_curso=formacion_personal, habilitaciones={f:habilitada(c,identificador,periodo_id,f) for f in FUENTES}, configuracion=configuracion(c, periodo_id), persona=dict(perfil), periodo=dict(periodo), formacion=formacion,
                    asistencias=asistencia, notas=notas_persona(c, identificador, periodo_id), notas_historicas=historicas)
 
 
@@ -135,7 +142,7 @@ def consultar_persona(identificador):
 @role_required(*GESTORES)
 def registrar_nota(identificador):
     datos = request.get_json(silent=True)
-    if not isinstance(datos, dict) or set(datos) - {"periodo_id", "fuente", "nota_0_100", "corregida_de_id", "motivo", "observacion", "capacitaciones", "comandante_nombre"}:
+    if not isinstance(datos, dict) or set(datos) - {"periodo_id", "fuente", "nota_0_100", "corregida_de_id", "motivo", "observacion", "capacitaciones", "comandante_nombre", "fisica"}:
         return fallo("Campos de nota no válidos.")
     try:
         pid, fuente = datos.get("periodo_id"), datos.get("fuente")
@@ -159,8 +166,12 @@ def registrar_nota(identificador):
             raise ValueError("Referencias de formación no válidas.")
         if fuente == "ACADEMICA" and not referencias:
             raise ValueError("Académica requiere formación personal referenciada.")
-        if fuente != "ACADEMICA" and (referencias or motivo):
+        if fuente not in ('FISICA_1', 'FISICA_2') and fuente != "ACADEMICA" and (referencias or motivo):
             raise ValueError("El respaldo académico corresponde solo a Académica.")
+        if fuente in ('FISICA_1', 'FISICA_2') and referencias:
+            raise ValueError('Física no admite respaldo académico.')
+        if fuente not in ('FISICA_1', 'FISICA_2') and 'fisica' in datos:
+            raise ValueError('El resultado físico corresponde solo a Física.')
         correccion = datos.get("corregida_de_id")
         if correccion is not None and (isinstance(correccion, bool) or not isinstance(correccion, int) or correccion < 1):
             raise ValueError("Referencia de corrección no válida.")
@@ -180,7 +191,8 @@ def registrar_nota(identificador):
         return rechazar("Persona o período fuera de tu ámbito.", 404)
     if perfil["estado"] != "ACTIVO":
         return rechazar("Reactiva la cuenta antes de registrar notas.", 409)
-    if periodo["estado"] != "ACTIVO":
+    from .gestiones import retirada
+    if retirada(c, pid) or periodo["estado"] != "ACTIVO":
         return rechazar("Solo se registran/corrigen notas en período activo.", 409)
     fuente_configurada = c.execute("""SELECT f.configuracion_id,f.evaluacion_id FROM fuentes_configuracion_5b f
                             JOIN configuraciones_5b c ON c.id=f.configuracion_id
@@ -193,6 +205,20 @@ def registrar_nota(identificador):
     ultima = c.execute("SELECT * FROM notas_operativas WHERE voluntario_id=? AND periodo_id=? AND fuente=? ORDER BY id DESC LIMIT 1", (identificador, pid, fuente)).fetchone()
     if (ultima and correccion != ultima["id"]) or (correccion is not None and (ultima is None or correccion != ultima["id"])):
         return rechazar("Recarga el historial; solo puede corregirse la nota vigente.", 409)
+    from .calculos_5b import regla
+    if fuente == "ACADEMICA" and regla(c, pid):
+        return rechazar("Académica se acumula desde formación individual; no admite notas globales manuales con la regla nueva.", 409)
+    resultado_fisico = None
+    if fuente in ('FISICA_1', 'FISICA_2'):
+        from .fisicas import validar_resultado, Conflicto
+        try:
+            resultado_fisico = validar_resultado(c, identificador, pid, fuente, datos.get('fisica'), puntos)
+            if resultado_fisico and (ultima or resultado_fisico['estado'] == 'NO_CUMPLIDA') and not motivo:
+                raise ValueError('La corrección o No cumplida requiere motivo.')
+        except Conflicto as error:
+            return rechazar(str(error), 409)
+        except ValueError as error:
+            return rechazar(str(error), 400)
     respaldo = []
     for referencia in referencias:
         fila = c.execute("SELECT id,nombre,entidad,fecha FROM capacitaciones WHERE id=? AND voluntario_id=?", (referencia, identificador)).fetchone()
@@ -209,6 +235,9 @@ def registrar_nota(identificador):
                 (identificador, pid, fuente, int(puntos * 100), evaluador, current_user.id, nombre_evaluador, current_user.nombre, motivo, observacion, correccion, fuente_configurada["configuracion_id"], fuente_configurada["evaluacion_id"])).lastrowid
     c.executemany("INSERT INTO respaldo_academico(nota_id,capacitacion_id,nombre,entidad,fecha) VALUES (?,?,?,?,?)",
                   ((nid, fila["id"], fila["nombre"], fila["entidad"], fila["fecha"]) for fila in respaldo))
+    if resultado_fisico:
+        c.execute('INSERT INTO resultados_fisicos(nota_id,programacion_id,reprogramacion_id,estado,fecha_realizacion) VALUES (?,?,?,?,?)',
+                  (nid, resultado_fisico['programacion_id'], resultado_fisico['reprogramacion_id'], resultado_fisico['estado'], resultado_fisico['fecha_realizacion']))
     db.registrar_auditoria(c, current_user.id, "NOTA_OPERATIVA_CORREGIDA" if ultima else "NOTA_OPERATIVA_REGISTRADA", "EXITOSO")
     c.commit()
     return jsonify(ok=True, id=nid), 201

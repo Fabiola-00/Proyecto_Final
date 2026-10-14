@@ -326,3 +326,148 @@ CREATE TABLE IF NOT EXISTS historial_participaciones_curso (
  registrada_en TEXT NOT NULL,
  UNIQUE(participacion_id,revision)
 );
+
+CREATE TABLE IF NOT EXISTS programaciones_fisicas (
+ id INTEGER PRIMARY KEY,
+ periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ fuente TEXT NOT NULL CHECK(fuente IN ('FISICA_1','FISICA_2')),
+ fecha TEXT NOT NULL, motivo TEXT NOT NULL,
+ anterior_id INTEGER UNIQUE REFERENCES programaciones_fisicas(id) ON DELETE RESTRICT,
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ actor_nombre TEXT NOT NULL, modificada_en TEXT NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS fisica_comun_inicial ON programaciones_fisicas(periodo_id,fuente) WHERE anterior_id IS NULL;
+CREATE TABLE IF NOT EXISTS reprogramaciones_fisicas (
+ id INTEGER PRIMARY KEY,
+ periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ fuente TEXT NOT NULL CHECK(fuente IN ('FISICA_1','FISICA_2')),
+ voluntario_id INTEGER NOT NULL REFERENCES voluntarios(usuario_id) ON DELETE RESTRICT,
+ programacion_id INTEGER NOT NULL REFERENCES programaciones_fisicas(id) ON DELETE RESTRICT,
+ fecha TEXT NOT NULL, fecha_anterior TEXT NOT NULL, motivo TEXT NOT NULL,
+ anterior_id INTEGER UNIQUE REFERENCES reprogramaciones_fisicas(id) ON DELETE RESTRICT,
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ actor_nombre TEXT NOT NULL, modificada_en TEXT NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS fisica_individual_inicial ON reprogramaciones_fisicas(voluntario_id,periodo_id,fuente) WHERE anterior_id IS NULL;
+CREATE TABLE IF NOT EXISTS resultados_fisicos (
+ nota_id INTEGER PRIMARY KEY REFERENCES notas_operativas(id) ON DELETE RESTRICT,
+ programacion_id INTEGER NOT NULL REFERENCES programaciones_fisicas(id) ON DELETE RESTRICT,
+ reprogramacion_id INTEGER REFERENCES reprogramaciones_fisicas(id) ON DELETE RESTRICT,
+ estado TEXT NOT NULL CHECK(estado IN ('CUMPLIDA','NO_CUMPLIDA')),
+ fecha_realizacion TEXT,
+ CHECK((estado='NO_CUMPLIDA' AND fecha_realizacion IS NULL) OR (estado='CUMPLIDA' AND fecha_realizacion IS NOT NULL))
+);
+CREATE TRIGGER IF NOT EXISTS resultado_fisico_cero BEFORE INSERT ON resultados_fisicos
+WHEN NOT EXISTS(SELECT 1 FROM notas_operativas n JOIN programaciones_fisicas p ON p.id=NEW.programacion_id
+ WHERE n.id=NEW.nota_id AND n.fuente=p.fuente AND n.periodo_id=p.periodo_id
+ AND (NEW.estado!='NO_CUMPLIDA' OR n.puntos_centesimas=0))
+BEGIN SELECT RAISE(ABORT,'resultado_fisico_invalido'); END;
+
+CREATE TRIGGER IF NOT EXISTS programaciones_fisicas_update BEFORE UPDATE ON programaciones_fisicas BEGIN SELECT RAISE(ABORT,'historial_fisico_inmutable'); END;
+
+CREATE TRIGGER IF NOT EXISTS programaciones_fisicas_delete BEFORE DELETE ON programaciones_fisicas BEGIN SELECT RAISE(ABORT,'historial_fisico_inmutable'); END;
+
+CREATE TRIGGER IF NOT EXISTS reprogramaciones_fisicas_update BEFORE UPDATE ON reprogramaciones_fisicas BEGIN SELECT RAISE(ABORT,'historial_fisico_inmutable'); END;
+
+CREATE TRIGGER IF NOT EXISTS reprogramaciones_fisicas_delete BEFORE DELETE ON reprogramaciones_fisicas BEGIN SELECT RAISE(ABORT,'historial_fisico_inmutable'); END;
+
+CREATE TRIGGER IF NOT EXISTS resultados_fisicos_update BEFORE UPDATE ON resultados_fisicos BEGIN SELECT RAISE(ABORT,'historial_fisico_inmutable'); END;
+
+CREATE TRIGGER IF NOT EXISTS resultados_fisicos_delete BEFORE DELETE ON resultados_fisicos BEGIN SELECT RAISE(ABORT,'historial_fisico_inmutable'); END;
+
+CREATE INDEX IF NOT EXISTS fisica_comun_vigente ON programaciones_fisicas(periodo_id,fuente,id);
+CREATE INDEX IF NOT EXISTS fisica_individual_vigente ON reprogramaciones_fisicas(voluntario_id,periodo_id,fuente,id);
+
+
+-- 5B.2: estado operativo separado de períodos y configuraciones congeladas.
+CREATE TABLE IF NOT EXISTS bajas_gestion (
+ periodo_id INTEGER PRIMARY KEY REFERENCES periodos(id) ON DELETE RESTRICT,
+ motivo TEXT NOT NULL, actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ actor_nombre TEXT NOT NULL, registrada_en TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS historial_gestiones (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ nombre_anterior TEXT NOT NULL, nombre_nuevo TEXT NOT NULL,
+ ano_anterior INTEGER NOT NULL, ano_nuevo INTEGER NOT NULL,
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ actor_nombre TEXT NOT NULL, registrada_en TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS activaciones_gestion (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ clave TEXT NOT NULL CHECK(clave IN ('FISICA_1','FISICA_2','ACADEMICA','DESEMPENO_JEFE','DESEMPENO_COMANDANTE','PSICOMETRICAS')),
+ activa INTEGER NOT NULL CHECK(activa IN (0,1)), motivo TEXT NOT NULL,
+ anterior_id INTEGER UNIQUE REFERENCES activaciones_gestion(id) ON DELETE RESTRICT,
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ actor_nombre TEXT NOT NULL, registrada_en TEXT NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS activacion_inicial ON activaciones_gestion(periodo_id,clave) WHERE anterior_id IS NULL;
+CREATE INDEX IF NOT EXISTS activacion_gestion_vigente ON activaciones_gestion(periodo_id,clave,id);
+CREATE TABLE IF NOT EXISTS reglas_calculo_5b (
+ periodo_id INTEGER PRIMARY KEY REFERENCES periodos(id) ON DELETE RESTRICT,
+ ano INTEGER NOT NULL UNIQUE CHECK(ano BETWEEN 1 AND 9999),
+ configuracion_id INTEGER NOT NULL REFERENCES configuraciones_5b(id) ON DELETE RESTRICT,
+ regla TEXT NOT NULL CHECK(regla='ACUMULADO_TRES_V2'),
+ activada_por INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ responsable_nombre TEXT NOT NULL, activada_en TEXT NOT NULL
+);
+
+CREATE TRIGGER IF NOT EXISTS bajas_gestion_update BEFORE UPDATE ON bajas_gestion BEGIN SELECT RAISE(ABORT,'historial_gestion_inmutable'); END;
+
+CREATE TRIGGER IF NOT EXISTS bajas_gestion_delete BEFORE DELETE ON bajas_gestion BEGIN SELECT RAISE(ABORT,'historial_gestion_inmutable'); END;
+
+CREATE TRIGGER IF NOT EXISTS historial_gestiones_update BEFORE UPDATE ON historial_gestiones BEGIN SELECT RAISE(ABORT,'historial_gestion_inmutable'); END;
+
+CREATE TRIGGER IF NOT EXISTS historial_gestiones_delete BEFORE DELETE ON historial_gestiones BEGIN SELECT RAISE(ABORT,'historial_gestion_inmutable'); END;
+
+CREATE TRIGGER IF NOT EXISTS activaciones_gestion_update BEFORE UPDATE ON activaciones_gestion BEGIN SELECT RAISE(ABORT,'historial_gestion_inmutable'); END;
+
+CREATE TRIGGER IF NOT EXISTS activaciones_gestion_delete BEFORE DELETE ON activaciones_gestion BEGIN SELECT RAISE(ABORT,'historial_gestion_inmutable'); END;
+
+CREATE TRIGGER IF NOT EXISTS reglas_calculo_5b_update BEFORE UPDATE ON reglas_calculo_5b BEGIN SELECT RAISE(ABORT,'historial_gestion_inmutable'); END;
+
+CREATE TRIGGER IF NOT EXISTS reglas_calculo_5b_delete BEFORE DELETE ON reglas_calculo_5b BEGIN SELECT RAISE(ABORT,'historial_gestion_inmutable'); END;
+
+
+CREATE TABLE IF NOT EXISTS publicaciones_5b (
+ id INTEGER PRIMARY KEY,
+ voluntario_id INTEGER NOT NULL REFERENCES voluntarios(usuario_id) ON DELETE RESTRICT,
+ periodo_id INTEGER NOT NULL REFERENCES reglas_calculo_5b(periodo_id) ON DELETE RESTRICT,
+ revision INTEGER NOT NULL CHECK(revision>0),
+ anterior_id INTEGER UNIQUE REFERENCES publicaciones_5b(id) ON DELETE RESTRICT,
+ contenido_json TEXT NOT NULL, fuentes_json TEXT NOT NULL, motivo TEXT NOT NULL,
+ publicada_por INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ responsable_nombre TEXT NOT NULL, publicada_en TEXT NOT NULL,
+ UNIQUE(voluntario_id,periodo_id,revision)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS publicacion_inicial ON publicaciones_5b(voluntario_id,periodo_id) WHERE anterior_id IS NULL;
+CREATE TRIGGER IF NOT EXISTS publicacion_inmutable_actualizar BEFORE UPDATE ON publicaciones_5b
+BEGIN SELECT RAISE(ABORT,'publicacion_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS publicacion_inmutable_borrar BEFORE DELETE ON publicaciones_5b
+BEGIN SELECT RAISE(ABORT,'publicacion_inmutable'); END;
+
+-- 5B.4: cada cierre y reapertura conserva su autoría e instantáneas.
+CREATE TABLE IF NOT EXISTS cierres_5b (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ numero INTEGER NOT NULL CHECK(numero>0), anterior_id INTEGER UNIQUE REFERENCES cierres_5b(id) ON DELETE RESTRICT,
+ contexto_json TEXT NOT NULL, firma_fuentes TEXT NOT NULL, motivo TEXT NOT NULL,
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT, actor_nombre TEXT NOT NULL,
+ registrada_en TEXT NOT NULL, total_personas INTEGER NOT NULL CHECK(total_personas>=0),
+ incompletos INTEGER NOT NULL CHECK(incompletos>=0 AND incompletos<=total_personas), UNIQUE(periodo_id,numero)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS cierre_inicial_5b ON cierres_5b(periodo_id) WHERE anterior_id IS NULL;
+CREATE TABLE IF NOT EXISTS instantaneas_cierre_5b (
+ cierre_id INTEGER NOT NULL REFERENCES cierres_5b(id) ON DELETE RESTRICT,
+ voluntario_id INTEGER NOT NULL REFERENCES voluntarios(usuario_id) ON DELETE RESTRICT,
+ contenido_json TEXT NOT NULL, PRIMARY KEY(cierre_id,voluntario_id)
+);
+CREATE TABLE IF NOT EXISTS reaperturas_5b (
+ id INTEGER PRIMARY KEY, cierre_id INTEGER NOT NULL UNIQUE REFERENCES cierres_5b(id) ON DELETE RESTRICT,
+ motivo TEXT NOT NULL, actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ actor_nombre TEXT NOT NULL, registrada_en TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS cierre_5b_update BEFORE UPDATE ON cierres_5b BEGIN SELECT RAISE(ABORT,'cierre_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS cierre_5b_delete BEFORE DELETE ON cierres_5b BEGIN SELECT RAISE(ABORT,'cierre_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS instantanea_5b_update BEFORE UPDATE ON instantaneas_cierre_5b BEGIN SELECT RAISE(ABORT,'cierre_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS instantanea_5b_delete BEFORE DELETE ON instantaneas_cierre_5b BEGIN SELECT RAISE(ABORT,'cierre_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS reapertura_5b_update BEFORE UPDATE ON reaperturas_5b BEGIN SELECT RAISE(ABORT,'cierre_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS reapertura_5b_delete BEFORE DELETE ON reaperturas_5b BEGIN SELECT RAISE(ABORT,'cierre_inmutable'); END;

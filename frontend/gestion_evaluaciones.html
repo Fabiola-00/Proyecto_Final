@@ -1,19 +1,5 @@
 {% extends "_dashboard_base.html" %}
 {% block contenido %}
-{% if current_user.rol == 'ADMINISTRADOR' %}
-<section class="seccion-panel">
-  <div class="titulo-seccion"><h2>Períodos</h2></div>
-  <form id="periodo-form" class="tarjeta-amplia formulario-inline">
-    <label>Nombre<input name="nombre" maxlength="120" required></label>
-    <label>Fecha de inicio<input name="fecha_inicio" type="date" required></label>
-    <label>Fecha de fin<input name="fecha_fin" type="date" required></label>
-    <input type="hidden" name="estado" value="BORRADOR"><p>Se crea un borrador anual (enero–diciembre). Configura sus fuentes y publícalo desde <a href="{{ url_for('periodos_5b.pagina') }}">Períodos y configuración</a>.</p>
-    <button type="submit">Crear período</button>
-  </form>
-  <p id="periodo-mensaje" class="mensaje" role="status"></p>
-  <div id="periodos-lista" class="rejilla-modulos"></div>
-</section>
-{% endif %}
 <section class="seccion-panel">
   <div class="titulo-seccion"><h2>Catálogo</h2></div>
   <div class="tarjeta-amplia"><div><p>Los registros psicométricos quedan inactivos mientras el instrumento no tenga licencia, versión, puntuación y revisión profesional aprobadas. No se cargan reactivos de candidatos pendientes.</p>
@@ -29,17 +15,5 @@
   <div class="titulo-seccion"><h2>Evaluaciones</h2></div>
   <div id="evaluaciones-lista" class="rejilla-modulos"></div>
 </section>
-{% if current_user.rol == 'ADMINISTRADOR' %}
-<section class="seccion-panel">
-  <div class="titulo-seccion"><h2>Asignar a Instructor Voluntario</h2></div>
-  <form id="asignacion-form" class="tarjeta-amplia formulario-inline">
-    <label>Instructor Voluntario<select name="voluntario_id" required></select></label>
-    <label>Período activo<select name="periodo_id" required></select></label>
-    <label>Evaluación activa<select name="evaluacion_id" required></select></label>
-    <button type="submit">Asignar</button>
-  </form>
-  <p id="asignacion-mensaje" class="mensaje" role="status"></p>
-</section>
-<section class="seccion-panel"><div class="titulo-seccion"><h2>Asignaciones</h2></div><div id="asignaciones-admin-lista" class="rejilla-modulos"></div></section>
-{% endif %}
+<p>Las gestiones son años de evaluación y se administran en <a href="{{ url_for('periodos_5b.pagina') }}">Gestiones (año)</a>. La activación anual y la habilitación por persona se gestionan por separado.</p>
 {% endblock %}

@@ -919,7 +919,7 @@ def editar_voluntario(usuario_id):
     if not voluntario:
         return _fallo("Instructor Voluntario no encontrado en tu ámbito.", "instructor_voluntario_no_encontrado", 404)
     if current_user.rol == "JEFE_PERSONAL" and voluntario["estado"] != "ACTIVO":
-        return _fallo("La cuenta inactiva es de consulta; reactívala desde Administración.", "cuenta_inactiva", 409)
+        return _fallo("Activa primero la cuenta desde el directorio para editar su perfil.", "cuenta_inactiva", 409)
     campos = {}
     identidad = None
     secundarias = None
@@ -1001,14 +1001,40 @@ def editar_voluntario(usuario_id):
 @management_bp.post("/api/instructores-voluntarios/<int:usuario_id>/desactivar")
 @role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def desactivar_voluntario(usuario_id):
+    return _cambiar_estado_voluntario(usuario_id, "INACTIVO")
+
+
+@management_bp.patch("/api/instructores-voluntarios/<int:usuario_id>/estado")
+@role_required("ADMINISTRADOR", "JEFE_PERSONAL")
+def cambiar_estado_voluntario(usuario_id):
+    datos = _datos_json()
+    if (not isinstance(datos, dict) or set(datos) != {"estado", "estado_anterior"}
+            or datos.get("estado") not in ("ACTIVO", "INACTIVO")
+            or datos.get("estado_anterior") not in ("ACTIVO", "INACTIVO")):
+        return _fallo("Indica un estado ACTIVO/INACTIVO y su estado anterior.", "datos_invalidos", 400)
+    return _cambiar_estado_voluntario(usuario_id, datos["estado"], datos["estado_anterior"])
+
+
+def _cambiar_estado_voluntario(usuario_id, estado, estado_anterior=None):
     conexion = db.obtener_conexion()
+    conexion.execute("BEGIN IMMEDIATE")
     voluntario = _alcance_voluntario(conexion, usuario_id)
     if not voluntario:
+        conexion.rollback()
         return _fallo("Instructor Voluntario no encontrado en tu ámbito.", "instructor_voluntario_no_encontrado", 404)
-    if voluntario["estado"] == "INACTIVO":
-        return jsonify(ok=True, estado="INACTIVO", mensaje="El voluntario ya estaba desactivado."), 200
+    if voluntario["estado"] not in ("ACTIVO", "INACTIVO"):
+        conexion.rollback()
+        return _fallo("Las solicitudes pendientes o rechazadas requieren revisión administrativa.", "estado_no_permitido", 409)
+    if estado_anterior is not None and voluntario["estado"] != estado_anterior:
+        conexion.rollback()
+        return _fallo("El estado cambió. Actualiza el directorio antes de continuar.", "conflicto_estado", 409)
+    if voluntario["estado"] == estado:
+        conexion.rollback()
+        return jsonify(ok=True, estado=estado, sin_cambios=True), 200
     ahora = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    conexion.execute("UPDATE usuarios SET estado='INACTIVO', actualizado_en=? WHERE id=?", (ahora, usuario_id))
-    _auditar(conexion, "INSTRUCTOR_VOLUNTARIO_DESACTIVADO")
+    # La versión invalida sesiones previas incluso si se reactiva antes de su próxima petición.
+    conexion.execute("UPDATE usuarios SET estado=?, password_version=password_version+1, actualizado_en=? WHERE id=?", (estado, ahora, usuario_id))
+    accion = "ACTIVADO" if estado == "ACTIVO" else "DESACTIVADO"
+    _auditar(conexion, f"INSTRUCTOR_VOLUNTARIO_{accion}:{usuario_id}:{voluntario['estado']}->{estado}")
     conexion.commit()
-    return jsonify(ok=True, estado="INACTIVO"), 200
+    return jsonify(ok=True, estado=estado), 200

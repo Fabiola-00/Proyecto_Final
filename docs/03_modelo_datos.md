@@ -2,7 +2,7 @@
 
 ## Esquema implementado
 
-SQLite usa `PRAGMA foreign_keys = ON`. El esquema `sicose/schema.sql` declara las tablas; `flask --app sicose init-db` agrega las columnas faltantes y marca `app_meta.schema_version` como 15 después de completar las migraciones. La base previa se preserva y amplía; no se eliminan tablas/filas. Fechas técnicas se expresan en UTC; claves numéricas son internas.
+SQLite usa `PRAGMA foreign_keys = ON`. El esquema `sicose/schema.sql` declara las tablas; `flask --app sicose init-db` agrega las columnas faltantes y marca `app_meta.schema_version` como 22 después de completar las migraciones. La base previa se preserva y amplía; no se eliminan tablas/filas. Fechas técnicas se expresan en UTC; claves numéricas son internas.
 
 | Tabla | Uso y restricciones principales |
 |---|---|
@@ -145,3 +145,25 @@ Verificación vigente: 86 pruebas aprobadas en 87,375 s; 12 escenarios UI, sin d
 
 
 Las tablas nuevas son participaciones_curso (curso/persona únicos, estado/revisión, datos capturados y puntaje obtenido/fecha nullable solo fuera de Finalizado) e historial_participaciones_curso (revisión única por participación con actor/nombre/fecha/motivo/valores). cursos.puntaje es nullable para históricos, con CHECK entero 0–100; las relaciones FK son restrictivas. No se convierte capacitaciones ni se crean notas/calificaciones académicas al migrar.
+
+
+## Ampliación aditiva 5B.1 — 2026-10-13, v19
+
+Tres tablas nuevas: programaciones_fisicas (versiones de fechas comunes por período/fuente), reprogramaciones_fisicas (excepciones por persona con fecha anterior/versión común/actor/motivo) y resultados_fisicos (estado/fecha real y referencias a nota/programación). Claves foráneas restrictivas, unicidad de versiones iniciales y sucesoras, índices e historial inmutable por triggers. No cumplida exige nota cero; Cumplida con cero es distinta. Sin datos inferidos ni columnas previas modificadas; configuraciones y notas históricas preservadas. [Reglas, API, compatibilidad y migración verificada](13_programacion_fisica.md). No añade cálculos ni publicación/cierres.
+
+
+## Ampliación aditiva 5B.2 — 2026-10-13, v20
+
+Cuatro tablas nuevas: bajas_gestion, historial_gestiones, activaciones_gestion y reglas_calculo_5b. FK restrictivas, historial inmutable, revisión encadenada de activaciones y opt-in de regla nueva único por período/año. Unicidad de ACTIVO operativo excluye gestiones retiradas sin cambiar sus estados originales. Configuraciones/notas anteriores intactas; cálculo académico usa participaciones únicas/revisión vigente/fecha personal, sin duplicar versiones. No persiste resultados publicados ni instantáneas: [reglas, compatibilidad y migración](14_calculos_y_gestiones.md).
+
+
+## Ampliación aditiva 5B.3 — 2026-10-13, v21
+
+`publicaciones_5b` conserva versiones por persona/Gestión: revisión/enlace anterior, snapshot JSON generado en servidor solo de físicas/formación, fuentes internas, motivo/actor/nombre/fecha. FK restrictivas a persona y regla de Gestión, unicidad de primera versión y de revisión; triggers impiden UPDATE/DELETE. No copia Desempeño ni conjunto, ni modifica notas/configuraciones previas. [Contratos, proyección y migración](15_publicacion_notas.md).
+
+## Ampliación aditiva 5B.4 — 2026-10-14, v22
+
+- `cierres_5b`: período, número/enlace anterior, contexto JSON versionado, firma, motivo, actor/nombre/fecha UTC y totales de personas/incompletos. Primera versión única por Gestión y numeración única.
+- `instantaneas_cierre_5b`: PK cierre/persona; copia de fuentes, valores, autoría y cálculo exacto/final. FK restrictivas a cierre y persona.
+- `reaperturas_5b`: una reapertura por cierre, motivo, actor/nombre/fecha UTC. Reabrir no elimina ni reemplaza snapshots anteriores.
+- Las tres tablas impiden UPDATE/DELETE mediante triggers. No se alteraron configuraciones, notas, cursos o períodos al migrar. Base anterior v21 preservada; no se crean cierres retroactivos para períodos ya cerrados. El cálculo exacto se conserva como fracción de centésimas en JSON, sin aritmética flotante. [Alcance y migración](16_cierres_reaperturas.md).

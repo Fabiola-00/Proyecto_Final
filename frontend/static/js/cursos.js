@@ -96,15 +96,31 @@ if (cursosCatalogo) {
         const [{ participantes }, { voluntarios }] = await Promise.all([apiJson(`/api/cursos/${curso.id}/participantes`), apiJson("/api/instructores-voluntarios")]);
         personal = voluntarios.filter((p) => p.estado === "ACTIVO" && !participantes.some((a) => a.voluntario_id === p.id)); panel.replaceChildren();
         if (!personal.length) { panel.append(elemento("p", "No hay personal activo sin asignar a este curso.")); return; }
-        const form = elemento("form", undefined, "formulario-inline"); const label = elemento("label", "Instructores Voluntarios (selección múltiple)");
-        const select = elemento("select"); select.multiple = true; select.size = Math.min(8, personal.length); select.required = true;
-        personal.forEach((p) => { const o = elemento("option", `${p.nombre} · ${p.codigo_instructor || "Sin código"}`); o.value = p.id; select.append(o); }); label.append(select); form.append(label, elemento("p", "Selecciona una o varias personas. La asignación inicia sin puntaje obtenido; la finalización se registra después.", "evaluaciones-ayuda"));
-        const guardar = elemento("button", "Asignar participantes"); form.append(guardar);
+        const form = elemento("form", undefined, "formulario-inline");
+        const grupo = elemento("fieldset", undefined, "asignacion-participantes");
+        grupo.append(elemento("legend", "Instructores Voluntarios (selección múltiple)"));
+        const lista = elemento("div", undefined, "asignacion-participantes-lista");
+        personal.forEach((p) => {
+          const fila = elemento("label", undefined, "asignacion-participante");
+          const casilla = elemento("input"); casilla.type = "checkbox"; casilla.name = "voluntario_ids"; casilla.value = p.id;
+          fila.append(casilla, elemento("span", `${p.nombre} · ${p.codigo_instructor || "Sin código"}`)); lista.append(fila);
+        });
+        const contador = elemento("p", "0 personas seleccionadas", "evaluaciones-ayuda"); contador.setAttribute("aria-live", "polite");
+        grupo.append(lista, contador);
+        form.append(grupo, elemento("p", "Marca una o varias personas. La asignación inicia sin puntaje obtenido; la finalización se registra después.", "evaluaciones-ayuda"));
+        const seleccionados = () => Array.from(lista.querySelectorAll("input:checked"), (control) => Number(control.value));
+        const guardar = elemento("button", "Asignar participantes"); guardar.disabled = true; form.append(guardar);
+        lista.addEventListener("change", () => {
+          const cantidad = seleccionados().length;
+          contador.textContent = `${cantidad} ${cantidad === 1 ? "persona seleccionada" : "personas seleccionadas"}`;
+          guardar.disabled = cantidad === 0;
+        });
         form.addEventListener("submit", async (event) => {
-          event.preventDefault(); if (!form.reportValidity()) return; guardar.disabled = true;
-          try { await apiJson(`/api/cursos/${curso.id}/participantes`, { method: "POST", body: { voluntario_ids: Array.from(select.selectedOptions, (o) => Number(o.value)) } }); cerrarEdicion(); informar("Participantes asignados.", true); await cargarCursos(); }
+          event.preventDefault(); const ids = seleccionados(); if (!ids.length || !form.reportValidity()) return; guardar.disabled = true;
+          grupo.disabled = true;
+          try { await apiJson(`/api/cursos/${curso.id}/participantes`, { method: "POST", body: { voluntario_ids: ids } }); cerrarEdicion(); informar("Participantes asignados.", true); await cargarCursos(); }
           catch (error) { mostrarErrorEdicion(error); }
-          finally { guardar.disabled = false; }
+          finally { grupo.disabled = false; guardar.disabled = seleccionados().length === 0; }
         }); panel.append(form);
       } catch (error) { panel.replaceChildren(elemento("p", error.message)); }
     }); return boton;
@@ -133,14 +149,19 @@ if (cursosCatalogo) {
 
 const cursosPropios = document.querySelector("#cursos-propios-lista");
 if (cursosPropios) {
-  Promise.all([apiJson("/api/instructor-voluntario/formacion"), apiJson("/api/instructor-voluntario/capacitaciones")]).then(([{ participaciones }, { capacitaciones }]) => {
+  Promise.all([apiJson("/api/instructor-voluntario/formacion"), apiJson("/api/instructor-voluntario/capacitaciones")]).then(([{ participaciones, publicaciones = [] }, { capacitaciones }]) => {
     cursosPropios.replaceChildren(); cursosPropios.classList.remove("rejilla-modulos");
-    cursosPropios.append(elemento("p", "Los puntajes se mostrarán cuando se implemente su publicación. Por ahora puedes consultar tus asignaciones y estados.", "evaluaciones-ayuda"));
+    cursosPropios.append(elemento("p", "Asignaciones y estados vigentes. Los puntos se muestran aparte según su última versión publicada; una corrección requiere republicación.", "evaluaciones-ayuda"));
     if (!participaciones.length) cursosPropios.append(elemento("p", "Sin cursos asignados."));
     participaciones.forEach((p) => {
       const fila = elemento("article", undefined, "curso-personal");
       fila.append(elemento("h3", p.nombre_curso), elemento("p", `${p.tipo_curso} · ${p.entidad_curso}`), elemento("p", `${p.inicio_curso} — ${p.fin_curso}`), elemento("strong", p.estado));
       if (p.fecha_finalizacion) fila.append(elemento("p", `Finalización personal: ${p.fecha_finalizacion}`)); cursosPropios.append(fila);
+    });
+    publicaciones.forEach((p) => {
+      const fila = elemento("article", undefined, "curso-personal"); const a = p.academica;
+      fila.append(elemento("h3", `Formación publicada · Gestión ${p.gestion}`), elemento("p", `Acumulado: ${a.valor ?? "Pendiente"} · Publicado: ${a.publicada_en}`));
+      a.cursos.forEach((c) => fila.append(elemento("p", `${c.nombre_curso} · ${c.puntaje} puntos · Finalización publicada: ${c.fecha_finalizacion}`))); cursosPropios.append(fila);
     });
     if (capacitaciones.length) cursosPropios.append(elemento("h3", "Formación histórica (sin finalización individual registrada)"));
     capacitaciones.forEach((curso) => { const fila = elemento("article", undefined, "curso-personal"); fila.append(elemento("h3", curso.nombre), elemento("p", `${curso.fecha || "Sin fecha"} · ${curso.entidad || "Sin entidad"}`)); cursosPropios.append(fila); });

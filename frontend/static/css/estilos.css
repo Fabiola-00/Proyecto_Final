@@ -672,3 +672,14 @@ a.modulo-estado:hover { text-decoration: underline; }
   .detalle-evaluacion .evaluacion-alternar { grid-column: 2; grid-row: 1; }
   .finalizacion-personal { grid-template-columns: minmax(0, 1fr); }
 }
+/* Resultados y separación del historial anual. */
+.calculo-provisional { margin-block: 1rem; }
+.gestiones-separador { grid-column: 1 / -1; }
+.modal-edicion input[type="checkbox"] { width: 1.1rem; height: 1.1rem; min-height: 1.1rem; }
+.asignacion-participantes { grid-column: 1 / -1; min-width: 0; margin: 0; padding: 0; border: 0; }
+.asignacion-participantes legend { margin-bottom: .6rem; color: var(--muted); font-size: .8rem; }
+.asignacion-participantes-lista { max-height: 18rem; overflow-y: auto; padding: .35rem; border: 1px solid var(--border-strong); border-radius: .5rem; }
+.modal-edicion .asignacion-participante { display: flex; align-items: center; gap: .65rem; padding: .65rem; cursor: pointer; border-radius: .35rem; }
+.asignacion-participante:hover, .asignacion-participante:focus-within { background: var(--surface-soft); }
+.asignacion-participante input { flex: 0 0 1.1rem; margin: 0; accent-color: var(--brand); }
+.asignacion-participante span { overflow-wrap: anywhere; color: var(--text); }

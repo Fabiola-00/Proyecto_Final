@@ -137,3 +137,17 @@ sicose.formacion concentra validación de puntaje/fechas, fecha de Bolivia, proy
 
 
 Edición administrativa de gestión: PATCH `/api/admin/5b/periodos/<id>` recibe nombre/ano y nombre_anterior/ano_anterior. BEGIN IMMEDIATE, comparación de valores anteriores y bloqueo de registros/configuración publicada; actualiza fechas anuales e incrementa revisión de configuración borrador para evitar publicación desde una vista obsoleta. Auditada, con conflictos 409; role_required ADMINISTRADOR. Consulta por año del Jefe/Instructor sigue en `/api/evaluaciones/gestiones`. Sin migración de esquema.
+
+
+## Actualización 5B.2 — 2026-10-13
+
+`gestiones.py` separa baja lógica/activación anual de la habilitación personal; `calculos_5b.py` implementa opt-in de regla v2 y cálculo provisional exacto con fuentes referenciadas. Blueprints registrados en la fábrica existente; Flask/SQLite/JavaScript puro, sin dependencias nuevas ni reestructuración masiva. Vistas de catálogo, Gestiones, habilitación y notas/resultados diferenciadas, con autorización backend y CSRF. [Reglas, contratos y límites](14_calculos_y_gestiones.md). Publicación e instantáneas siguen pendientes.
+
+
+## Actualización 5B.3 — 2026-10-13
+
+`publicaciones_5b.py` genera versiones explícitas de físicas/formación en una transacción serializada, con firma/revisión para detectar vistas obsoletas. No reutiliza la proyección del cálculo conjunto: construye un contrato positivo independiente, sin consultar Desempeño. APIs propias filtran visibilidad actual y entregan valores publicados anteriores, nunca puntajes corrientes sin republicar. Historial administrativo separado; [reglas y límites](15_publicacion_notas.md).
+
+## Cierres y reaperturas — 2026-10-14, v22
+
+`cierres_5b.py` separa el ciclo administrativo de la publicación de notas. Construye revisión/firma y snapshots por persona en lectura consistente; el cierre recalcula la firma y guarda cierre, instantáneas y estado CERRADO dentro de BEGIN IMMEDIATE. Reapertura motivada conserva versiones/configuración y respeta activo único. Las lecturas numéricas de una Gestión cerrada usan el snapshot; no reconstruyen un cierre antiguo con cursos o reglas actuales. `formacion.py` bloquea cambios que afecten al año anterior o nuevo cerrado. Rutas administrativas de cierre e historial con caché privada; proyecciones propias no amplían permisos. [Diseño y contratos](16_cierres_reaperturas.md).

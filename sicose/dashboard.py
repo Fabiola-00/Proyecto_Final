@@ -54,7 +54,7 @@ def administrador():
         "SELECT COUNT(*) AS total FROM usuarios WHERE estado = 'PENDIENTE'"
     ).fetchone()["total"]
     periodos_activos = conexion.execute(
-        "SELECT COUNT(*) AS total FROM periodos WHERE estado = 'ACTIVO'"
+        "SELECT COUNT(*) AS total FROM periodos WHERE estado = 'ACTIVO' AND NOT EXISTS(SELECT 1 FROM bajas_gestion b WHERE b.periodo_id=periodos.id)"
     ).fetchone()["total"]
     return _renderizar_panel(
         "dashboard_administrador.html",

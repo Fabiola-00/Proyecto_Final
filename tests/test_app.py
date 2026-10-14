@@ -513,7 +513,7 @@ class AplicacionTestCase(unittest.TestCase):
         self._login('voluntario.demo','Clave voluntario 123!')
         self.assertEqual(self.cliente.get('/mis-evaluaciones').status_code,200)
         datos=self.cliente.get(f'/api/evaluaciones/propias?periodo_id={pid}').json
-        self.assertTrue(all(set(e)=={'clave','nombre','habilitada','estado'} for e in datos['evaluaciones']))
+        self.assertTrue(all(set(e)=={'clave','nombre','habilitada','activa','estado'} for e in datos['evaluaciones']))
         self.assertNotIn('Privada',str(datos));self.assertNotIn('Evaluador externo DEMO',str(datos));self.assertNotIn('95.00',str(datos))
         self.assertEqual(self.cliente.get(f'/api/evaluaciones/tabla?periodo_id={pid}').status_code,403)
         self.assertEqual(self.cliente.get(f'/api/evaluaciones/reporte.pdf?periodo_id={pid}').status_code,403)
@@ -556,7 +556,7 @@ class AplicacionTestCase(unittest.TestCase):
         finally:
             if ruta.exists():ruta.unlink()
 
-    def test_5b_gestiones_solo_admin_crea_edita_y_demas_consultan(self):
+    def test_5b_gestiones_admin_jefe_y_configuracion_solo_admin(self):
         self._login();h={'X-CSRFToken':self._csrf_token()}
         r=self.cliente.post('/api/admin/5b/periodos',json={'nombre':'Gestión DEMO','ano':2026},headers=h);self.assertEqual(r.status_code,201)
         pid=r.json['id'];url=f'/api/admin/5b/periodos/{pid}'
@@ -573,20 +573,19 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertEqual(self.cliente.post(url+'/publicar',json={'revision':fila['configuracion']['revision']},headers=h).status_code,200)
         self.assertEqual(self.cliente.patch(url,json={**cambio,'nombre_anterior':fila['nombre'],'ano_anterior':2027,'ano':2028},headers=h).status_code,409)
         admin=self.cliente.get('/',follow_redirects=True).data
-        self.assertIn(b'Gestiones de evaluaciones',admin)
+        self.assertIn('Gestiones (año)'.encode(),admin)
         for username,pw in [('instructor.demo','Clave instructor 123!'),('voluntario.demo','Clave voluntario 123!')]:
             self._login(username,pw);h={'X-CSRFToken':self._csrf_token()}
-            self.assertNotIn(b'Gestiones de evaluaciones',self.cliente.get('/',follow_redirects=True).data)
-            self.assertEqual(self.cliente.get('/gestion/periodos-5b').status_code,403)
-            self.assertEqual(self.cliente.get('/api/admin/5b/periodos').status_code,403)
-            self.assertEqual(self.cliente.post('/api/admin/5b/periodos',json={'nombre':'Sin permiso','ano':2028},headers=h).status_code,403)
-            self.assertEqual(self.cliente.post('/api/admin/periodos',json={'nombre':'Sin permiso','fecha_inicio':'2028-01-01','fecha_fin':'2028-12-31','estado':'BORRADOR'},headers=h).status_code,403)
-            self.assertEqual(self.cliente.patch(url,json=cambio,headers=h).status_code,403)
+            jefe=username=='instructor.demo'
+            panel=self.cliente.get('/',follow_redirects=True).data
+            self.assertEqual('Gestiones (año)'.encode() in panel,jefe)
+            self.assertEqual(self.cliente.get('/gestion/periodos-5b').status_code,200 if jefe else 403)
+            self.assertEqual(self.cliente.get('/api/admin/5b/periodos').status_code,200 if jefe else 403)
+            self.assertEqual(self.cliente.post('/api/admin/5b/periodos',json={'nombre':'Gestión compartida','ano':2028},headers=h).status_code,201 if jefe else 403)
+            self.assertEqual(self.cliente.patch(url,json=cambio,headers=h).status_code,409 if jefe else 403)
             self.assertEqual(self.cliente.patch(url+'/configuracion',json={'fuentes':fuentes,'revision':2},headers=h).status_code,403)
             self.assertEqual(self.cliente.post(url+'/publicar',json={'revision':2},headers=h).status_code,403)
             self.assertEqual(self.cliente.get('/api/evaluaciones/gestiones').status_code,200)
-            pagina=self.cliente.get('/mis-evaluaciones' if username=='voluntario.demo' else '/gestion/tabla-evaluaciones').data
-            self.assertIn(b'Gestion',pagina.replace('Gestión'.encode(),'Gestion'.encode()));self.assertIn(b'name="periodo_id"',pagina)
 
     def test_5b_periodos_anuales_borradores_y_permisos(self):
         self._login();h={'X-CSRFToken':self._csrf_token()}
@@ -599,8 +598,8 @@ class AplicacionTestCase(unittest.TestCase):
             self.assertEqual(self.cliente.post('/api/admin/periodos',json={'nombre':'Inválido','fecha_inicio':inicio,'fecha_fin':fin,'estado':estado},headers=h).status_code,400)
         self.assertEqual(self.cliente.post('/api/admin/5b/periodos',json={'nombre':'Sin CSRF','ano':2027}).status_code,400)
         self._login('instructor.demo','Clave instructor 123!')
-        self.assertEqual(self.cliente.get('/gestion/periodos-5b').status_code,403)
-        self.assertEqual(self.cliente.get('/api/admin/5b/periodos').status_code,403)
+        self.assertEqual(self.cliente.get('/gestion/periodos-5b').status_code,200)
+        self.assertEqual(self.cliente.get('/api/admin/5b/periodos').status_code,200)
         self.assertEqual(self.cliente.post(f"/api/admin/5b/periodos/{p['id']}/configuracion",json={'fuentes':{}},headers={'X-CSRFToken':self._csrf_token()}).status_code,403)
 
     def test_5b_configuracion_completa_revision_congelacion_y_vinculo(self):
@@ -868,7 +867,7 @@ class AplicacionTestCase(unittest.TestCase):
             version = conexion.execute(
                 "SELECT valor FROM app_meta WHERE clave = ?", ("schema_version",)
             ).fetchone()[0]
-            self.assertEqual(version, "18")
+            self.assertEqual(version, "22")
             columnas_asistencias = {fila["name"] for fila in conexion.execute("PRAGMA table_info(asistencias)")}
             self.assertIn("estado_detalle", columnas_asistencias)
             self.assertEqual(
@@ -938,7 +937,7 @@ class AplicacionTestCase(unittest.TestCase):
                 self.assertIsNone(conexion.execute("SELECT fecha_nacimiento FROM voluntarios WHERE usuario_id=?", (iv_id,)).fetchone()[0])
                 asistencia_migrada = conexion.execute("SELECT estado,estado_detalle FROM asistencias WHERE voluntario_id=?", (iv_id,)).fetchone()
                 self.assertEqual(tuple(asistencia_migrada), ("PRESENTE", "ASISTE"))
-                self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "18")
+                self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "22")
                 self.assertEqual(conexion.execute("PRAGMA foreign_key_check").fetchall(), [])
         finally:
             if legacy_path.exists():
@@ -1625,7 +1624,7 @@ class AplicacionTestCase(unittest.TestCase):
             for campo in antes.keys(): self.assertEqual(antes[campo], despues[campo])
             for campo in ("pais_residencia", "departamento_residencia", "ano_incorporacion"):
                 self.assertIsNone(despues[campo])
-            self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "18")
+            self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "22")
             self.assertEqual(conexion.execute("PRAGMA quick_check").fetchone()[0], "ok")
             self.assertEqual(conexion.execute("PRAGMA foreign_key_check").fetchall(), [])
 

@@ -285,7 +285,8 @@ function iconoAccionInstructor(boton, tipo, etiqueta) {
     ver: ["M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7", "M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0"],
     asignar: ["M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0", "M20 8v6", "M17 11h6"],
     editar: ["M16 3l5 5-12 12-6 1 1-6L16 3Z", "M13 6l5 5"],
-    desactivar: ["M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0", "M6 6l12 12"]
+    desactivar: ["M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0", "M6 6l12 12"],
+    activar: ["M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0", "M8 12l3 3 5-6"]
   };
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24"); svg.setAttribute("aria-hidden", "true"); svg.setAttribute("focusable", "false");
@@ -431,15 +432,22 @@ if (volunteerList) {
           resetForm.addEventListener("submit", async (event) => { event.preventDefault(); try { await apiJson(`/api/admin/usuarios/${voluntario.id}/restablecer-clave`, { method: "POST", body: { password: password.value } }); resetForm.reset(); cerrarEdicion(); managementMessage.textContent = "Contraseña restablecida; las sesiones anteriores quedaron invalidadas."; } catch (error) { managementMessage.textContent = error.message; mostrarErrorEdicion(error); } });
           form.append(botonEdicion(`Restablecer contraseña · ${voluntario.nombre}`, resetForm, "Restablecer contraseña"));
         }
-        if (voluntario.estado === "ACTIVO") {
-          const deactivate = elemento("button", "Desactivar", "boton-secundario");
-          deactivate.addEventListener("click", async () => {
-            if (!window.confirm(`¿Desactivar a ${voluntario.nombre}?`)) return;
-            try { await apiJson(`/api/instructores-voluntarios/${voluntario.id}/desactivar`, { method: "POST" }); await cargarVoluntarios(); }
-            catch (error) { managementMessage.textContent = error.message; mostrarErrorEdicion(error); }
-          });
-          contenidoAcciones.append(iconoAccionInstructor(deactivate, "desactivar", `Desactivar a ${voluntario.nombre}`));
-        }
+      }
+      if (["ACTIVO", "INACTIVO"].includes(voluntario.estado)) {
+        const activar = voluntario.estado === "INACTIVO";
+        const accion = activar ? "Activar" : "Desactivar";
+        const cambiar = elemento("button", accion, activar ? "boton-editar" : "boton-secundario"); cambiar.type = "button";
+        cambiar.addEventListener("click", async () => {
+          if (!window.confirm(`¿${accion} a ${voluntario.nombre}? ${activar ? "Podrá iniciar sesión nuevamente." : "Se bloqueará su acceso."} Su historial se conservará.`)) return;
+          cambiar.disabled = true;
+          try {
+            await apiJson(`/api/instructores-voluntarios/${voluntario.id}/estado`, { method: "PATCH", body: { estado: activar ? "ACTIVO" : "INACTIVO", estado_anterior: voluntario.estado } });
+            managementMessage.textContent = `${voluntario.nombre}: ${activar ? "ACTIVO" : "INACTIVO"}. Historial conservado.`;
+            await cargarVoluntarios();
+          } catch (error) { managementMessage.textContent = error.message; }
+          finally { cambiar.disabled = false; }
+        });
+        contenidoAcciones.append(iconoAccionInstructor(cambiar, activar ? "activar" : "desactivar", `${accion} a ${voluntario.nombre}`));
       }
       volunteerList.append(fila);
     });
@@ -607,7 +615,7 @@ if (evaluationForm) {
     evaluationList.replaceChildren();
     evaluaciones.forEach((item) => {
       const card = elemento("article", undefined, "tarjeta-modulo");
-      card.append(elemento("h3", item.nombre), elemento("p", `${item.codigo} · ${item.categoria} · ${item.activo ? "Activa" : "Inactiva"}`));
+      card.append(elemento("h3", item.nombre), elemento("p", `${item.codigo} · ${item.categoria} · ${item.activo ? "Disponible en catálogo" : "No disponible en catálogo"}`));
       if (item.categoria === "PSICOMETRICA") card.append(elemento("p", `Instrumento: ${item.estado_instrumento || "sin autorización"}`));
       const editor = elemento("details", undefined, "edicion-voluntario"); editor.append(elemento("summary", "Editar nombre"));
       const editForm = elemento("form", undefined, "formulario-inline");
@@ -619,7 +627,7 @@ if (evaluationForm) {
         catch (error) { formMessage.textContent = error.message; }
       });
       editor.append(editForm); card.append(editor);
-      const button = elemento("button", item.activo ? "Desactivar" : "Activar", item.activo ? "boton-secundario" : "");
+      const button = elemento("button", item.activo ? "Retirar del catálogo" : "Habilitar en catálogo", item.activo ? "boton-secundario" : "");
       button.addEventListener("click", async () => {
         try { await apiJson(`/api/admin/evaluaciones/${item.id}`, { method: "PATCH", body: { activo: !item.activo } }); await cargarCatalogo(); }
         catch (error) { formMessage.textContent = error.message; }

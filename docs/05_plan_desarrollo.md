@@ -1,6 +1,8 @@
 # 05. Plan de desarrollo
 
-Estado revisado: **2026-10-11**. **Fase 5A tiene cierre técnico y aceptación operativa pendiente; Fase 5B tiene entregas de rol/fuentes/respaldo y borradores/configuración/publicación/activación implementadas; cálculo y cierres/reaperturas pendientes**. Fase 4B conserva su cierre técnico y aceptación operativa pendiente. La base técnica, autenticación y dashboards funcionan para el prototipo local; esto no acredita preparación para un piloto institucional. Existen PDF operativos de cursos/asistencia; no hay psicometría aplicada, Excel ni IA.
+Estado revisado: **2026-10-14; SQLite v22**. Fases 0–3 y 4A/4B/5A implementadas técnicamente para el prototipo local; aceptación operativa de 4A/4B/5A pendiente. **5B parcial**: gestiones/configuración, habilitación, notas manuales auditadas y formación individual implementadas; 5B.1–5B.4 implementadas técnicamente; aceptación operativa/institucional pendiente. Fase 7 parcial con PDF de cursos, asistencia y evaluaciones; Fase 6 condicionada y Fase 8 opcional sin implementación. Piloto pendiente.
+
+Este resumen y los alcances vigentes siguientes prevalecen sobre los puntos de control históricos al final. Los acuerdos del 2026-10-12 están en [reformulación](10_reformulacion_evaluaciones.md) y [formación v18](11_cursos_formacion.md). El diagnóstico estructural y documental está en [revisión del proyecto](12_revision_proyecto.md).
 
 ## Numeración y orden de entregas
 
@@ -8,7 +10,7 @@ Se conservan las fases históricas 0 (especificación), 1/1A (base ejecutable), 
 
 Orden recomendado: consolidación documental → 4A → 4B → 5A → 5B. Fase 6 es independiente y condicionada. Los reportes operativos de Fase 7 pueden avanzar sin Fase 6 si tienen alcance y permisos definidos. La preparación del piloto tiene su propia aceptación. Fase 8 es opcional y queda fuera del cierre básico. No se asignan porcentajes ni fechas de entrega.
 
-## Consolidación documental — entrega actual
+## Consolidación documental — revisión previa
 
 - **Objetivo:** disponer de una línea base comprobable para continuar el prototipo.
 - **Alcance:** README, continuidad de AGENTS, HISTORY, plan y correcciones técnicas necesarias; sin cambiar código, permisos, esquema o entorno.
@@ -21,8 +23,8 @@ Orden recomendado: consolidación documental → 4A → 4B → 5A → 5B. Fase 6
 
 - **Objetivo:** completar la gestión de personal prevista por rol.
 - **Alcance:** alta de Instructor Voluntario por Jefe de Personal y edición del perfil propio por Instructor Voluntario, conservando historial y autorización por objeto.
-- **Estado actual:** Administrador lista, crea, edita y desactiva Jefes de Personal e Instructores Voluntarios, aprueba/rechaza solicitudes, asigna personal y restablece claves. El Jefe consulta, edita y desactiva únicamente personal activo asignado; ya registra solicitudes pendientes para su equipo con aprobación/rechazo administrativo. El Instructor ve estados/avance propios sin notas ni observaciones; tiene formulario Mi perfil y API para actualizar exclusivamente correo y foto propios, según alcance autorizado el 2026-10-10.
-- **Pendientes:** aceptación visual/operativa de ambos flujos; se conserva rechazo de colisiones hasta definir política definitiva; no se habilitan cambios de identidad/código desde autoservicio. Correo y foto fueron autorizados y están implementados. El 2026-10-10 se acordó alta por Jefe como solicitud pendiente, asignada al Jefe autenticado, con aprobación/rechazo del Administrador.
+- **Estado actual:** Administrador lista, crea, edita y desactiva Jefes de Personal e Instructores Voluntarios, aprueba/rechaza solicitudes, asigna personal y restablece claves. El Jefe único consulta activos/inactivos globales SBRAB, edita/desactiva activos y registra solicitudes pendientes con aprobación/rechazo administrativo; la asignación histórica no delimita autorización. El Instructor ve estados/avance propios sin notas ni observaciones; tiene formulario Mi perfil y API para actualizar exclusivamente correo y foto propios, según alcance autorizado el 2026-10-10.
+- **Pendientes:** aceptación visual/operativa de ambos flujos; se conserva rechazo de colisiones hasta definir política definitiva; no se habilitan cambios de identidad/código desde autoservicio. Correo y foto fueron autorizados y están implementados. El alta por Jefe sigue siendo solicitud pendiente; desde el 2026-10-12 su alcance es global, conservando vínculos históricos.
 - **Dependencias:** decisiones confirmadas: altas por Jefe pendientes de aprobación administrativa; autoservicio limitado a correo y foto. Se mantienen los roles y la regla de código acordados.
 - **Cierre verificable:** pruebas de altas válidas y denegadas por rol/ámbito, edición exclusivamente propia, rechazo de campos administrativos, CSRF, cuentas pendientes/inactivas sin acceso, conservación del historial y ausencia de notas/observaciones en respuestas al Instructor.
 
@@ -30,7 +32,7 @@ Orden recomendado: consolidación documental → 4A → 4B → 5A → 5B. Fase 6
 
 - **Objetivo:** completar información del perfil y relaciones de formación/participación sin inventar datos históricos.
 - **Alcance implementado:** residencia y nacionalidad diferenciadas, incorporación/antigüedad, especialidades secundarias, catálogo común de cursos y relación opcional desde capacitaciones, eventos y participaciones de operaciones.
-- **Estado actual (2026-10-10):** esquema v11; cierre técnico de esta entrega. Especialidad principal resuelta en v8; residencia/incorporación en v9; secundarias en v10; cursos, operaciones y geografía ampliada en v11. Pendiente aceptación operativa del solicitante.
+- **Cierre técnico histórico (2026-10-10):** esquema v11 en esa entrega; base actual v21. Especialidad principal resuelta en v8; residencia/incorporación en v9; secundarias en v10; cursos, operaciones y geografía ampliada en v11. Pendiente aceptación operativa del solicitante.
 - **Pendientes:** aceptación del recorrido funcional; ampliar países o incorporar catálogos territoriales según necesidad futura. Institución, minimización/retención y uso de datos reales siguen siendo requisitos del piloto.
 - **Dependencias:** permisos confirmados por el solicitante y migración aditiva con respaldo. No depende de psicometría ni cálculos oficiales.
 - **Cierre verificable:** permisos por rol/objeto, CSRF, fechas ordenadas, duplicados rechazados, consulta propia sin observaciones, provincias conservadas en edición, históricos e IDs preservados; inicialización repetida con integridad SQLite; pruebas y revisión responsiva. Evidencias en el punto de control.
@@ -38,29 +40,39 @@ Orden recomendado: consolidación documental → 4A → 4B → 5A → 5B. Fase 6
 ### Reglas confirmadas e implementación
 
 - **Residencia/nacionalidad:** país de nacionalidad separado de país de residencia. Catálogo inicial de 20 países latinoamericanos: Argentina, Bolivia, Brasil, Chile, Colombia, Costa Rica, Cuba, Ecuador, El Salvador, Guatemala, Haití, Honduras, México, Nicaragua, Panamá, Paraguay, Perú, República Dominicana, Uruguay y Venezuela. Bolivia usa sus nueve departamentos; para los demás países departamento/provincia es texto libre de hasta 160 caracteres, sin presentarlo como catálogo oficial validado. Administrador/Jefe autorizado editan; Instructor consulta solo sus datos propios. No se infiere país ni nacionalidad de perfiles históricos.
-- **Incorporación:** año entero positivo no futuro; antigüedad = año calendario del servidor menos año de incorporación. Sin año, no disponible. `antiguedad_desde` sigue siendo un dato histórico independiente; incorporación no se expone al Instructor.
-- **Secundarias:** catálogo de seis especialidades acordadas; selección múltiple sin duplicados; principal permitida también como secundaria. Administrador edita globalmente; Jefe solo personal activo asignado; Instructor consulta las propias.
-- **Cursos:** Administrador crea/edita catálogo común; Administrador/Jefe registran y editan capacitaciones en su ámbito activo. Relación `curso_id` opcional para conservar compatibilidad con registros de nombre libre. Históricos quedan sin enlace automático. El nombre registrado se conserva como instantánea; renombrar catálogo no reescribe registros previos. Instructor consulta sus cursos sin observaciones.
-- **Operaciones:** Administrador crea/edita eventos (tipo, lugar, inicio/fin, institución). Fin opcional; si existe no precede al inicio. Administrador/Jefe vinculan participantes activos; Jefe solo su equipo. Instructor consulta solo eventos donde participa y su propia participación, sin listar terceros. Sin borrado físico ni desvinculación en esta entrega; la corrección de vínculos requerirá alcance definido. `experiencia_operaciones` permanece como texto histórico, independiente de las participaciones nuevas.
+- **Incorporación:** año entero positivo no futuro; antigüedad = año calendario del servidor menos año de incorporación. Sin año, no disponible. La fecha canónica sincroniza fecha_incorporacion, ano_incorporacion y antiguedad_desde; históricos incompletos se conservan sin inferir fechas. El Instructor consulta incorporación propia; no la edita.
+- **Secundarias:** catálogo de seis especialidades acordadas; selección múltiple sin duplicados; principal permitida también como secundaria. Administrador edita globalmente; Jefe sobre personal activo global SBRAB; Instructor consulta las propias.
+- **Cursos:** Administrador/Jefe crean/editan catálogo común; Administrador/Jefe registran y editan capacitaciones en su ámbito activo. Relación `curso_id` opcional para conservar compatibilidad con registros de nombre libre. Históricos quedan sin enlace automático. El nombre registrado se conserva como instantánea; renombrar catálogo no reescribe registros previos. Instructor consulta sus cursos sin observaciones.
+- **Operaciones:** Administrador crea/edita eventos (tipo, lugar, inicio/fin, institución). Fin opcional; si existe no precede al inicio. Administrador/Jefe vinculan participantes activos; Jefe sobre activos globales SBRAB. Instructor consulta solo eventos donde participa y su propia participación, sin listar terceros. Sin borrado físico ni desvinculación en esta entrega; la corrección de vínculos requerirá alcance definido. `experiencia_operaciones` permanece como texto histórico, independiente de las participaciones nuevas.
 - **Conservación:** v11 agrega tablas y `capacitaciones.curso_id`; conserva columnas v9 de residencia y añade `perfil_geografico` para ampliar sin reconstruirlas ni alterar sus CHECK. La lectura prioriza el perfil geográfico si existe; en caso contrario utiliza los datos v9. No se rellenan históricos.
 
 ## Fase 5A — Cierre del seguimiento operativo
 
 - **Objetivo:** cerrar técnicamente los flujos de notas/historial, cursos/formación personal y asistencia/calendario/PDF, y registrar su aceptación operativa por separado.
 - **Alcance:** permisos ya aprobados, registros/correcciones y conservación; revisión móvil/escritorio y PDF operativos. Sin nuevas reglas de puntuación, promedios ni psicometría.
-- **Estado actual (2026-10-11):** cierre técnico cumplido. Corregidos selección/carga/guardado de notas, serialización de correcciones simultáneas, formulario oculto y conservación del nombre histórico al editar una capacitación vinculada. Cuatro pruebas nuevas; suite de 68 aprobada y 20 escenarios de interfaz. PDF sintéticos multipágina revisados. Esquema v14 conservado.
+- **Cierre técnico histórico (2026-10-11):** cumplido. Corregidos selección/carga/guardado de notas, serialización de correcciones simultáneas, formulario oculto y conservación del nombre histórico al editar una capacitación vinculada. Cuatro pruebas nuevas; suite de 68 aprobada y 20 escenarios de interfaz. PDF sintéticos multipágina revisados. Esquema v14 conservado.
 - **Pendientes:** aceptación operativa del solicitante sobre el recorrido visible, registro de incidencias si existen. No se declara aceptación institucional ni versionado completo de ediciones de cursos/capacitaciones.
-- **Dependencias:** personal activo/asignado, períodos/evaluaciones/asignaciones y datos sintéticos. Permisos y fórmula operativa de asistencia ya acordados; no volver a preguntar esos acuerdos.
+- **Dependencias:** personal activo en ámbito global SBRAB, períodos/evaluaciones/asignaciones y datos sintéticos. Permisos y fórmula operativa de asistencia ya acordados; no volver a preguntar esos acuerdos.
 - **Cierre verificable:** notas anteriores conservadas, cero válido, rechazo fuera de ámbito/CSRF/psicometría/período cerrado, una sola cadena ante simultaneidad; histórico personal sin observaciones en Instructor; cuatro estados de asistencia y reportes por ámbito; aceptación humana registrada aparte. Evidencias y casos en [cierre de Fase 5A](08_cierre_fase_5a.md).
 
-## Fase 5B — Períodos, configuración y cálculo operativo
+## Fase 5B — Evaluaciones por gestión, cálculo y publicación
 
-- **Objetivo:** implementar las reglas operativas acordadas el 2026-10-11 con resultados reproducibles.
-- **Alcance:** Física (dos notas obligatorias promediadas), Académica (nota global con motivo/formación propia), Desempeño (Jefe/Comandante, dos notas obligatorias promediadas). Promedio simple de los tres; asistencia separada y psicometría fuera.
-- **Estado actual:** definición acordada y dos entregas implementadas: cuatro roles, esquema v16, Comandante/cuenta única, notas por fuente/respaldo y borradores anuales con configuración publicada/congelada y activo único. Cálculo, cierre/reapertura e instantáneas siguen pendientes; ver [reglas y estado](09_reglas_fase_5b.md).
-- **Pendientes de implementación:** cálculo provisional vinculado a configuración y últimas notas válidas, faltantes/cero, dos decimales/mitad hacia arriba solo al final; cierre permitido con incompletos e instantáneas por persona; reapertura motivada sin cambiar configuración y preservando cierres anteriores.
-- **Dependencias:** acuerdos confirmados para el prototipo; cierre técnico 5A y prueba de compatibilidad histórica. Aceptación humana/privacidad del piloto no se infiere de aprobar estas reglas. No depende de psicometría.
-- **Cierre verificable:** permisos/CSRF por rol/objeto, notas separadas sin suplantación, respaldo de la persona, exactitud y casos aprobados, un activo bajo concurrencia, configuración inmutable, cierres reproducibles sin perder anteriores. Pruebas y revisión responsiva antes de declarar implementación.
+- **Objetivo:** completar resultados reproducibles y su ciclo de publicación/cierre según los acuerdos del 2026-10-12.
+- **Implementado:** tres roles operativos, Jefe único global, Comandante externo; gestiones anuales creadas/editadas/retiradas por Administrador/Jefe, configuración/publicación del ciclo y activación de regla v2 por Administrador, edición de borrador con revisión, configuración congelada/activo único; habilitación individual e historial, notas manuales por cinco fuentes, cursos y participaciones/finalización auditadas (v18). Publicar configuración no publica notas.
+- **Reglas acordadas:** Física promedia dos pruebas; Académica suma puntos enteros por finalización personal en su año, una sola imputación y tope 100 conservando detalle; Desempeño promedia Jefe/Comandante. Resultado conjunto: igual importancia de tres componentes y dos decimales finales, mitad hacia arriba, sin redondeos intermedios. Pendiente sin nota no se convierte automáticamente en cero.
+- **Compatibilidad:** conservar notas manuales, formación antigua y configuraciones PROMEDIO_TRES_V1; establecer tratamiento explícito para reglas nuevas sin alterar versiones congeladas ni adoptar históricos automáticamente.
+- **Dependencias:** cierre técnico 5A, reglas confirmadas, pruebas de compatibilidad; aceptación operativa/institucional aparte. No depende de psicometría.
+
+### Entregas de la reformulación sin renumerar las fases
+
+| Entrega | Alcance y estado | Cierre verificable |
+|---|---|---|
+| 5B.1 Física programada | **Implementada técnicamente v19.** Dos fechas comunes anuales, reprogramación individual extraordinaria y No cumplida=0 confirmado por Administrador/Jefe. | Historial de fechas/actores; pendiente distinto de cero; reprogramar conserva cero hasta cumplimiento/corrección; permisos, concurrencia y límites comprobados. |
+| 5B.2 Acumulación y cálculos | **Implementada técnicamente v20, opt-in explícito.** Imputación académica única, detalle/tope 100, promedios físicos/desempeño/conjunto y tratamiento explícito de configuraciones históricas. | Casos exactos de cero/faltantes/tope/cambio de año/corrección y redondeo final; resultados trazables a fuentes/versiones; sin duplicaciones. |
+| 5B.3 Publicación de notas | **Implementada técnicamente v21.** Administrador/Jefe publican/republican físicas y cursos/acumulado académico propios visibles al Instructor. | Corrección conserva versión publicada anterior y fecha hasta republicar; Desempeño/resultado conjunto ocultos también en API/PDF; autorización por persona y concurrencia. |
+| 5B.4 Cierre y reapertura | Implementada técnicamente en v22: Administrador cierra/reabre con motivo, incompletos identificados e instantáneas de cada cierre. | Configuración intacta, cierres anteriores reproducibles, permisos y bloqueo de escritura verificados; aceptación operativa pendiente. [Detalle](16_cierres_reaperturas.md). |
+
+5B.1 implementada técnicamente en v19; ver [reglas, compatibilidad y evidencia](13_programacion_fisica.md). 5B.2 implementada técnicamente en v20; ver [gestiones y cálculos](14_calculos_y_gestiones.md). 5B.3 implementada en v21; ver [publicación](15_publicacion_notas.md). 5B.4 sigue pendiente. Las entregas v15–v18 conservan su historia.
 
 ## Fase 6 — Psicometría independiente y condicionada
 
@@ -75,7 +87,7 @@ Orden recomendado: consolidación documental → 4A → 4B → 5A → 5B. Fase 6
 
 - **Objetivo:** exportar información necesaria con destinatarios y permisos definidos.
 - **Alcance:** entrega operativa (asistencia, capacitaciones, seguimiento/notas permitidas) separada de entrega con resultados psicométricos; PDF/Excel individuales y consolidados según alcance aprobado.
-- **Estado actual:** PDF operativos de cursos y asistencia implementados y revisados en cierre 5A; Excel, informes consolidados y reportes con resultados psicométricos pendientes.
+- **Estado actual:** PDF operativos de cursos, asistencia y evaluaciones implementados; el PDF de evaluaciones resume habilitación/avance/notas autorizadas, sin resultado conjunto calculado. Excel, reportes finales de resultados y reportes psicométricos pendientes.
 - **Pendientes:** campos, filtros, destinatarios, exclusiones, auditoría, retención y tratamiento de archivos exportados; diseñar y verificar ambas entregas por separado.
 - **Dependencias:** reportes operativos dependen del alcance/permisos aprobados y datos de 5A; promedios solo tras 5B. Reportes psicométricos dependen además de 6 y autorización específica. Los operativos pueden avanzar sin psicometría.
 - **Cierre verificable:** por cada entrega, exportaciones cotejadas con datos fuente/filtros; pruebas contra acceso ajeno y filtración de campos; archivos legibles y auditados; no se presentan promedios pendientes ni resultados ficticios; retención y destinatarios documentados.
@@ -98,6 +110,10 @@ Orden recomendado: consolidación documental → 4A → 4B → 5A → 5B. Fase 6
 - **Dependencias:** autorización institucional y evidencia de utilidad/validez; privacidad y operación aceptadas. No condiciona reportes operativos ni piloto básico.
 - **Cierre verificable:** validación reproducible y límites documentados, salidas trazables/revisables, permisos y supervisión comprobados; nunca decisión automática sobre personas.
 
+## Evidencia vigente
+
+Ver [revisión del 2026-10-13](12_revision_proyecto.md) para comprobaciones actuales. Las cifras y estados siguientes son históricos y no sustituyen los alcances vigentes anteriores.
+
 ## Evidencias del punto de control
 
 - **Histórico, primera entrega 4B (2026-10-10):** 54 pruebas aprobadas en 61,107 s; compilación Python, sintaxis JavaScript, enlaces y diff correctos. Migración local v9 tras respaldo, datos previos de 18 tablas conservados, nuevos campos NULL, quick_check=ok y cero infracciones FK. Formulario/directorio verificados en Chromium en seis escenarios con API simulada y datos sintéticos. Aceptación operativa pendiente.
@@ -116,12 +132,12 @@ Orden recomendado: consolidación documental → 4A → 4B → 5A → 5B. Fase 6
 1. Institución responsable, marco de privacidad del piloto, minimización, aviso/consentimiento, destinatarios y plazos de retención.
 2. Política definitiva de colisiones de código; autoservicio ya definido exclusivamente para correo y foto, sin cambios de identidad/código. La aprobación administrativa de solicitudes públicas ya existe.
 3. Ampliaciones futuras del catálogo territorial y reglas de corrección de vínculos operativos, si se solicitan. El alcance de perfil, catálogo de cursos, operaciones y sus permisos ya fue confirmado para esta entrega; no volver a preguntar esas decisiones.
-4. Faltantes, redondeo, pesos/componentes, quién publica versiones y cierre/reapertura de períodos. No considerar los pesos de ejemplo aprobados.
+4. Implementar las reglas ya confirmadas de componentes/faltantes/redondeo, publicación/republicación y cierre/reapertura; resolver explícitamente compatibilidad de configuraciones históricas. No volver a consultar los acuerdos documentados; distinguirlos de aprobación institucional.
 5. Expedientes psicométricos, población/modalidad, derechos e idioma, puntuación, intentos, interpretación, accesos y retención.
 6. Campos/destinatarios de reportes operativos y psicométricos por separado; permisos de exportación y conservación fuera del sistema.
 7. Destino de despliegue, responsables de operación, respaldo, HTTPS, incidentes y aceptación del piloto.
 
-Ya están acordados el prototipo local en español con datos sintéticos, stack, roles, bajas lógicas, identidad visual, código con fecha completa, especialidad principal, cuatro estados de asistencia y campos de operación. El seed administrativo local idempotente ya está implementado; no es una pregunta abierta. No se asumen población, política institucional, pesos aprobados ni reglas de puntuación.
+Ya están acordados el prototipo local en español con datos sintéticos, stack, roles, bajas lógicas, identidad visual, código con fecha completa, especialidad principal, cuatro estados de asistencia y campos de operación. El seed administrativo local idempotente ya está implementado; no es una pregunta abierta. No se asumen población ni política institucional aprobadas. Las reglas de puntuación del prototipo están acordadas; no acreditan aprobación institucional.
 
 ## Riesgos a controlar
 
@@ -161,7 +177,7 @@ Interfaz de Jefe verificada en Chromium a 360/1447 px con API simulada: formular
 
 ### Entrega vigente — Asistencia, correcciones, calendario y reporte (2026-10-10, v13)
 
-- Administrador consulta/registra/corrige asistencia; Jefe solo personal activo asignado. La llamada muestra nombre del responsable autenticado, gestión anual de la fecha seleccionada y fecha; conserva actividad obligatoria. Los cuatro estados exactos son Asiste, Atraso, Permiso y Falta. Llamada nueva inicia todas las filas en Falta; al elegir fecha/actividad existente se cargan sus estados guardados para corregirlos.
+- Administrador consulta/registra/corrige asistencia; Jefe sobre personal activo global SBRAB. La llamada muestra nombre del responsable autenticado, gestión anual de la fecha seleccionada y fecha; conserva actividad obligatoria. Los cuatro estados exactos son Asiste, Atraso, Permiso y Falta. Llamada nueva inicia todas las filas en Falta; al elegir fecha/actividad existente se cargan sus estados guardados para corregirlos.
 - Clave única persona/fecha/actividad: guardar otra vez actualiza el mismo registro. Corrección conserva estado anterior/nuevo, actor y fecha UTC en historial_asistencias mediante trigger; cambios se auditan. Repetir el mismo estado no crea corrección ni sustituye al último responsable. No se permiten cambiar identidad/fecha/actividad mediante el PATCH de corrección. Históricos no se borran ni se fabrican correcciones anteriores.
 - Instructor consulta solo su calendario anual y totales de los cuatro estados, sin datos de terceros ni observaciones ni edición. El día puede tener varias llamadas; totales cuentan registros, no días calendario. Sin registro no se considera Falta.
 - Reporte matricial por rango inclusivo de fechas, sin materia ni filtros adicionales. Columnas por fecha/actividad, código y nombre, cuatro totales y porcentaje. Asiste y Atraso cuentan como asistencia; Permiso excluido: (Asiste + Atraso)/(Asiste + Atraso + Falta), redondeado a dos decimales; sin denominador, No disponible. Es un indicador operativo aprobado para esta entrega, no una nota ni promedio oficial de Fase 5B. Jefe exporta solo ámbito activo asignado; Administrador todo su alcance; Instructor no exporta reporte administrativo.
@@ -227,3 +243,14 @@ Evidencia vigente: 81 pruebas aprobadas en 45,711 s; ocho escenarios UI, PDF sin
 Administrador/Jefe registran/editar catálogo con puntaje entero 0–100, fechas/entidad obligatorias en cursos nuevos y estado automático de Bolivia. Asignación personal/múltiple sin duplicados, finalización independiente con puntaje y fecha explícitos, correcciones con actor/fecha/motivo/revisión y valores anteriores preservados. Edición del catálogo no reescribe datos capturados al asignar. Inactivos solo consulta/historial. Instructor ve sus estados y formación histórica, sin puntajes hasta publicación; Dashboard/seguimiento enlazan las participaciones. PDF de catálogo filtra estado calculado. Histórico sin datos completos permanece intacto y sin puntos inferidos.
 
 Verificación vigente: 86 pruebas aprobadas en 87,375 s; 12 escenarios UI, sin desborde/errores; migración local tras respaldo e inicialización repetida preservando 29 tablas, quick_check=ok y FK=0. Compilación, sintaxis, enlaces y diff correctos. Detalles en [reglas y entrega v18](11_cursos_formacion.md). Pendientes acumulado académico hasta 100, físicas/reprogramación/No cumplida, publicación/republicación y cierres; no se declara cierre 5B ni del piloto.
+
+
+Ejecución de 5B.1 — 2026-10-13: 93 pruebas aprobadas en 195,680 s, 20 escenarios UI sintéticos, compilación/sintaxis/enlaces/diff correctos; migración respaldada v19, 32 tablas previas preservadas, inicialización repetida, quick_check=ok y FK=0. [Detalle y límites](13_programacion_fisica.md). 5B.2–5B.4 pendientes; sin aceptación operativa/institucional ni cierre 5B.
+
+
+Ejecución de 5B.2 — 2026-10-13: Gestiones compartidas Administrador/Jefe con baja lógica, activación anual separada de habilitación personal y menú ordenado. Cálculos provisionales exactos mediante opt-in ACUMULADO_TRES_V2; sin formación finalizada queda pendiente y fuente necesaria desactivada deja No disponible. 104 pruebas aprobadas en 158,822 s y 36 escenarios UI sintéticos. Migración respaldada v20: 35 tablas previas preservadas, inicialización repetida, quick_check=ok y FK=0. [Detalle y compatibilidad](14_calculos_y_gestiones.md). Próxima entrega 5B.3; 5B.4 y aceptación operativa/institucional pendientes.
+
+
+Ejecución de 5B.3 — 2026-10-13: publicación/republicación parcial con firma/revisión y versiones, ocultación por deshabilitación/baja confirmada, proyecciones propias sin Desempeño/conjunto ni fuentes privadas. 114 pruebas aprobadas en 123,012 s, 16 escenarios UI sintéticos y migración respaldada v21 preservando 39 tablas previas, inicialización repetida, quick_check=ok y FK=0. [Detalle](15_publicacion_notas.md). Próxima entrega 5B.4; sin cierre 5B ni aceptación operativa/institucional.
+
+Ejecución de 5B.4 — 2026-10-14: cierre/reapertura administrativa motivada e instantáneas por persona/versiones; incompletos confirmados, configuración intacta, bloqueo académico del año anterior/nuevo y resultado cerrado conservado. Suite completa 127 pruebas aprobadas en 257,841 s; diez específicas aprobadas en 12,635 s tras ampliar la comprobación de habilitación heredada. Ocho escenarios visuales sintéticos, ambos roles/temas y 360/1447 px. Migración respaldada v22, 40 tablas previas preservadas, inicialización repetida, quick_check=ok, FK=0; tres tablas nuevas vacías. [Alcance y compatibilidad](16_cierres_reaperturas.md). Las cuatro entregas están implementadas técnicamente; no se declara cerrada Fase 5B ni resuelta la aceptación operativa/institucional.
