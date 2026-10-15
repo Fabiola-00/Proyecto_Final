@@ -950,14 +950,13 @@ if (operacionesLista) {
         });tarjeta.append(editar);
       }
       if (!esInstructor) {
-        const vinculo=elemento('form',undefined,'formulario-inline');const label=elemento('label','Vincular Instructor Voluntario');const select=elemento('select');select.required=true;
-        select.append(elemento('option','Selecciona una persona'));select.options[0].value='';
-        personal.filter((p)=>!operacion.participantes.some((v)=>v.voluntario_id===p.id)).forEach((p)=>{const opcion=elemento('option',p.nombre);opcion.value=p.id;select.append(opcion);});label.append(select);vinculo.append(label,elemento('button','Vincular participación'));
-        vinculo.addEventListener('submit',async(e)=>{e.preventDefault();try{await apiJson(`/api/operaciones/${operacion.id}/participaciones`,{method:'POST',body:{voluntario_id:Number(select.value)}});mensaje.textContent='Participación vinculada.';await cargarOperaciones();}catch(error){mensaje.textContent=error.message;}});tarjeta.append(vinculo);
+        const vinculo=elemento('form',undefined,'formulario-inline');const label=elemento('fieldset');label.append(elemento('legend','Instructores Voluntarios activos'));const select=elemento('div',undefined,'participantes-checkbox');
+        personal.filter((p)=>!operacion.participantes.some((v)=>v.voluntario_id===p.id)).forEach((p)=>{const opcion=elemento('label',p.nombre),check=elemento('input');check.type='checkbox';check.value=p.id;opcion.prepend(check);select.append(opcion);});label.append(select);vinculo.append(label,elemento('button','Vincular participación'));
+        vinculo.addEventListener('submit',async(e)=>{e.preventDefault();try{await apiJson(`/api/operaciones/${operacion.id}/participaciones`,{method:'POST',body:{voluntario_ids:[...select.querySelectorAll('input:checked')].map(i=>Number(i.value))}});mensaje.textContent='Participación vinculada.';cerrarEdicion();await cargarOperaciones();}catch(error){mostrarErrorEdicion(error);}});tarjeta.append(botonEdicion('Asignar participantes',vinculo,'Asignar participantes'));
       }operacionesLista.append(tarjeta);
     });
   }
-  if(form){document.querySelector('#operacion-cancelar').addEventListener('click',()=>form.reset());form.addEventListener('submit',async(e)=>{e.preventDefault();const body=Object.fromEntries(new FormData(form));delete body.id;try{await apiJson('/api/operaciones',{method:'POST',body});form.reset();mensaje.textContent='Evento registrado.';await cargarOperaciones();}catch(error){mensaje.textContent=error.message;}});}
+  if(form){const cancelarOperacion=form.querySelector('#operacion-cancelar');form.remove();const abrir=botonEdicion('Registrar operación',form,'Registrar operación');document.querySelector('#operacion-alta').append(abrir);cancelarOperacion.addEventListener('click',()=>form.reset());form.addEventListener('submit',async(e)=>{e.preventDefault();const body=Object.fromEntries(new FormData(form));delete body.id;try{await apiJson('/api/operaciones',{method:'POST',body});form.reset();cerrarEdicion();mensaje.textContent='Evento registrado.';await cargarOperaciones();}catch(error){mostrarErrorEdicion(error);}});}
   (async()=>{if(!esInstructor){const {voluntarios}=await apiJson('/api/instructores-voluntarios');personal=voluntarios.filter((p)=>p.estado==='ACTIVO');}await cargarOperaciones();})().catch((error)=>{mensaje.textContent=error.message;});
 }
 

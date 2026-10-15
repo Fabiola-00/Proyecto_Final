@@ -1,0 +1,9 @@
+{% extends "_dashboard_base.html" %}
+{% block contenido %}
+<section class="seccion-panel"><h2>Reportes de SBRAB</h2><p>PDF administrativos. Selecciona la gestión o el rango inclusivo indicado en cada reporte.</p>
+<div class="rejilla-modulos">
+<article class="tarjeta-modulo"><h3>Evaluaciones</h3><form class="reporte-central formulario-inline" data-url="/api/evaluaciones/reporte.pdf"><label>Gestión<select name="periodo_id" id="reporte-gestion" required><option value="">Seleccionar gestión</option></select></label><button>Generar PDF</button><p role="status"></p></form></article>
+{% for titulo,url,criterio in [('Asistencias','/api/jefe-personal/asistencias/reporte.pdf','Fecha de asistencia'),('Cursos y Capacitaciones','/api/cursos/reporte.pdf','Inicio del curso (catálogo)'),('Formación personal','/api/reportes/formacion.pdf','Finalización personal; solo participaciones finalizadas'),('Operaciones y participantes','/api/reportes/operaciones.pdf','Inicio de la operación')] %}
+<article class="tarjeta-modulo"><h3>{{ titulo }}</h3><p>{{ criterio }}</p><form class="reporte-central formulario-inline" data-url="{{ url }}"><label>Desde<input name="desde" type="date" required></label><label>Hasta<input name="hasta" type="date" required></label><button>Generar PDF</button><p role="status"></p></form></article>{% endfor %}
+</div></section><script src="{{ url_for('static',filename='js/espacio_jefe.js') }}" defer></script>
+{% endblock %}

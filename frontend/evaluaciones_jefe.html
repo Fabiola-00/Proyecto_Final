@@ -1,0 +1,7 @@
+{% extends "_dashboard_base.html" %}
+{% block contenido %}
+<p>Selecciona una gestión para activar sus evaluaciones y habilitar a cada Instructor Voluntario. La activación del ciclo corresponde al Administrador. Las notas se gestionan en Notas y Resultados.</p>
+{% set centralizar_reportes = true %}{% include "_tabla_evaluaciones.html" %}
+<section class="seccion-panel"><h2>Evaluaciones de la gestión</h2><div id="activacion-evaluaciones-anual"></div><p id="activacion-evaluaciones-mensaje" role="status"></p></section>
+<script src="{{ url_for('static',filename='js/espacio_jefe.js') }}" defer></script>
+{% endblock %}

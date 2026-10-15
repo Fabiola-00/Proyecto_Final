@@ -471,3 +471,15 @@ CREATE TRIGGER IF NOT EXISTS instantanea_5b_update BEFORE UPDATE ON instantaneas
 CREATE TRIGGER IF NOT EXISTS instantanea_5b_delete BEFORE DELETE ON instantaneas_cierre_5b BEGIN SELECT RAISE(ABORT,'cierre_inmutable'); END;
 CREATE TRIGGER IF NOT EXISTS reapertura_5b_update BEFORE UPDATE ON reaperturas_5b BEGIN SELECT RAISE(ABORT,'cierre_inmutable'); END;
 CREATE TRIGGER IF NOT EXISTS reapertura_5b_delete BEFORE DELETE ON reaperturas_5b BEGIN SELECT RAISE(ABORT,'cierre_inmutable'); END;
+
+-- Evidencia tomada al reabrir: nunca se atribuye al cierre antiguo sin instantánea.
+CREATE TABLE IF NOT EXISTS reaperturas_historicas_5b (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL UNIQUE REFERENCES periodos(id) ON DELETE RESTRICT,
+ contenido_json TEXT NOT NULL, firma_fuentes TEXT NOT NULL, motivo TEXT NOT NULL,
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ actor_nombre TEXT NOT NULL, registrada_en TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS reapertura_historica_update BEFORE UPDATE ON reaperturas_historicas_5b
+BEGIN SELECT RAISE(ABORT,'evidencia_historica_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS reapertura_historica_delete BEFORE DELETE ON reaperturas_historicas_5b
+BEGIN SELECT RAISE(ABORT,'evidencia_historica_inmutable'); END;

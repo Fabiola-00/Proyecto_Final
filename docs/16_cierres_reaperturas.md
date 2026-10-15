@@ -31,7 +31,7 @@ Decisión confirmada el 2026-10-14: se bloquea registrar/corregir formación cua
 
 Una Gestión ACTIVA sin opt-in v2 puede cerrarse documentalmente: conserva datos/configuración tal como existen, con `REGLA_V2_NO_ACTIVADA`, sin resultado conjunto ni adopción automática. Es posible cerrar así un período antiguo para liberar el único activo. Reabrir no permite activar por primera vez otra regla en esa Gestión ya cerrada; la regla nueva corresponde a otra Gestión. Configuraciones congeladas nunca se reescriben.
 
-Gestiones que ya estaban CERRADO antes de 5B.4 no reciben instantáneas retroactivas. Sin un cierre conservado de este circuito no se reabren por la API nueva; el tratamiento de esos históricos requiere una entrega explícita, sin fabricar resultados ni motivos anteriores. No hay cierres/reaperturas automáticos por fechas ni nuevas reglas de puntuación.
+Gestiones que ya estaban CERRADO antes de 5B.4 no reciben instantáneas retroactivas. Desde v23 se permite una reapertura excepcional explícita del Administrador, con motivo y constancia de ausencia de instantánea original. La evidencia disponible se captura al reabrir, sin atribuirla al cierre antiguo ni fabricar su fecha/resultados. No adopta notas ni cambia la regla existente; se describe en la ampliación v23 de este documento. No hay cierres/reaperturas automáticos por fechas ni nuevas reglas de puntuación.
 
 ## Uso y APIs
 
@@ -55,3 +55,26 @@ Suite completa: **127 pruebas aprobadas en 257,841 s**. Diez pruebas específica
 
 Respaldo local `instance/backups/sicose-20261014-pre-v22-3289032b.sqlite3`, 40 tablas previas preservadas, dos inicializaciones, v22, quick_check=ok, FK=0; cierres/instantáneas/reaperturas nuevos vacíos. Entorno, fotos e historial conservados. Evidencias ignoradas en `.tmp/cierres-suite-final.log`, `.tmp/cierres-tests-cierre.log`, `.tmp/cierres-migracion.json` y `.tmp/cierres-ui/`.
 Controles finales: compilación Python, sintaxis de cinco JavaScript, 116 enlaces locales en doce documentos y git diff --check correctos. Relectura local v22/quick_check=ok/FK=0, tablas nuevas vacías.
+
+## Ampliación de compatibilidad histórica — 2026-10-14, v23
+
+Decisión confirmada por el solicitante: permitir una **reapertura excepcional** solo al Administrador para una Gestión CERRADO sin cierres con instantáneas. Exige motivo, revisión/firma de fuentes y constancia explícita de ausencia de instantánea original. No hay cierre retroactivo ni fecha/resultado antiguo reconstruido; la evidencia se toma en el momento de la reapertura. Sustituye la limitación inicial de v22 documentada arriba.
+
+- `reaperturas_historicas_5b` guarda una evidencia JSON versionada por Gestión, firma, motivo, actor/nombre/fecha UTC. FK restrictivas, unicidad por Gestión y triggers contra UPDATE/DELETE. Formato `EVIDENCIA_REAPERTURA_HISTORICA_V1`, con fecha original no acreditada y estado de cálculo `NO_RECONSTRUIDO`; no se ejecuta el cálculo al preparar esa evidencia.
+- La evidencia conserva los datos actuales mínimos del período/configuración, fuentes, notas y su autoría, formación y revisiones, asignaciones/calificaciones antiguas no psicométricas y última publicación disponible. No copia respuestas psicométricas ni credenciales. Se consulta íntegra después de corregir o cerrar de nuevo; no se reemplaza con información actual.
+- Solo sobre una Gestión cerrada no retirada, sin cierres con instantánea ni reapertura excepcional previa. No introduce un segundo activo. Evidencia, evento y estado ACTIVO se guardan atómicamente; concurrencia/fuentes obsoletas devuelven 409, sin cambios parciales. Si hay cierres con instantáneas, se usa la reapertura ordinaria.
+- Conserva la regla/configuración existentes, incluida la ausencia de regla v2. Está bloqueada la primera activación de otra regla después de esta excepción. Las notas antiguas sin configuración/física programada no se adoptan; una v2 ya existente conserva exactamente su alcance anterior.
+- El primer cierre posterior es el **primer cierre con instantáneas**. Su contexto referencia la reapertura excepcional, no inventa un cierre anterior. A partir de ahí opera la reapertura ordinaria. Evidencia y cierres son registros distintos.
+- Administrador/Jefe consultan evidencia/revisión; únicamente Administrador confirma la excepción. Instructor mantiene solo sus versiones publicadas autorizadas, sin ampliación de proyecciones. Las rutas nuevas tienen caché privada no-store.
+
+Desde **Gestiones (año)**: **Reabrir histórico sin instantánea** (Administrador) o **Revisar histórico sin instantánea** (Jefe). Una vez reabierto aparece **Evidencia de reapertura histórica**, también después de un cierre nuevo o retiro operativo.
+
+APIs adicionales:
+
+- `GET /api/5b/periodos/<id>/reapertura-historica-previa`: evidencia disponible y firma; Administrador/Jefe.
+- `POST /api/admin/5b/periodos/<id>/reabrir-historico`: `motivo`, `firma_fuentes`, `confirmar_sin_instantanea: true`; Administrador.
+- `GET /api/5b/periodos/<id>/reapertura-historica`: evidencia inmutable y metadatos del evento; Administrador/Jefe.
+
+La migración v23 no reabre ninguna Gestión ni genera evidencias automáticamente. Respaldo local `instance/backups/sicose-20261014-pre-v23-c8c8c9bf.sqlite3`: 43 tablas previas preservadas, dos inicializaciones, quick_check=ok, FK=0, nueva tabla vacía. Ver [validación integral y aceptación pendiente](17_validacion_integral_5b.md). La evidencia v22 anterior sigue fechada; no representa la ejecución v23.
+
+Verificación final v23 del 2026-10-14: ocho pruebas específicas aprobadas en 20,885 s, diez de regresión de cierres en 24,903 s y suite completa **135 aprobadas en 301,157 s** tras actualizar las aserciones antiguas de versión. Ocho escenarios visuales sintéticos con ambos gestores/temas y 360/1447 px, sin errores/desbordes; capturas inspeccionadas. Python, cinco JavaScript, 122 enlaces locales en once documentos y diff correctos. Base releída v23/quick_check=ok/FK=0, sin evidencias históricas nuevas. El ensayo humano sigue pendiente.

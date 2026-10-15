@@ -53,7 +53,7 @@ SQLite es adecuado para el prototipo local; multiinstancia/alta concurrencia req
 
 `relaciones_perfil.py` separa catálogo/operaciones del módulo de evaluaciones. GET `/api/cursos` Administrador/Jefe; POST y PATCH `/api/cursos[/<id>]` solo Administrador. Capacitaciones existentes aceptan curso_id opcional validado; se mantiene compatibilidad de nombres históricos. GET `/api/instructor-voluntario/capacitaciones` devuelve proyección propia sin observaciones; página `/mis-cursos`.
 
-GET `/api/operaciones` por ámbito; POST/PATCH de eventos solo Administrador; POST `/api/operaciones/<id>/participaciones` Administrador/Jefe con validación de personal activo y equipo. Instructor recibe solo eventos propios con su propia participación; ningún control mutable. Página `/gestion/operaciones` disponible por rol. Sin borrado/desvinculación habilitados. Mutaciones con CSRF y auditoría mínima.
+GET `/api/operaciones` por ámbito; POST/PATCH de eventos Administrador/Jefe (permiso ampliado confirmado el 2026-10-14); POST `/api/operaciones/<id>/participaciones` Administrador/Jefe con validación de personal activo global SBRAB, singular o lote atómico. Instructor recibe solo eventos propios con su propia participación; ningún control mutable. Página `/gestion/operaciones` disponible por rol. Sin borrado/desvinculación habilitados. Mutaciones con CSRF y auditoría mínima.
 
 Geografía ampliada validada en `perfil_residencia.py`, persistida en perfil_geografico sin reconstruir columnas v9. La página Mi perfil muestra residencia/nacionalidad propias en lectura; PATCH de autoservicio continúa aceptando únicamente correo/foto. Incorporación no se expone.
 
@@ -151,3 +151,10 @@ Edición administrativa de gestión: PATCH `/api/admin/5b/periodos/<id>` recibe 
 ## Cierres y reaperturas — 2026-10-14, v22
 
 `cierres_5b.py` separa el ciclo administrativo de la publicación de notas. Construye revisión/firma y snapshots por persona en lectura consistente; el cierre recalcula la firma y guarda cierre, instantáneas y estado CERRADO dentro de BEGIN IMMEDIATE. Reapertura motivada conserva versiones/configuración y respeta activo único. Las lecturas numéricas de una Gestión cerrada usan el snapshot; no reconstruyen un cierre antiguo con cursos o reglas actuales. `formacion.py` bloquea cambios que afecten al año anterior o nuevo cerrado. Rutas administrativas de cierre e historial con caché privada; proyecciones propias no amplían permisos. [Diseño y contratos](16_cierres_reaperturas.md).
+
+## Compatibilidad histórica v23 — 2026-10-14
+
+`historicos_5b.py` implementa una reapertura excepcional administrativa separada del ciclo ordinario de cierres. Reutiliza la captura de fuentes de `cierres_5b.preparar` en modo documental: no calcula resultados ni simula la instantánea original. Conserva evidencia inmutable con firma, actor/motivo/fecha y actualiza ACTIVO en la misma transacción. La activación de una regla nueva queda bloqueada tras este evento; una regla/configuración existente permanece intacta. Las vistas administrativas distinguen evidencia de reapertura y cierres posteriores. [Contratos](16_cierres_reaperturas.md) y [ensayo operativo pendiente](17_validacion_integral_5b.md).
+
+
+Actualización de permisos y navegación — 2026-10-14: Administrador/Jefe crean y editan operaciones y asignan participantes, también mediante lote atómico por checkbox. Centro de reportes administrativo con PDF de formación personal finalizada y operaciones/participantes; campos privados excluidos. Esto sustituye el alcance anterior de eventos exclusivos del Administrador. [Espacio del Jefe y reportes](19_espacio_jefe_reportes.md).

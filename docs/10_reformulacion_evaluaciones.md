@@ -1,6 +1,6 @@
 # 10. Reformulación de evaluaciones y formación
 
-Fecha de acuerdos: **2026-10-12**. Estado: **entregas v17–v22 y 5B.1–5B.4 implementadas técnicamente; aceptación operativa/institucional pendiente**. Esta revisión sustituye los acuerdos anteriores incompatibles de Fase 5B; no modifica retrospectivamente configuraciones publicadas ni notas. El alcance del Jefe y retiro operativo del Comandante quedan implementados en v17. La evidencia de 77 pruebas del 2026-10-11 es histórica, no una ejecución de esta revisión.
+Fecha de acuerdos: **2026-10-12**. Estado: **entregas v17–v23 y 5B.1–5B.4 implementadas técnicamente, incluida compatibilidad histórica; aceptación operativa/institucional pendiente**. Esta revisión sustituye los acuerdos anteriores incompatibles de Fase 5B; no modifica retrospectivamente configuraciones publicadas ni notas. El alcance del Jefe y retiro operativo del Comandante quedan implementados en v17. La evidencia de 77 pruebas del 2026-10-11 es histórica, no una ejecución de esta revisión.
 
 ## Reglas confirmadas
 
@@ -87,3 +87,7 @@ API: `PATCH /api/instructores-voluntarios/<id>/estado`, con `estado` y `estado_a
 ### Cierre/reapertura implementado — 2026-10-14
 
 5B.4 conserva cada cierre completo o incompleto y permite reapertura administrativa motivada sin segundo activo ni cambio de configuración. Las lecturas de resultados cerrados usan la versión conservada. Confirmado: correcciones de formación bloqueadas si su año anterior o nuevo está cerrado, hasta reapertura. Cierre/reapertura no publica ni cambia la privacidad de 5B.3. Históricos sin opt-in v2 se cierran documentalmente sin adoptar notas ni generar conjunto; no se activan reglas nuevas después de un cierre. [Contratos, límites y verificación](16_cierres_reaperturas.md). No constituye cierre de Fase 5B ni aceptación operativa/institucional.
+
+### Complemento 5B.4 confirmado — 2026-10-14, v23
+
+Se permite la reapertura excepcional de históricos ya CERRADO sin instantáneas: exclusivamente Administrador, con motivo, firma y constancia expresa de ausencia de instantánea original. Evidencia disponible al reabrir conservada como registro inmutable separado, sin atribuirla al cierre antiguo ni adoptar notas/cambiar reglas. Primer cierre posterior crea la primera instantánea auténtica y referencia la reapertura; desde ahí ciclo ordinario. Administrador/Jefe consultan, Instructor sin ampliación de visibilidad. [Compatibilidad](16_cierres_reaperturas.md) y [aceptación humana pendiente](17_validacion_integral_5b.md).

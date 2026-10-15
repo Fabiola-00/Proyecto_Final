@@ -45,21 +45,28 @@ def resultado_cerrado(c, uid, pid):
     return valor
 
 
-def preparar(c, pid):
+def preparar(c, pid, documental=False):
     from .gestiones import retirada, estado_evaluaciones
     from .periodos_5b import configuracion
     from .calculos_5b import calcular, regla
     p = c.execute('SELECT * FROM periodos WHERE id=?', (pid,)).fetchone()
     if p is None:
         raise LookupError('Gestión no encontrada.')
-    if retirada(c, pid) or p['estado'] != 'ACTIVO':
-        raise ValueError('El cierre requiere una Gestión ACTIVA no retirada.')
-    contexto = {'formato': 'CIERRE_5B_V1', 'periodo': dict(p), 'configuracion': configuracion(c, pid),
+    esperado = 'CERRADO' if documental else 'ACTIVO'
+    if retirada(c, pid) or p['estado'] != esperado:
+        raise ValueError(f'Requiere una Gestión {esperado} no retirada.')
+    if documental and (ultimo(c, pid) or c.execute('SELECT 1 FROM reaperturas_historicas_5b WHERE periodo_id=?', (pid,)).fetchone()):
+        raise ValueError('La Gestión tiene un cierre conservado o una reapertura histórica registrada; usa el ciclo ordinario.')
+    contexto = {'formato': 'EVIDENCIA_REAPERTURA_HISTORICA_V1' if documental else 'CIERRE_5B_V1', 'periodo': dict(p), 'configuracion': configuracion(c, pid),
                 'regla_calculo': regla(c, pid), 'evaluaciones': estado_evaluaciones(c, pid),
                 'activaciones': filas(c, 'SELECT * FROM activaciones_gestion WHERE periodo_id=? ORDER BY id', (pid,)),
                 'programaciones': filas(c, 'SELECT * FROM programaciones_fisicas WHERE periodo_id=? ORDER BY id', (pid,)),
                 'ponderaciones_historicas': filas(c, 'SELECT * FROM versiones_ponderacion WHERE periodo_id=? ORDER BY id', (pid,)),
-                'pesos_historicos': filas(c, 'SELECT pe.* FROM pesos_evaluacion pe JOIN versiones_ponderacion v ON v.id=pe.version_id WHERE v.periodo_id=? ORDER BY pe.version_id,pe.evaluacion_id', (pid,))}
+                'pesos_historicos': filas(c, 'SELECT pe.* FROM pesos_evaluacion pe JOIN versiones_ponderacion v ON v.id=pe.version_id WHERE v.periodo_id=? ORDER BY pe.version_id,pe.evaluacion_id', (pid,)),
+                'reapertura_historica': filas(c, 'SELECT id,motivo,actor_id,actor_nombre,registrada_en FROM reaperturas_historicas_5b WHERE periodo_id=?', (pid,))}
+    if documental:
+        contexto.update(fecha_cierre_original=None, sin_instantanea_original=True,
+                        advertencia='Evidencia disponible al reabrir; no representa los resultados del cierre original.')
     personas = []
     miembros = filas(c, '''SELECT u.id,u.nombre_completo AS nombre,u.estado,r.nombre AS rol,v.codigo_instructor AS codigo
                          FROM voluntarios v JOIN usuarios u ON u.id=v.usuario_id JOIN roles r ON r.id=u.rol_id
@@ -69,8 +76,9 @@ def preparar(c, pid):
                          ORDER BY u.id''', (pid, pid))
     for persona in miembros:
         uid = persona['id']
-        calculo = calcular(c, uid, pid)
-        if calculo['regla'] is None:
+        calculo = ({'regla': None, 'estado': 'NO_RECONSTRUIDO', 'resultado_conjunto': None,
+                    'faltantes': [], 'provisional': False} if documental else calcular(c, uid, pid))
+        if not documental and calculo['regla'] is None:
             calculo.update(estado='INCOMPLETO', faltantes=['REGLA_V2_NO_ACTIVADA'], provisional=False)
         else:
             calculo['provisional'] = False

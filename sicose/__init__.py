@@ -86,6 +86,10 @@ def create_app(test_config=None):
     app.register_blueprint(publicaciones_bp)
     from .cierres_5b import cierres_bp
     app.register_blueprint(cierres_bp)
+    from .historicos_5b import historicos_bp
+    app.register_blueprint(historicos_bp)
+    from .espacio_jefe import espacio_bp
+    app.register_blueprint(espacio_bp)
 
     @login_manager.user_loader
     def cargar_usuario(user_id):

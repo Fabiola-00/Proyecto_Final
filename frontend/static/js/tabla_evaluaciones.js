@@ -44,6 +44,7 @@ if (tablaEvaluaciones) {
     const datos = await apiJson(`/api/evaluaciones/${propia ? "propias" : "tabla"}?periodo_id=${pid}`);
     if (turno !== solicitud || pid !== filtro.elements.periodo_id.value) return;
     resultado.replaceChildren(); mensaje.textContent = "";
+    tablaEvaluaciones.dispatchEvent(new CustomEvent("gestion-consultada", {detail: datos.periodo}));
     if (propia) {
       const r = datos.resumen;
       resultado.append(elemento("p", `Avance: ${r.avance === null ? "No disponible" : r.avance + " %"} · Finalizadas: ${r.finalizadas} · Pendientes: ${r.pendientes} · No cumplidas: ${r.no_cumplidas}`), detalle(datos, datos.periodo));
@@ -62,7 +63,7 @@ if (tablaEvaluaciones) {
       resultado.append(publicado);
       return;
     }
-    reporte.dataset.url = `/api/evaluaciones/reporte.pdf?periodo_id=${pid}`; reporte.disabled = false;
+    if (reporte) { reporte.dataset.url = `/api/evaluaciones/reporte.pdf?periodo_id=${pid}`; reporte.disabled = false; }
     const contenedor = elemento("div", undefined, "tabla-contenedor"); const tabla = elemento("table", undefined, "tabla-registros tabla-evaluaciones");
     tabla.setAttribute("aria-label", `Evaluaciones de la gestión ${ano(datos.periodo)}`);
     const columnas = elemento("colgroup"); ["nombre", "codigo", "estado", "cantidad", "cantidad", "avance", "acciones"].forEach((nombre) => columnas.append(elemento("col", undefined, `evaluaciones-col-${nombre}`))); tabla.append(columnas);

@@ -66,9 +66,9 @@ def guardar_fuentes(c, cid, filas):
 @periodos_5b_bp.get("/gestion/periodos-5b")
 @role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def pagina():
-    return render_template("gestion_periodos_5b.html", titulo_pagina="Gestiones (año)",
+    return render_template("gestion_jefe_gestiones.html" if current_user.rol == "JEFE_PERSONAL" else "gestion_periodos_5b.html", titulo_pagina="Gestión" if current_user.rol == "JEFE_PERSONAL" else "Gestiones (año)",
                            nav_activo="periodos_5b", indicadores=[], periodo_actual=db.periodo_actual(),
-                           descripcion="Gestiona los años evaluados y activa sus evaluaciones; el catálogo es independiente.")
+                           descripcion="Consulta y administra los años de evaluación." if current_user.rol == "JEFE_PERSONAL" else "Gestiona los años evaluados y configura sus evaluaciones.")
 
 
 @periodos_5b_bp.get("/api/admin/5b/periodos")
@@ -88,6 +88,8 @@ def listar():
         periodo["regla_calculo"] = regla(c, periodo["id"])
         from .cierres_5b import resumen
         periodo["cierres"] = resumen(c, periodo["id"])
+        historica = c.execute('SELECT id,motivo,actor_nombre,registrada_en FROM reaperturas_historicas_5b WHERE periodo_id=?', (periodo["id"],)).fetchone()
+        periodo["reapertura_historica"] = dict(historica) if historica else None
         periodo["historial_activaciones"] = [dict(r) for r in c.execute("SELECT * FROM activaciones_gestion WHERE periodo_id=? ORDER BY id", (periodo["id"],))]
         periodo["historial_ediciones"] = [dict(r) for r in c.execute("SELECT * FROM historial_gestiones WHERE periodo_id=? ORDER BY id", (periodo["id"],))]
         periodo["baja"] = dict(c.execute("SELECT * FROM bajas_gestion WHERE periodo_id=?", (periodo["id"],)).fetchone()) if periodo["retirada"] else None

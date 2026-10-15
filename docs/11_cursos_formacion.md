@@ -64,3 +64,6 @@ Actualización posterior — 2026-10-13, v21: [5B.3 publicación/republicación]
 ### Formación y cierres — 2026-10-14
 
 En 5B.4 se confirmó bloquear registrar/corregir una finalización si su año anterior o nuevo corresponde a una Gestión anual cerrada. Incluye retirar una finalización o moverla a otro año; exige reapertura administrativa previa. Una petición sin cambios no crea revisión. Catálogo y asignaciones permanecen separados del cálculo y no modifican instantáneas. [Ciclo y bloqueos](16_cierres_reaperturas.md).
+
+
+Actualización de permisos y navegación — 2026-10-14: Administrador/Jefe crean y editan operaciones y asignan participantes, también mediante lote atómico por checkbox. Centro de reportes administrativo con PDF de formación personal finalizada y operaciones/participantes; campos privados excluidos. Esto sustituye el alcance anterior de eventos exclusivos del Administrador. [Espacio del Jefe y reportes](19_espacio_jefe_reportes.md).

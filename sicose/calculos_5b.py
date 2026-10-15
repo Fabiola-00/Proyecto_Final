@@ -89,7 +89,8 @@ def activar(pid):
         c.execute('BEGIN IMMEDIATE')
         from .fisicas import periodo_activo
         p = periodo_activo(c, pid)
-        if c.execute('SELECT 1 FROM cierres_5b WHERE periodo_id=?', (pid,)).fetchone():
+        if (c.execute('SELECT 1 FROM cierres_5b WHERE periodo_id=?', (pid,)).fetchone()
+                or c.execute('SELECT 1 FROM reaperturas_historicas_5b WHERE periodo_id=?', (pid,)).fetchone()):
             c.rollback(); return jsonify(error='La Gestión ya tiene cierres: conserva su regla original; una regla nueva corresponde a una Gestión futura.'), 409
         conf = c.execute("SELECT id FROM configuraciones_5b WHERE periodo_id=? AND estado='PUBLICADA'", (pid,)).fetchone()
         if retirada(c, pid) or conf['id'] != datos['configuracion_id'] or regla(c, pid):

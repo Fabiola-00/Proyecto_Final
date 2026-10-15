@@ -1,12 +1,10 @@
 {% extends "_dashboard_base.html" %}
-
 {% block contenido %}
-<section class="seccion-panel" aria-labelledby="equipo-titulo">
-  <div class="titulo-seccion"><div><p class="sobrelinea">TU EQUIPO</p><h2 id="equipo-titulo">Seguimiento asignado</h2></div><span class="estado-fase">Vista inicial</span></div>
-  <div class="tarjeta-amplia">
-    <div class="icono-amplio" aria-hidden="true">◎</div>
-    <div><h3>Tu espacio de seguimiento</h3><p>Las cifras superiores corresponden únicamente a Instructores Voluntarios y evaluaciones asignados a tu cuenta. Puedes actualizar perfiles, registrar asistencias y añadir notas no psicométricas.</p><a href="{{ url_for('management.pagina_gestion_voluntarios') }}">Gestionar mis Instructores Voluntarios</a> · <a href="{{ url_for('evaluations.pagina_asistencias') }}">Asistencias</a> · <a href="{{ url_for('evaluations.pagina_calificaciones') }}">Notas e historial</a></div>
-  </div>
-</section>
-<aside class="nota-informativa"><span class="nota-icono" aria-hidden="true">i</span><p><strong>Acceso por asignación.</strong> Este panel no muestra información de Instructores Voluntarios vinculados a otros Jefes de Personal.</p></aside>
+<section class="seccion-panel"><h2>Resumen SBRAB</h2><p>Alcance global; las asignaciones históricas a un Jefe no limitan estas cifras. {{ gestion_panel }}</p>
+<div class="panel-graficos">
+{% for grafico in graficos %}<article class="tarjeta-modulo grafico-resumen"><h3>{{ grafico.titulo }}</h3><p>{{ grafico.alcance }}</p>
+{% if grafico.total %}<dl>{% for fila in grafico.filas %}<div><dt>{{ fila.etiqueta }}</dt><dd><strong>{{ fila.valor }}</strong><progress max="{{ grafico.total }}" value="{{ fila.valor }}" aria-label="{{ fila.etiqueta }}: {{ fila.valor }} de {{ grafico.total }}"></progress></dd></div>{% endfor %}</dl>
+{% else %}<p>Sin registros para este resumen.</p>{% endif %}</article>{% endfor %}
+</div></section>
+<section class="seccion-panel"><h2>Accesos de trabajo</h2><div class="rejilla-modulos"><a class="tarjeta-modulo" href="{{ url_for('espacio_jefe.evaluaciones') }}">Evaluaciones y personal habilitado</a><a class="tarjeta-modulo" href="{{ url_for('espacio_jefe.reportes') }}">Generar reportes</a></div></section>
 {% endblock %}

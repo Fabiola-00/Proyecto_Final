@@ -22,7 +22,16 @@
         <a class="enlace-nav{% if nav_activo == 'inicio' %} activo{% endif %}" href="/" aria-label="Inicio" title="Inicio"{% if nav_activo == 'inicio' %} aria-current="page"{% endif %}>
           <span class="nav-icono" aria-hidden="true">⌂</span><span>Inicio</span>
         </a>
-        {% if current_user.rol in ['ADMINISTRADOR','JEFE_PERSONAL'] %}
+        {% if current_user.rol == 'JEFE_PERSONAL' %}
+          <p class="etiqueta-nav grupo-nav">PERSONAL Y OPERACIONES</p>
+          {% for clave,etiqueta,ruta,icono in [('voluntarios','Instructores Voluntarios','management.pagina_gestion_voluntarios','♙'),('asistencias','Asistencias','evaluations.pagina_asistencias','◷'),('capacitaciones','Cursos y Capacitaciones','evaluations.pagina_capacitaciones','▤'),('operaciones','Operaciones','relaciones.pagina_operaciones','▦')] %}
+          <a class="enlace-nav{% if nav_activo == clave %} activo{% endif %}" href="{{ url_for(ruta) }}" aria-label="{{ etiqueta }}"{% if nav_activo == clave %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">{{ icono }}</span><span>{{ etiqueta }}</span></a>
+          {% endfor %}
+          <p class="etiqueta-nav grupo-nav">EVALUACIÓN ANUAL</p>
+          {% for clave,etiqueta,ruta,icono in [('periodos_5b','Gestión','periodos_5b.pagina','▦'),('evaluaciones_jefe','Evaluaciones','espacio_jefe.evaluaciones','✓'),('seguimiento_5b','Notas y Resultados','seguimiento.pagina_seguimiento','✓'),('reportes','Reportes','espacio_jefe.reportes','▤')] %}
+          <a class="enlace-nav{% if nav_activo == clave or (clave == 'evaluaciones_jefe' and nav_activo in ['tabla_evaluaciones','evaluaciones']) %} activo{% endif %}" href="{{ url_for(ruta) }}" aria-label="{{ etiqueta }}"{% if nav_activo == clave %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">{{ icono }}</span><span>{{ etiqueta }}</span></a>
+          {% endfor %}
+        {% elif current_user.rol == 'ADMINISTRADOR' %}
           <p class="etiqueta-nav grupo-nav">PERSONAL Y OPERACIONES</p>
           <a class="enlace-nav{% if nav_activo == 'voluntarios' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_voluntarios') }}" aria-label="Instructores Voluntarios"><span class="nav-icono" aria-hidden="true">♙</span><span>Instructores Voluntarios</span></a>
           {% if current_user.rol == 'ADMINISTRADOR' %}<a class="enlace-nav{% if nav_activo == 'instructores' %} activo{% endif %}" href="{{ url_for('management.pagina_gestion_instructores') }}" aria-label="Jefes de Personal"><span class="nav-icono" aria-hidden="true">♟</span><span>Jefes de Personal</span></a>{% endif %}

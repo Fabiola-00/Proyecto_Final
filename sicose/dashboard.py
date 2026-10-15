@@ -77,28 +77,13 @@ def administrador():
 @role_required("JEFE_PERSONAL")
 def jefe_personal():
     conexion = obtener_conexion()
-    voluntarios = conexion.execute(
-        """SELECT COUNT(*) AS total FROM voluntarios v
-           JOIN usuarios u ON u.id = v.usuario_id
-           WHERE u.estado = 'ACTIVO'""",
-    ).fetchone()["total"]
-    asignaciones_pendientes = conexion.execute(
-        """SELECT COUNT(*) AS total FROM asignaciones_evaluacion a
-           JOIN voluntarios v ON v.usuario_id = a.voluntario_id
-           JOIN usuarios u ON u.id = v.usuario_id
-           WHERE u.estado = 'ACTIVO'
-             AND a.estado IN ('HABILITADA', 'EN_PROGRESO')""",
-    ).fetchone()["total"]
+    from .espacio_jefe import resumen_panel
+    resumen = resumen_panel(conexion)
     return _renderizar_panel(
-        "dashboard_jefe_personal.html",
-        "Panel del Jefe de Personal",
-        "inicio",
-        [
-            {"etiqueta": "Instructores Voluntarios activos", "valor": voluntarios, "detalle": "Perfiles activos"},
-            {"etiqueta": "Evaluaciones pendientes", "valor": asignaciones_pendientes, "detalle": "Habilitadas o en progreso"},
-        ],
-        "Seguimiento del personal de SBRAB.",
-    )
+        "dashboard_jefe_personal.html", "Panel del Jefe de Personal", "inicio",
+        resumen['indicadores'], "Resumen global del personal, la formación y las evaluaciones de SBRAB.",
+        graficos=resumen['graficos'], gestion_panel=resumen['gestion'])
+
 
 
 @dashboard_bp.get("/panel/voluntario")

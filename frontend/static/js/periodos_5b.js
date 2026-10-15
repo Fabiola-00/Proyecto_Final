@@ -24,7 +24,55 @@ if (periodo5bAlta) {
       articulo.append(fuentes); panel.append(articulo);
     });
   }
+  function mostrarEvidenciaHistorica(panel, evidencia) {
+    panel.append(elemento("p", "No existe instantánea del cierre original. Esta evidencia no acredita su fecha ni sus resultados; corresponde exclusivamente al momento de la reapertura y no adopta notas."));
+    panel.append(elemento("p", `Gestión: ${evidencia.contexto.periodo.nombre} · Configuración: ${evidencia.contexto.configuracion?.id ?? "Sin configuración 5B"} · Personas documentadas: ${evidencia.personas.length}`));
+    evidencia.personas.forEach((p) => {
+      const fila = elemento("article", undefined, "historial-formacion");
+      fila.append(elemento("strong", `${p.persona.nombre} · ${p.persona.codigo || "Sin código"} · ${p.persona.estado}`));
+      (p.notas || []).forEach((n) => fila.append(elemento("p", `Dato disponible · ${n.fuente} · Nota #${n.id}: ${(n.puntos_centesimas / 100).toFixed(2)} · ${n.evaluador_nombre} · ${n.registrada_en}`)));
+      (p.formacion || []).forEach((f) => fila.append(elemento("p", `${f.nombre_curso} · ${f.estado} · ${f.puntaje ?? "Sin puntaje"} · ${f.fecha_finalizacion || "Sin finalización"} · revisión ${f.revision}`)));
+      if (!p.notas?.length && !p.formacion?.length) fila.append(elemento("p", "Sin notas operativas ni formación pertinente documentadas."));
+      panel.append(fila);
+    });
+  }
+  function accionesHistoricas(periodo, tarjeta) {
+    if (periodo.reapertura_historica) {
+      const panel = elemento("div"); const boton = botonEdicion(`Evidencia de reapertura · ${periodo.nombre}`, panel, "Evidencia de reapertura histórica");
+      boton.addEventListener("click", async () => {
+        panel.replaceChildren(elemento("p", "Cargando evidencia conservada…"));
+        try {
+          const { reapertura } = await apiJson(`/api/5b/periodos/${periodo.id}/reapertura-historica`);
+          panel.replaceChildren(elemento("p", `${reapertura.actor_nombre} · ${reapertura.registrada_en} · ${reapertura.motivo}`));
+          mostrarEvidenciaHistorica(panel, reapertura.evidencia);
+        } catch (error) { panel.replaceChildren(elemento("p", error.message)); }
+      }); tarjeta.append(boton);
+    } else if (periodo.estado === "CERRADO" && !periodo.cierres?.length && !periodo.retirada) {
+      const panel = elemento("div"); const abrir = botonEdicion(`Histórico sin instantánea · ${periodo.nombre}`, panel, administrador ? "Reabrir histórico sin instantánea" : "Revisar histórico sin instantánea");
+      abrir.addEventListener("click", async () => {
+        panel.replaceChildren(elemento("p", "Cargando evidencia disponible…"));
+        try {
+          const vista = await apiJson(`/api/5b/periodos/${periodo.id}/reapertura-historica-previa`);
+          panel.replaceChildren(); mostrarEvidenciaHistorica(panel, vista);
+          if (!administrador) return;
+          panel.append(elemento("p", "La reapertura conserva la configuración/regla existentes. No activa una regla nueva ni publica notas. Solo se permite sin otra Gestión activa."));
+          const form = elemento("form", undefined, "formulario-inline"); const label = elemento("label", "Motivo de reapertura excepcional");
+          const motivo = elemento("textarea"); motivo.required = true; motivo.maxLength = 2000; label.append(motivo);
+          const constancia = elemento("label", "Confirmo que no existe instantánea original y que la evidencia se toma al reabrir"); const confirmar = elemento("input"); confirmar.type = "checkbox"; confirmar.required = true; constancia.prepend(confirmar);
+          const guardar = elemento("button", "Confirmar reapertura excepcional"); form.append(label, constancia, guardar); panel.append(form);
+          form.addEventListener("submit", async (event) => {
+            event.preventDefault(); if (!form.reportValidity()) return; guardar.disabled = true;
+            try {
+              await apiJson(`/api/admin/5b/periodos/${periodo.id}/reabrir-historico`, { method: "POST", body: { motivo: motivo.value, firma_fuentes: vista.firma_fuentes, confirmar_sin_instantanea: confirmar.checked } });
+              cerrarEdicion(); mensaje.textContent = "Histórico reabierto con constancia de ausencia de instantánea original. Evidencia actual conservada."; await cargarPeriodos5b();
+            } catch (error) { mostrarErrorEdicion(error); } finally { guardar.disabled = false; }
+          });
+        } catch (error) { panel.replaceChildren(elemento("p", error.message)); }
+      }); tarjeta.append(abrir);
+    }
+  }
   function accionesCierre(periodo, tarjeta) {
+    accionesHistoricas(periodo, tarjeta);
     const cierres = periodo.cierres || [];
     if (periodo.estado === "ACTIVO" && !periodo.retirada) {
       const panel = elemento("div");
@@ -81,7 +129,7 @@ if (periodo5bAlta) {
         catch (error) { mostrarErrorEdicion(error); } finally { boton.disabled = false; }
       }); tarjeta.append(botonEdicion(`Reabrir · ${periodo.nombre}`, form, "Reabrir gestión"));
     }
-    if (periodo.estado === "CERRADO" && !cierres.length) tarjeta.append(elemento("p", "Cerrada histórica sin instantáneas 5B.4: no se fabrica un cierre anterior ni se reabre por este circuito."));
+    if (periodo.estado === "CERRADO" && !cierres.length) tarjeta.append(elemento("p", "Cierre histórico sin instantáneas: no se reconstruye el cierre anterior; la reapertura excepcional requiere revisión y constancia administrativa."));
   }
   async function cargarPeriodos5b() {
     const [{ periodos, retiradas = [] }, { evaluaciones }] = await Promise.all([apiJson("/api/admin/5b/periodos"), apiJson("/api/admin/evaluaciones")]);
@@ -168,7 +216,7 @@ if (periodo5bAlta) {
       }
       tarjeta.append(botonEdicion(`Evaluaciones de la gestión · ${periodo.nombre}`, activaciones, "Activar/desactivar evaluaciones"));
       if (periodo.regla_calculo) tarjeta.append(elemento("p", periodo.estado === "CERRADO" ? "Cálculo ACUMULADO_TRES_V2 conservado en la instantánea del último cierre." : "Cálculo ACUMULADO_TRES_V2 activado; resultados provisionales en Notas y resultados."));
-      else if (administrador && periodo.estado === "ACTIVO" && conf?.estado === "PUBLICADA" && !periodo.cierres?.length) {
+      else if (administrador && periodo.estado === "ACTIVO" && conf?.estado === "PUBLICADA" && !periodo.cierres?.length && !periodo.reapertura_historica) {
         const form = elemento("form", undefined, "formulario-inline");
         form.append(elemento("p", "Activar ACUMULADO_TRES_V2 usará notas vinculadas a esta configuración y cursos finalizados en el año. Excluye físicas sin resultado programado y notas antiguas sin configuración. Conserva PROMEDIO_TRES_V1. Sin formación finalizada, Académica queda pendiente. No publica notas ni cierra la gestión."));
         const label = elemento("label", "Confirmo ese alcance"); const confirmar = elemento("input"); confirmar.type = "checkbox"; confirmar.required = true; label.prepend(confirmar);

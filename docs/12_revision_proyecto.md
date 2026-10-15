@@ -86,3 +86,7 @@ La reactivación explícita de cuentas de Instructor Voluntario queda implementa
 ### Actualización posterior — 5B.4 (2026-10-14)
 
 Cierre/reapertura con motivo, confirmación de incompletos e instantáneas por persona implementado técnicamente en v22. Esta entrega resuelve ese pendiente técnico del diagnóstico; las instantáneas se conservan sin recalcular con fuentes actuales y la reapertura mantiene configuración/activo único. Formación del año cerrado bloqueada en origen/destino hasta reabrir. No declara cerrada Fase 5B ni resuelve aceptación operativa/institucional o requisitos del piloto. [Detalle y evidencias](16_cierres_reaperturas.md).
+
+### Compatibilidad histórica y aceptación — 2026-10-14
+
+El pendiente técnico de históricos ya cerrados sin instantáneas queda atendido en v23 mediante reapertura excepcional administrativa confirmada, con evidencia actual separada del cierre antiguo y sin adopción de notas/reglas. Las cuatro entregas 5B y este complemento están implementados técnicamente. Se preparó la [guía de validación integral](17_validacion_integral_5b.md); la revisión/aceptación humana e institucional siguen pendientes. No se declara cerrada Fase 5B.

@@ -89,3 +89,12 @@ Actualización posterior — 2026-10-13, v21: [5B.3 publicación/republicación]
 ### Resultados cerrados — 2026-10-14
 
 5B.4 conserva cada cálculo y sus fuentes en instantáneas. Mientras la Gestión está CERRADO, la consulta devuelve `provisional=false` y `cierre_id` desde el último cierre, sin consultar puntajes actuales para reconstruirlo. La fracción exacta de centésimas se guarda junto al conjunto final. Tras reapertura vuelve el cálculo provisional con la misma regla/configuración; nunca se reemplazan cierres anteriores. Una regla no activada antes del primer cierre no puede adoptarse después de reabrir. [Compatibilidad y bloqueos académicos](16_cierres_reaperturas.md).
+
+### Reapertura excepcional y regla original — 2026-10-14, v23
+
+La reapertura excepcional de un histórico cerrado sin instantáneas no adopta notas ni habilita una regla nueva: preserva la regla/configuración preexistentes, incluida la ausencia de opt-in v2. Evidencia documental de fuentes actuales separada de resultados del cierre antiguo; después de reabrir, solo una v2 previamente existente vuelve a calcular bajo sus mismas reglas. [Compatibilidad y validación](16_cierres_reaperturas.md).
+
+
+### Espacio del Jefe y reportes — 2026-10-14 (v23)
+
+Navegación del Jefe organizada en Inicio, Personal y Operaciones y Evaluación Anual: Gestión, Evaluaciones, Notas y Resultados, Reportes. Dashboard global con tarjetas y gráficos descriptivos; Gestión separada de activación anual e habilitación individual. Activación/configuración del ciclo y regla de cálculo siguen exclusivas del Administrador (confirmado). Administrador/Jefe ahora crean y editan operaciones y asignan participantes, incluidos lotes por checkbox con validación íntegra; sustituye restricciones antiguas de eventos solo administrativos. Centro de PDF existentes y nuevos reportes de formación personal finalizada y operaciones con participantes, solo Administrador/Jefe, sin contactos/observaciones/motivos privados. [Alcance y verificación](19_espacio_jefe_reportes.md). Sin migración ni adopción de históricos.

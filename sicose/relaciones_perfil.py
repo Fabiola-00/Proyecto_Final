@@ -115,7 +115,7 @@ def listar_operaciones():
 
 @relaciones_bp.post('/api/operaciones')
 @relaciones_bp.patch('/api/operaciones/<int:operacion_id>')
-@role_required('ADMINISTRADOR')
+@role_required('ADMINISTRADOR','JEFE_PERSONAL')
 def guardar_operacion(operacion_id=None):
     entrada=datos(); campos={'tipo_evento','lugar','fecha_inicio','fecha_fin','institucion_responsable'}
     if entrada is None or set(entrada)-campos: return error('Campos de operación no válidos.')
@@ -145,16 +145,21 @@ def guardar_operacion(operacion_id=None):
 @role_required('ADMINISTRADOR','JEFE_PERSONAL')
 def vincular_participacion(operacion_id):
     entrada=datos()
-    if entrada is None or set(entrada)!={'voluntario_id'}:return error('Selecciona un Instructor Voluntario.')
-    usuario_id=entrada['voluntario_id'];conexion=db.obtener_conexion()
-    if not isinstance(usuario_id,int) or isinstance(usuario_id,bool):return error('Instructor no válido.')
-    if not conexion.execute('SELECT 1 FROM operaciones WHERE id=?',(operacion_id,)).fetchone():return error('Operación no encontrada.',404)
-    if not personal_permitido(conexion,usuario_id):return error('Personal fuera de tu ámbito activo.',404)
+    if entrada is None or set(entrada) not in ({'voluntario_id'},{'voluntario_ids'}):return error('Selecciona participantes.')
+    ids=entrada.get('voluntario_ids',[entrada.get('voluntario_id')])
+    if not isinstance(ids,list) or not 1<=len(ids)<=500 or any(not isinstance(i,int) or isinstance(i,bool) for i in ids) or len(ids)!=len(set(ids)):
+        return error('Selecciona participantes válidos sin duplicados (máximo 500).')
+    conexion=db.obtener_conexion()
     try:
-        conexion.execute('INSERT INTO participaciones_operacion VALUES (?,?)',(operacion_id,usuario_id))
+        conexion.execute('BEGIN IMMEDIATE')
+        if not conexion.execute('SELECT 1 FROM operaciones WHERE id=?',(operacion_id,)).fetchone():
+            conexion.rollback();return error('Operación no encontrada.',404)
+        if any(not personal_permitido(conexion,i) for i in ids):
+            conexion.rollback();return error('Personal fuera de tu ámbito activo.',404)
+        conexion.executemany('INSERT INTO participaciones_operacion VALUES (?,?)',[(operacion_id,i) for i in ids])
         auditar(conexion,'PARTICIPACION_REGISTRADA');conexion.commit()
     except sqlite3.IntegrityError:
-        conexion.rollback();return error('La participación ya está registrada.',409)
+        conexion.rollback();return error('Una participación ya está registrada; no se guardó ninguna.',409)
     return jsonify(ok=True),201
 
 @relaciones_bp.get('/api/cursos/reporte.pdf')

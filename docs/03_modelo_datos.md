@@ -2,7 +2,7 @@
 
 ## Esquema implementado
 
-SQLite usa `PRAGMA foreign_keys = ON`. El esquema `sicose/schema.sql` declara las tablas; `flask --app sicose init-db` agrega las columnas faltantes y marca `app_meta.schema_version` como 22 después de completar las migraciones. La base previa se preserva y amplía; no se eliminan tablas/filas. Fechas técnicas se expresan en UTC; claves numéricas son internas.
+SQLite usa `PRAGMA foreign_keys = ON`. El esquema `sicose/schema.sql` declara las tablas; `flask --app sicose init-db` agrega las columnas faltantes y marca `app_meta.schema_version` como 23 después de completar las migraciones. La base previa se preserva y amplía; no se eliminan tablas/filas. Fechas técnicas se expresan en UTC; claves numéricas son internas.
 
 | Tabla | Uso y restricciones principales |
 |---|---|
@@ -167,3 +167,7 @@ Cuatro tablas nuevas: bajas_gestion, historial_gestiones, activaciones_gestion y
 - `instantaneas_cierre_5b`: PK cierre/persona; copia de fuentes, valores, autoría y cálculo exacto/final. FK restrictivas a cierre y persona.
 - `reaperturas_5b`: una reapertura por cierre, motivo, actor/nombre/fecha UTC. Reabrir no elimina ni reemplaza snapshots anteriores.
 - Las tres tablas impiden UPDATE/DELETE mediante triggers. No se alteraron configuraciones, notas, cursos o períodos al migrar. Base anterior v21 preservada; no se crean cierres retroactivos para períodos ya cerrados. El cálculo exacto se conserva como fracción de centésimas en JSON, sin aritmética flotante. [Alcance y migración](16_cierres_reaperturas.md).
+
+## Ampliación aditiva de históricos — 2026-10-14, v23
+
+`reaperturas_historicas_5b`: PK interna, `periodo_id` único/FK restrictiva, evidencia JSON versionada, firma de fuentes, motivo, actor/nombre/fecha UTC. Triggers impiden UPDATE/DELETE. No agrega un cierre antiguo a `cierres_5b`; el primer cierre real posterior referencia esta evidencia en su contexto JSON. No cambia notas, configuraciones ni estados al migrar. [Alcance y compatibilidad](16_cierres_reaperturas.md).

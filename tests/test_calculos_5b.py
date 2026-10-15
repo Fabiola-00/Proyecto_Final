@@ -173,7 +173,7 @@ class CalculosTestCase(unittest.TestCase):
             nav=html.split('<nav class="navegacion">')[1].split('</nav>')[0]
             enlaces=re.findall(r'href="([^"]+)"',nav)
             self.assertEqual(len(enlaces),len(set(enlaces)))
-            self.assertIn('Gestiones (año)',nav);self.assertIn('Notas y resultados',nav)
+            self.assertIn('Gestiones (año)' if username=='admin.demo' else 'Gestión',nav);self.assertIn('Notas y resultados' if username=='admin.demo' else 'Notas y Resultados',nav)
             self.assertNotIn('Notas e historial',nav);self.assertNotIn('Notas operativas 5B',nav)
             for href in enlaces:self.assertEqual(self.cliente.get(href,follow_redirects=True).status_code,200,href)
             catalogo=self.cliente.get('/gestion/evaluaciones').data.decode()
@@ -239,4 +239,4 @@ class CalculosTestCase(unittest.TestCase):
             for t in tablas:self.assertEqual(anteriores[t],[tuple(r) for r in c.execute(f'SELECT * FROM {t} ORDER BY rowid')],t)
             for t in nuevas:self.assertEqual(c.execute(f'SELECT count(*) FROM {t}').fetchone()[0],0)
             self.assertEqual(c.execute('PRAGMA quick_check').fetchone()[0],'ok');self.assertEqual(c.execute('PRAGMA foreign_key_check').fetchall(),[])
-            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'22')
+            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'23')
