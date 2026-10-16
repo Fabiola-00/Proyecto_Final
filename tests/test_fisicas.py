@@ -171,6 +171,6 @@ class FisicasTestCase(unittest.TestCase):
             c.execute("UPDATE app_meta SET valor='18' WHERE clave='schema_version'");c.commit()
             inicializar_base_datos();inicializar_base_datos()
             for t in tablas:self.assertEqual(antes[t],[tuple(r) for r in c.execute(f'SELECT * FROM {t} ORDER BY rowid')],t)
-            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'25')
+            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'27')
             self.assertEqual(c.execute('PRAGMA quick_check').fetchone()[0],'ok')
             self.assertEqual(c.execute('PRAGMA foreign_key_check').fetchall(),[])

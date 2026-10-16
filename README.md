@@ -6,7 +6,7 @@ Paleta institucional vigente (2026-10-16): azules `#0500B2` y `#0054B2`, naranja
 
 ## Estado actual — revisión 2026-10-15
 
-**SQLite v25. Espacio de trabajo organizado, Gestión/Evaluaciones separadas, cursos con bajas y retiradas auditadas, físicas v3 sin fechas y formularios aritméticos demostrativos independientes. PDF anual v3 administrativo y reportes en otra pestaña. Psicometría oficial y red neuronal pendientes.** Véase [organización vigente](docs/21_organizacion_espacio_trabajo.md). Véase la actualización v24 al final. El siguiente resumen v23 conserva el alcance histórico aceptado, no sustituye las decisiones nuevas.
+**SQLite v27. Espacio de trabajo organizado, Gestión/Evaluaciones separadas, cursos con bajas y retiradas auditadas, físicas v3 sin fechas y formularios aritméticos demostrativos independientes. PDF anual v3 administrativo y reportes en otra pestaña. Psicometría oficial y red neuronal pendientes.** Véase [organización vigente](docs/21_organizacion_espacio_trabajo.md). Véase la actualización v24 al final. El siguiente resumen v23 conserva el alcance histórico aceptado, no sustituye las decisiones nuevas.
 
 Fases 4A/4B y 5A implementadas técnicamente, con aceptación operativa pendiente. **Fase 5B implementada técnicamente y aceptada operativamente por el solicitante el 2026-10-14; SQLite v23.** Están implementados períodos y configuración, habilitación individual por gestión, notas manuales auditadas, cursos con puntaje y estado automático, asignación/finalización personal y PDF operativos. 5B.1 física, 5B.2 acumulación/cálculos y 5B.3 publicación/republicación implementadas; regla nueva y publicación requieren acciones explícitas. 5B.4 cierre/reapertura con instantáneas y reapertura excepcional de históricos sin instantánea implementadas técnicamente; aceptación operativa confirmada; aprobación institucional pendiente. Psicometría e IA no están implementadas.
 
@@ -257,3 +257,7 @@ Actualización 2026-10-16: los modales de calificación usan Observación opcion
 Evaluaciones: Cursos, operaciones y asistencia muestra las participaciones y el porcentaje de asistencia del Instructor y la Gestión seleccionados; indicador informativo separado de las notas.
 
 Reporte individual administrativo (2026-10-16): en Reportes, seleccionar Instructor y generar PDF de la Gestión activa con perfil/foto, formación finalizada/pendiente, operaciones, calificaciones, asistencia y psicometría/recomendación pendientes. Disponible para Administrador/Jefe. Véase [reporte individual](docs/22_reporte_individual.md).
+
+Actualización 2026-10-16: Operaciones incorpora tipos y estados por catálogo, edición y estado por colores. Eliminar sin vínculos elimina permanentemente; con participantes/notas conserva baja histórica y sus puntajes. SQLite v26, 54 tablas; históricos sin clasificación automática. Véase [operaciones v26](docs/23_operaciones_tipos_estados.md).
+
+Operaciones v27 (2026-10-16): Departamento/Zona, formulario ordenado y tabla compacta con Ver/Editar/Asignar/Retirar/Eliminar. Retirada individual excluye puntos abiertos y conserva historial, bloqueada por cierres/inactivos. 55 tablas, sin ubicaciones históricas inferidas. Véase [ubicación y retiradas](docs/24_operaciones_ubicacion_retiros.md).

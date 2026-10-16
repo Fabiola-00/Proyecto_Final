@@ -47,8 +47,8 @@ def datos_individual(c, uid, esperado=None):
         FROM participaciones_curso pc WHERE pc.voluntario_id=? AND
         ((pc.inicio_curso<=? AND pc.fin_curso>=?) OR pc.fecha_finalizacion BETWEEN ? AND ?)
         ORDER BY pc.inicio_curso,pc.id""", (uid,p['fecha_fin'],p['fecha_inicio'],p['fecha_inicio'],p['fecha_fin']))]
-    operaciones = [dict(f) for f in c.execute("""SELECT o.tipo_evento,o.lugar,o.institucion_responsable,
-        o.fecha_inicio,o.fecha_fin,n.puntos_centesimas FROM operaciones o
+    operaciones = [dict(f) for f in c.execute("""SELECT COALESCE(o.tipo_operativo,o.tipo_evento) AS tipo_evento,CASE WHEN o.departamento IS NOT NULL THEN o.departamento || ' - ' || o.zona ELSE o.lugar END AS lugar,o.institucion_responsable,
+        o.fecha_inicio,o.fecha_fin,n.puntos_centesimas,EXISTS(SELECT 1 FROM retiros_operacion r WHERE r.operacion_id=o.id AND r.voluntario_id=x.voluntario_id) AS retirada FROM operaciones o
         JOIN participaciones_operacion x ON x.operacion_id=o.id
         LEFT JOIN notas_operacion_anual n ON n.operacion_id=o.id AND n.voluntario_id=x.voluntario_id
         AND n.periodo_id=? AND NOT EXISTS(SELECT 1 FROM notas_operacion_anual nueva WHERE nueva.anterior_id=n.id)
@@ -138,7 +138,7 @@ def generar_individual(datos):
         filas.append([f['nombre_curso']+'\n'+f['tipo_curso']+'\n'+f['entidad_curso'],f['inicio_curso']+'\n'+f['fin_curso'],'Retirada' if f['retirada'] else f['estado'],f['fecha_finalizacion'] or 'Pendiente',f['puntaje'] if f['puntaje'] is not None else 'Pendiente'])
     contenido.extend([Spacer(1,8),tabla(['Curso / tipo / entidad','Inicio / fin','Estado personal','Finalización','Puntos'],filas,[3,1.3,1.4,1.4,1])])
     contenido.append(texto('4. Operaciones en las que participó',seccion))
-    filas=[[f['tipo_evento']+'\n'+f['institucion_responsable'],f['lugar'],f['fecha_inicio']+'\n'+(f['fecha_fin'] or f['fecha_inicio']),f"{f['puntos_centesimas']/100:.2f}" if f['puntos_centesimas'] is not None else 'Pendiente'] for f in datos['operaciones']]
+    filas=[[f['tipo_evento']+'\n'+f['institucion_responsable'],f['lugar'],f['fecha_inicio']+'\n'+(f['fecha_fin'] or f['fecha_inicio']),'Retirada (sin aporte)' if f.get('retirada') else (f"{f['puntos_centesimas']/100:.2f}" if f['puntos_centesimas'] is not None else 'Pendiente')] for f in datos['operaciones']]
     contenido.append(tabla(['Operación / institución','Lugar','Inicio / fin','Nota / 100'],filas,[3,2,1.5,1]))
     contenido.append(PageBreak())
     contenido.append(texto('5. Resumen de asistencia',seccion))

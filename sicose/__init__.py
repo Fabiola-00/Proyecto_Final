@@ -96,6 +96,8 @@ def create_app(test_config=None):
     from .demostraciones import demo_bp
     app.register_blueprint(organizacion_bp)
     app.register_blueprint(demo_bp)
+    from .operaciones import operaciones_bp
+    app.register_blueprint(operaciones_bp)
 
     @login_manager.user_loader
     def cargar_usuario(user_id):

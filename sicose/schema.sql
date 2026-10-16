@@ -215,11 +215,17 @@ CREATE TABLE IF NOT EXISTS cursos (
 );
 CREATE TABLE IF NOT EXISTS operaciones (
  id INTEGER PRIMARY KEY, tipo_evento TEXT NOT NULL, lugar TEXT NOT NULL,
- fecha_inicio TEXT NOT NULL, fecha_fin TEXT, institucion_responsable TEXT NOT NULL
+ fecha_inicio TEXT NOT NULL, fecha_fin TEXT, institucion_responsable TEXT NOT NULL,
+ tipo_operativo TEXT CHECK(tipo_operativo IS NULL OR tipo_operativo IN ('Preventivo','Reactivo','Especial','Emergencia')),
+ estado_operacion TEXT CHECK(estado_operacion IS NULL OR estado_operacion IN ('Planificación','En ejecución','Finalizado','Suspendido')),
+ revision INTEGER NOT NULL DEFAULT 1 CHECK(revision>0),
+ departamento TEXT CHECK(departamento IS NULL OR departamento IN ('Beni','Chuquisaca','Cochabamba','La Paz','Oruro','Pando','Potosí','Santa Cruz','Tarija')),
+ zona TEXT CHECK(zona IS NULL OR length(trim(zona)) BETWEEN 1 AND 160)
 );
 CREATE TABLE IF NOT EXISTS participaciones_operacion (
  operacion_id INTEGER NOT NULL REFERENCES operaciones(id) ON DELETE RESTRICT,
  voluntario_id INTEGER NOT NULL REFERENCES voluntarios(usuario_id) ON DELETE RESTRICT,
+ revision INTEGER NOT NULL DEFAULT 1 CHECK(revision>0),
  PRIMARY KEY(operacion_id, voluntario_id)
 );
 
@@ -588,3 +594,24 @@ DROP TRIGGER IF EXISTS evento_modelo_delete;
 CREATE TRIGGER evento_modelo_delete BEFORE DELETE ON eventos_modelo_anual
 WHEN EXISTS(SELECT 1 FROM modelos_anuales WHERE periodo_id=OLD.periodo_id AND iniciada_en IS NOT NULL)
 BEGIN SELECT RAISE(ABORT,'historial_anual_inmutable'); END;
+
+
+CREATE TABLE IF NOT EXISTS bajas_operacion (
+ operacion_id INTEGER PRIMARY KEY REFERENCES operaciones(id) ON DELETE RESTRICT,
+ motivo TEXT NOT NULL CHECK(length(trim(motivo)) BETWEEN 1 AND 2000),
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ actor_nombre TEXT NOT NULL, registrada_en TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS baja_operacion_update BEFORE UPDATE ON bajas_operacion BEGIN SELECT RAISE(ABORT,'baja_operacion_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS baja_operacion_delete BEFORE DELETE ON bajas_operacion BEGIN SELECT RAISE(ABORT,'baja_operacion_inmutable'); END;
+
+CREATE TABLE IF NOT EXISTS retiros_operacion (
+ operacion_id INTEGER NOT NULL, voluntario_id INTEGER NOT NULL,
+ motivo TEXT NOT NULL CHECK(length(trim(motivo)) BETWEEN 1 AND 2000),
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ actor_nombre TEXT NOT NULL, registrada_en TEXT NOT NULL,
+ PRIMARY KEY(operacion_id,voluntario_id),
+ FOREIGN KEY(operacion_id,voluntario_id) REFERENCES participaciones_operacion(operacion_id,voluntario_id) ON DELETE RESTRICT
+);
+CREATE TRIGGER IF NOT EXISTS retiro_operacion_update BEFORE UPDATE ON retiros_operacion BEGIN SELECT RAISE(ABORT,'retiro_operacion_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS retiro_operacion_delete BEFORE DELETE ON retiros_operacion BEGIN SELECT RAISE(ABORT,'retiro_operacion_inmutable'); END;

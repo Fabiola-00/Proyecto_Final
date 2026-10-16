@@ -1,10 +1,24 @@
 # SICOSE — Bases de desarrollo, reconstrucción limpia y continuidad
 
-**Corte funcional vigente: 2026-10-16, SQLite v25. Bases históricas conservadas: v23/v24.**
+**Corte funcional vigente: 2026-10-16, SQLite v27. Bases históricas conservadas: v23/v24.**
 
 SICOSE significa **Sistema de Control y Evaluación de Personal**. Este archivo es una especificación autónoma para reconstruir el prototipo en un repositorio nuevo y continuar desde el alcance alcanzado. Está dirigido a una persona desarrolladora o a un nuevo chat de Codex. No requiere copiar la conversación anterior ni disponer de sus archivos temporales.
 
 El propósito es conservar decisiones y comportamiento, evitando reproducir interfaces duplicadas, permisos antiguos, cálculos ambiguos y migraciones acumulativas innecesarias. Una reconstrucción limpia no es una autorización para cambiar reglas de puntuación, privacidad o roles.
+
+## 0AAA. Operaciones v27 — 2026-10-16
+
+Leer [Departamento/Zona y retiradas](docs/24_operaciones_ubicacion_retiros.md). Añadir a operaciones departamento (CHECK nueve departamentos de Bolivia o NULL histórico) y zona (texto 1–160 o NULL histórico), sin inferirlos de lugar. Participaciones_operacion añade revision positiva DEFAULT 1, incrementada por calificación/retirada. Nueva retiros_operacion con PK/FK compuesta RESTRICT, motivo/actor/nombre/fecha UTC y triggers de inmutabilidad. Agregar columnas solo cuando PRAGMA table_info indique su ausencia; inicializador v27 idempotente, 55 tablas. Mantener lugar como evidencia previa/compatibilidad.
+
+Interfaz: Tipo de evento, Estado, Institución, Departamento, Zona, Inicio, Fin. Tabla: Departamento, Fecha inicio, Fecha fin, Institución, Estado, Acciones; cinco iconos de Cursos (Ver/Editar/Asignar/Retirar/Eliminar). Retirar participantes con motivo/revisión, en transacción íntegra, conserva vínculos/notas pero excluye aporte en cálculos abiertos; bloqueo con notas en Gestión cerrada, inactivos o revisiones obsoletas. No reasignar/calificar retirados. Baja de operación completa sigue conservando puntos (v26), distinta de retirada individual confirmada. Sin modificación de instantáneas previas.
+
+## 0AA. Operaciones v26 — 2026-10-16
+
+Prevalece para nuevas operaciones lo descrito en [tipos, estados y baja histórica](docs/23_operaciones_tipos_estados.md). La tabla operaciones conserva tipo_evento histórico y añade tipo_operativo (Preventivo/Reactivo/Especial/Emergencia), estado_operacion (Planificación/En ejecución/Finalizado/Suspendido), ambos NULL para históricos sin clasificación, y revision positiva con valor inicial 1. Agregar columnas solo si PRAGMA table_info indica que faltan; nunca reconstruir filas ni inferir catálogos de textos previos. Las altas de la interfaz requieren ambos catálogos. La API antigua conserva compatibilidad explícita.
+
+Añadir bajas_operacion(operacion_id PK/FK RESTRICT a operaciones, motivo obligatorio de 1–2000 caracteres, actor_id FK RESTRICT a usuarios, actor_nombre, registrada_en), con triggers que rechazan UPDATE/DELETE. Resultado: 54 tablas; inicializador idempotente v26. Sin vínculos se elimina; con participantes/notas se registra baja sin modificar notas, acumulados o cierres. Bajas bloquean edición/asignación/calificación; filtro administrativo de consulta y proyección propia histórica del Instructor. Borrado exige revisión/motivo, rol y CSRF, bajo BEGIN IMMEDIATE. No equivale a Suspendido ni permite desvincular participantes.
+
+La migración desde v25 fue respaldada y preservó 53 tablas por sus columnas previas, salvo schema_version; dos inicializaciones, quick_check=ok/FK=0. Datos reales no se usan para ensayos. Los bloques v25 anteriores mantienen su carácter histórico; v26 sustituye sus reglas de eliminación de operaciones.
 
 ## 0A. Organización vigente del proyecto limpio — v25, 2026-10-15
 

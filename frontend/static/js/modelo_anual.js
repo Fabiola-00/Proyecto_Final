@@ -61,12 +61,12 @@
       if(!d.cursos.length)tablaVacia(cursosTabla,8,'Sin participaciones en cursos para esta Gestión.');
       d.cursos.forEach(f=>filaParticipacion(cursosTabla,[f.nombre_curso,f.tipo_curso,f.entidad_curso,f.inicio_curso,f.fin_curso,f.retirada?'Retirada (historial conservado)':f.estado,f.fecha_finalizacion,f.puntaje]));
       ops.append(elemento('h3','Resumen de Académica'),elemento('p',`Suma sin tope: ${c.academica.puntos_sin_tope??0}. Académica: ${c.academica.valor??'No disponible'} / 100. Operaciones: ${c.academica.estado_operaciones??'Pendiente'}; aporte ${c.academica.aporte_operaciones??'0.00'}.`));
-      const operacionesTabla=tablaParticipaciones('Operaciones',['Operación','Lugar','Institución responsable','Inicio','Fin','Nota','Estado','Acción']);
-      if(!d.operaciones.length)tablaVacia(operacionesTabla,8,'Sin participaciones en operaciones para esta Gestión.');
+      const operacionesTabla=tablaParticipaciones('Operaciones',['Tipo de Operativo','Estado de la Operación','Lugar','Institución responsable','Inicio','Fin','Nota','Calificación','Acción']);
+      if(!d.operaciones.length)tablaVacia(operacionesTabla,9,'Sin participaciones en operaciones para esta Gestión.');
       d.operaciones.forEach(o=>{
-        const prev=d.historial.operaciones.filter(n=>n.operacion_id===o.id).at(-1),fila=filaParticipacion(operacionesTabla,[o.tipo_evento,o.lugar,o.institucion_responsable,o.fecha_inicio,o.fecha_fin||o.fecha_inicio,prev?(prev.puntos_centesimas/100).toFixed(2):'—',prev?'Calificada':'Pendiente']);
+        const prev=d.historial.operaciones.filter(n=>n.operacion_id===o.id).at(-1),fila=filaParticipacion(operacionesTabla,[o.tipo_operativo||o.tipo_evento,(o.estado_operacion||'Sin estado registrado')+(o.baja?' · Baja histórica':'')+(o.retirada?' · Participación retirada':''),[o.departamento,o.zona].filter(Boolean).join(' - ')||o.lugar,o.institucion_responsable,o.fecha_inicio,o.fecha_fin||o.fecha_inicio,prev?(prev.puntos_centesimas/100).toFixed(2):'—',o.retirada?'Retirada (sin aporte)':prev?'Calificada':'Pendiente']);
         const acciones=elemento('td');
-        if(editable && o.fecha_inicio>=gestion.fecha_inicio && o.fecha_inicio<=gestion.fecha_fin)acciones.append(accion('Calificar participación en operación','Calificar operación',f=>{campo(f,'nota','Nota de participación',prev?String(prev.puntos_centesimas/100):'0','number');observacion(f);},f=>apiJson(`/api/modelo-anual/gestiones/${pid}/personas/${uid}/operaciones/${o.id}`,{method:'POST',body:{nota:f.elements.nota.value,motivo:f.elements.motivo.value,anterior_id:prev?.id??null}})));
+        if(editable && !o.baja && !o.retirada && o.fecha_inicio>=gestion.fecha_inicio && o.fecha_inicio<=gestion.fecha_fin)acciones.append(accion('Calificar participación en operación','Calificar operación',f=>{campo(f,'nota','Nota de participación',prev?String(prev.puntos_centesimas/100):'0','number');observacion(f);},f=>apiJson(`/api/modelo-anual/gestiones/${pid}/personas/${uid}/operaciones/${o.id}`,{method:'POST',body:{nota:f.elements.nota.value,motivo:f.elements.motivo.value,anterior_id:prev?.id??null}})));
         else acciones.textContent='Solo consulta';fila.append(acciones);
       });
       if(document.body.dataset.rol==='ADMINISTRADOR'){

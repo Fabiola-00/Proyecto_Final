@@ -171,3 +171,12 @@ Cuatro tablas nuevas: bajas_gestion, historial_gestiones, activaciones_gestion y
 ## Ampliación aditiva de históricos — 2026-10-14, v23
 
 `reaperturas_historicas_5b`: PK interna, `periodo_id` único/FK restrictiva, evidencia JSON versionada, firma de fuentes, motivo, actor/nombre/fecha UTC. Triggers impiden UPDATE/DELETE. No agrega un cierre antiguo a `cierres_5b`; el primer cierre real posterior referencia esta evidencia en su contexto JSON. No cambia notas, configuraciones ni estados al migrar. [Alcance y compatibilidad](16_cierres_reaperturas.md).
+
+
+## Actualización aditiva v26 — 2026-10-16
+
+Operaciones conserva tipo_evento histórico; nuevas columnas tipo_operativo y estado_operacion con CHECK por catálogos (NULL histórico sin inferir), revision INTEGER positiva DEFAULT 1. Nueva bajas_operacion con PK/FK RESTRICT a operación, motivo, actor FK a usuarios, nombre y fecha UTC; evidencia inmutable por triggers. Total 54 tablas. Eliminación física solo sin vínculos; participantes/notas fuerzan baja histórica, sin cascadas ni retiro de resultados. Véase [operaciones v26](23_operaciones_tipos_estados.md) y schema.sql para restricciones exactas.
+
+## Actualización v27 — 2026-10-16
+
+operaciones añade departamento/zona con catálogo/longitud y NULL histórico; lugar intacto. participaciones_operacion añade revision positiva; retiros_operacion registra baja personal inmutable por clave operación/persona y FK compuesta RESTRICT, motivo/autor/fecha. Total 55 tablas. La retirada individual excluye notas de cálculos abiertos sin borrarlas, con protección por cierre y revisión. Véase [v27](24_operaciones_ubicacion_retiros.md).

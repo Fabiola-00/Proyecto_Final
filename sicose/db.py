@@ -106,6 +106,22 @@ def inicializar_base_datos():
     conexion = obtener_conexion()
     esquema = Path(current_app.root_path) / "schema.sql"
     conexion.executescript(esquema.read_text(encoding="utf-8"))
+    columnas_operaciones = {fila['name'] for fila in conexion.execute('PRAGMA table_info(operaciones)')}
+    for campo, tipo in {
+        'tipo_operativo': "TEXT CHECK(tipo_operativo IS NULL OR tipo_operativo IN ('Preventivo','Reactivo','Especial','Emergencia'))",
+        'estado_operacion': "TEXT CHECK(estado_operacion IS NULL OR estado_operacion IN ('Planificación','En ejecución','Finalizado','Suspendido'))",
+        'revision': 'INTEGER NOT NULL DEFAULT 1 CHECK(revision>0)',
+    }.items():
+        if campo not in columnas_operaciones:
+            conexion.execute(f'ALTER TABLE operaciones ADD COLUMN {campo} {tipo}')
+    for campo,tipo in {
+        'departamento': "TEXT CHECK(departamento IS NULL OR departamento IN ('Beni','Chuquisaca','Cochabamba','La Paz','Oruro','Pando','Potosí','Santa Cruz','Tarija'))",
+        'zona': 'TEXT CHECK(zona IS NULL OR length(trim(zona)) BETWEEN 1 AND 160)',
+    }.items():
+        if campo not in columnas_operaciones:
+            conexion.execute(f'ALTER TABLE operaciones ADD COLUMN {campo} {tipo}')
+    if 'revision' not in {f['name'] for f in conexion.execute('PRAGMA table_info(participaciones_operacion)')}:
+        conexion.execute('ALTER TABLE participaciones_operacion ADD COLUMN revision INTEGER NOT NULL DEFAULT 1 CHECK(revision>0)')
     _migrar_nombres_rol(conexion)
     _asegurar_comandante_unico(conexion)
     _asegurar_jefe_unico(conexion)
@@ -185,7 +201,7 @@ def inicializar_base_datos():
         ((rol,) for rol in ROLES),
     )
     conexion.execute(
-        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '25')
+        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '27')
            ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor"""
     )
     conexion.commit()

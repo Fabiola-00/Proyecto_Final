@@ -99,3 +99,7 @@ Calificación y habilitación 2026-10-16: tabla compacta con Evaluación, Nota, 
 Reporte individual 2026-10-16: se añade una opción administrativa en Reportes para seleccionar Instructor admitido y exportar su expediente de la Gestión activa. Perfil/foto, formación, operaciones, notas, asistencia, psicometría y recomendación pendientes. Alcance, permisos y referencias de presentación en [reporte individual](22_reporte_individual.md).
 
 Centro de reportes 2026-10-16: las seis opciones se presentan como filas compactas apiladas, con icono, título/criterio, filtros y botón alineados. Filtros debajo del nombre en pantallas pequeñas; permisos, criterios y generación PDF permanecen intactos.
+
+Operaciones v26 (2026-10-16) sustituye la prohibición anterior de eliminar: tipos/estados por catálogo en alta/edición, tabla con colores y eliminación segura sin vínculos o baja histórica con vínculos, preservando resultados. Véase [especificación vigente](23_operaciones_tipos_estados.md).
+
+Operaciones v27: [ubicación atómica y retirada de participantes](24_operaciones_ubicacion_retiros.md), con formulario/tabla ordenados y cinco acciones como Cursos. Retirada individual excluye aporte abierto sin borrar evidencia y exige reapertura si hay notas cerradas.

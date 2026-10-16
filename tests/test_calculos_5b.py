@@ -240,4 +240,4 @@ class CalculosTestCase(unittest.TestCase):
             for t in tablas:self.assertEqual(anteriores[t],[tuple(r) for r in c.execute(f'SELECT * FROM {t} ORDER BY rowid')],t)
             for t in nuevas:self.assertEqual(c.execute(f'SELECT count(*) FROM {t}').fetchone()[0],0)
             self.assertEqual(c.execute('PRAGMA quick_check').fetchone()[0],'ok');self.assertEqual(c.execute('PRAGMA foreign_key_check').fetchall(),[])
-            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'25')
+            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'27')

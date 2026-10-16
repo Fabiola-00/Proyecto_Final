@@ -103,15 +103,19 @@ def pagina_operaciones():
 @relaciones_bp.get('/api/operaciones')
 @role_required('ADMINISTRADOR','JEFE_PERSONAL','INSTRUCTOR_VOLUNTARIO')
 def listar_operaciones():
+    from .operaciones import baja
     conexion=db.obtener_conexion()
     consulta='SELECT o.* FROM operaciones o'
     parametros=[]
     if current_user.rol=='INSTRUCTOR_VOLUNTARIO':
         consulta+=' WHERE EXISTS(SELECT 1 FROM participaciones_operacion p WHERE p.operacion_id=o.id AND p.voluntario_id=?)'
         parametros.append(current_user.id)
+    elif request.args.get('incluir_bajas') != '1':
+        consulta+=' WHERE NOT EXISTS(SELECT 1 FROM bajas_operacion b WHERE b.operacion_id=o.id)'
     eventos=[dict(f) for f in conexion.execute(consulta+' ORDER BY o.fecha_inicio DESC,o.id DESC',parametros)]
     for evento in eventos:
-        q='''SELECT p.voluntario_id,u.nombre_completo AS nombre FROM participaciones_operacion p
+        evento['baja']=baja(conexion,evento['id'])
+        q='''SELECT p.voluntario_id,p.revision,u.estado AS cuenta_estado,u.nombre_completo AS nombre,EXISTS(SELECT 1 FROM retiros_operacion r WHERE r.operacion_id=p.operacion_id AND r.voluntario_id=p.voluntario_id) AS retirada FROM participaciones_operacion p
              JOIN voluntarios v ON v.usuario_id=p.voluntario_id JOIN usuarios u ON u.id=v.usuario_id WHERE p.operacion_id=?'''
         args=[evento['id']]
         if current_user.rol=='INSTRUCTOR_VOLUNTARIO': q+=' AND p.voluntario_id=?';args.append(current_user.id)
@@ -122,39 +126,59 @@ def listar_operaciones():
 @relaciones_bp.patch('/api/operaciones/<int:operacion_id>')
 @role_required('ADMINISTRADOR','JEFE_PERSONAL')
 def guardar_operacion(operacion_id=None):
-    entrada=datos(); campos={'tipo_evento','lugar','fecha_inicio','fecha_fin','institucion_responsable'}
+    from .operaciones import TIPOS as TIPOS_OPERATIVO, ESTADOS, baja
+    entrada=datos(); campos={'tipo_evento','tipo_operativo','estado_operacion','revision','lugar','departamento','zona','fecha_inicio','fecha_fin','institucion_responsable'}
     if entrada is None or set(entrada)-campos: return error('Campos de operación no válidos.')
     conexion=db.obtener_conexion()
     anterior=conexion.execute('SELECT * FROM operaciones WHERE id=?',(operacion_id,)).fetchone() if operacion_id else None
     if operacion_id and anterior is None:return error('Operación no encontrada.',404)
     valores=dict(anterior) if anterior else {};valores.update(entrada)
+    if not anterior and 'tipo_operativo' in entrada:
+        valores['tipo_evento']=entrada['tipo_operativo']
     try:
-        for campo in ('tipo_evento','lugar','institucion_responsable'):
+        if 'departamento' in entrada or 'zona' in entrada:
+            from .perfil_residencia import DEPARTAMENTOS_BOLIVIA
+            if valores.get('departamento') not in DEPARTAMENTOS_BOLIVIA or not isinstance(valores.get('zona'),str) or not 1<=len(valores['zona'].strip())<=160:
+                raise ValueError('Selecciona Departamento y Zona válidos.')
+            valores['zona']=valores['zona'].strip()
+            if not anterior:valores['lugar']=valores['departamento']+' - '+valores['zona']
+        for campo,opciones in [('tipo_operativo',TIPOS_OPERATIVO),('estado_operacion',ESTADOS)]:
+            if campo in entrada and entrada[campo] not in opciones:
+                raise ValueError('Tipo o estado fuera del catálogo.')
+        if not anterior and 'tipo_operativo' in entrada and 'estado_operacion' not in entrada:
+            raise ValueError('Selecciona el estado de la operación.')
+        for campo in ('tipo_evento','institucion_responsable'):
             valor=valores.get(campo)
             if not isinstance(valor,str) or not 1<=len(valor.strip())<=160: raise ValueError('Tipo, lugar e institución son obligatorios (máximo 160 caracteres).')
             valores[campo]=valor.strip()
+        if not isinstance(valores.get('lugar'),str) or not 1<=len(valores['lugar'].strip())<=(200 if valores.get('departamento') else 160):raise ValueError('Lugar histórico no válido.')
         inicio=date.fromisoformat(valores.get('fecha_inicio',''))
         fin=valores.get('fecha_fin') or None
         if fin and date.fromisoformat(fin)<inicio:raise ValueError('La fecha final no puede preceder a la inicial.')
         valores['fecha_fin']=fin
     except (ValueError,TypeError):return error('Revisa los campos obligatorios y las fechas de inicio/fin.')
-    registro=tuple(valores.get(c) for c in ('tipo_evento','lugar','fecha_inicio','fecha_fin','institucion_responsable'))
+    registro=tuple(valores.get(c) for c in ('tipo_evento','lugar','fecha_inicio','fecha_fin','institucion_responsable','tipo_operativo','estado_operacion','departamento','zona'))
     try:
         conexion.execute('BEGIN IMMEDIATE')
     except sqlite3.OperationalError:
         return error('Edición concurrente; recarga la operación.',409)
+    if operacion_id:
+        vigente=conexion.execute('SELECT revision FROM operaciones WHERE id=?',(operacion_id,)).fetchone()
+        if vigente is None or vigente['revision']!=anterior['revision'] or baja(conexion,operacion_id) or ('revision' in entrada and (type(entrada['revision']) is not int or vigente['revision']!=entrada['revision'])):
+            conexion.rollback();return error('La operación cambió o está dada de baja. Recarga.',409)
     if operacion_id and conexion.execute("SELECT 1 FROM notas_operacion_anual n JOIN periodos p ON p.id=n.periodo_id WHERE n.operacion_id=? AND p.estado='CERRADO' LIMIT 1",(operacion_id,)).fetchone():
         conexion.rollback();return error('La operación tiene notas en una Gestión cerrada; requiere reapertura administrativa.',409)
     if operacion_id:
-        conexion.execute('UPDATE operaciones SET tipo_evento=?,lugar=?,fecha_inicio=?,fecha_fin=?,institucion_responsable=? WHERE id=?',(*registro,operacion_id))
+        conexion.execute('UPDATE operaciones SET tipo_evento=?,lugar=?,fecha_inicio=?,fecha_fin=?,institucion_responsable=?,tipo_operativo=?,estado_operacion=?,departamento=?,zona=?,revision=revision+1 WHERE id=?',(*registro,operacion_id))
     else:
-        operacion_id=conexion.execute('INSERT INTO operaciones(tipo_evento,lugar,fecha_inicio,fecha_fin,institucion_responsable) VALUES (?,?,?,?,?)',registro).lastrowid
-    auditar(conexion,'OPERACION_GUARDADA');conexion.commit()
+        operacion_id=conexion.execute('INSERT INTO operaciones(tipo_evento,lugar,fecha_inicio,fecha_fin,institucion_responsable,tipo_operativo,estado_operacion,departamento,zona) VALUES (?,?,?,?,?,?,?,?,?)',registro).lastrowid
+    auditar(conexion,f'OPERACION_GUARDADA:{operacion_id}:TIPO={valores.get("tipo_operativo")}:ESTADO={valores.get("estado_operacion")}');conexion.commit()
     return jsonify(ok=True,id=operacion_id),201 if request.method=='POST' else 200
 
 @relaciones_bp.post('/api/operaciones/<int:operacion_id>/participaciones')
 @role_required('ADMINISTRADOR','JEFE_PERSONAL')
 def vincular_participacion(operacion_id):
+    from .operaciones import baja
     entrada=datos()
     if entrada is None or set(entrada) not in ({'voluntario_id'},{'voluntario_ids'}):return error('Selecciona participantes.')
     ids=entrada.get('voluntario_ids',[entrada.get('voluntario_id')])
@@ -165,9 +189,11 @@ def vincular_participacion(operacion_id):
         conexion.execute('BEGIN IMMEDIATE')
         if not conexion.execute('SELECT 1 FROM operaciones WHERE id=?',(operacion_id,)).fetchone():
             conexion.rollback();return error('Operación no encontrada.',404)
+        if baja(conexion,operacion_id):
+            conexion.rollback();return error('La operación está dada de baja; conserva sus participaciones históricas.',409)
         if any(not personal_permitido(conexion,i) for i in ids):
             conexion.rollback();return error('Personal fuera de tu ámbito activo.',404)
-        conexion.executemany('INSERT INTO participaciones_operacion VALUES (?,?)',[(operacion_id,i) for i in ids])
+        conexion.executemany('INSERT INTO participaciones_operacion(operacion_id,voluntario_id) VALUES (?,?)',[(operacion_id,i) for i in ids])
         auditar(conexion,'PARTICIPACION_REGISTRADA');conexion.commit()
     except sqlite3.IntegrityError:
         conexion.rollback();return error('Una participación ya está registrada; no se guardó ninguna.',409)

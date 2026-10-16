@@ -2,7 +2,11 @@
 
 SICOSE significa **Sistema de Control y Evaluación de Personal**. Es un prototipo académico para seguimiento de personal voluntario de rescate y emergencias, no un producto comercial ni clínico.
 
-## Continuidad vigente — 2026-10-16, v25
+## Continuidad vigente — 2026-10-16, v27
+
+Operaciones v27: leer docs/24_operaciones_ubicacion_retiros.md. Lugar se sustituye en interfaz por Departamento/Zona, sin dividir históricos; formulario y tabla ordenados con Ver/Editar/Asignar/Retirar/Eliminar. Retirar participantes (confirmado) conserva notas e historial, excluye puntos del Académico abierto y se bloquea por notas en Gestión cerrada hasta reapertura, inactivos o revisión obsoleta. No confundir con baja de operación completa, que conserva puntos. Migración v27 respaldada, 54 tablas previas preservadas, dos inicializaciones, 55 tablas/quick_check=ok/FK=0.
+
+Operaciones v26: leer docs/23_operaciones_tipos_estados.md. Tipo de Operativo (Preventivo/Reactivo/Especial/Emergencia) y Estado de la Operación (Planificación/En ejecución/Finalizado/Suspendido) con catálogos y colores. Históricos sin clasificar, no inferirlos. Administrador/Jefe eliminan sin vínculos; con participantes/notas conservan baja histórica sin retirar puntos. Bajas bloquean nuevas acciones y se consultan por filtro; Instructor conserva participaciones propias. Migración respaldada, 53 tablas previas preservadas, dos inicializaciones, 54 tablas, quick_check=ok/FK=0.
 
 Calificación: campo visible Observación (opcional) en físicas, Desempeño, operaciones y cursos, incluidos formularios históricos. Aceptar vacío/omitido; conservar historial y nombre interno motivo. Esta decisión sustituye su obligatoriedad anterior únicamente al calificar; cierre/reapertura, eliminación, publicación y programación conservan motivo obligatorio.
 
@@ -10,7 +14,7 @@ Inicio del Jefe: asistencia cuenta días distintos con registros (no personas ni
 
 Leer [organización del espacio de trabajo](docs/21_organizacion_espacio_trabajo.md), que prevalece sobre los alcances anteriores de interfaz, eliminación y programación física v3. Gestión/Evaluaciones separadas; Notas y Resultados sale del menú. Ceros oficiales al inicio para todo el personal activo; sin inscripción adicional en interfaz. Administrador/Jefe eliminan permanentemente solo gestiones sin resultados ni evidencia protegida. Cursos sin vínculos se eliminan; con vínculos baja histórica. Retirada por checkbox conserva revisiones y recalcula abierto, bloqueada por cierre e inactivos. Física v3 se califica sin fecha, preservando programación histórica.
 
-Ejemplos aritméticos expresamente solicitados: dos formularios, cada uno con dos sumas/restas de 50 puntos, activación por Gestión y finalización propia. Puntaje calculado en servidor y visible al Jefe como demostrativo; separado de psicometría oficial, PDF, cierres y recomendaciones. No implica autorización de instrumentos. Instructor consulta estados propios v3, sin notas oficiales ni Desempeño. Psicométricas oficiales pendientes y modelo sin entrenar. PDF v3 administrativo implementado, cerrado usa identidad/cálculo congelados. Reportes abren otra pestaña. SQLite v25, 53 tablas; respaldo y 49 previas preservadas, dos inicializaciones, quick_check=ok/FK=0. No modificar entorno ni datos para un ensayo: usar DEMO aislada.
+Ejemplos aritméticos expresamente solicitados: dos formularios, cada uno con dos sumas/restas de 50 puntos, activación por Gestión y finalización propia. Puntaje calculado en servidor y visible al Jefe como demostrativo; separado de psicometría oficial, PDF, cierres y recomendaciones. No implica autorización de instrumentos. Instructor consulta estados propios v3, sin notas oficiales ni Desempeño. Psicométricas oficiales pendientes y modelo sin entrenar. PDF v3 administrativo implementado, cerrado usa identidad/cálculo congelados. Reportes abren otra pestaña. SQLite v27, 55 tablas; respaldo y 54 previas preservadas, dos inicializaciones, quick_check=ok/FK=0. No modificar entorno ni datos para un ensayo: usar DEMO aislada.
 
 ## Continuidad histórica — 2026-10-15, v24
 

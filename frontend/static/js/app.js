@@ -932,36 +932,6 @@ if (perfilPropioForm) {
   });
 }
 
-const operacionesLista = document.querySelector('#operaciones-lista');
-if (operacionesLista) {
-  const form = document.querySelector('#operacion-form'); const mensaje = document.querySelector('#operaciones-mensaje');
-  const esInstructor = document.body.dataset.rol === 'INSTRUCTOR_VOLUNTARIO'; let personal=[];
-  async function cargarOperaciones() {
-    const {operaciones} = await apiJson('/api/operaciones'); operacionesLista.replaceChildren();
-    if (!operaciones.length) operacionesLista.append(elemento('p','Sin operaciones registradas en tu ámbito.'));
-    const tabla=elemento('table',undefined,'tabla-registros tabla-compacta');const thead=elemento('thead'),cabecera=elemento('tr'),tbody=elemento('tbody'),wrap=elemento('div',undefined,'tabla-contenedor');['Operación','Lugar / Fechas','Institución','Participantes','Acciones'].forEach(t=>cabecera.append(elemento('th',t)));thead.append(cabecera);tabla.append(thead,tbody);wrap.append(tabla);if(operaciones.length)operacionesLista.append(wrap);
-    operaciones.forEach((operacion)=>{
-      const fila=elemento('tr'),tarjeta=elemento('td');fila.append(elemento('td',operacion.tipo_evento),elemento('td',`${operacion.lugar} · ${operacion.fecha_inicio} — ${operacion.fecha_fin || 'Sin fecha final'}`),elemento('td',operacion.institucion_responsable));
-      fila.append(elemento('td',operacion.participantes.map(p=>p.nombre).join(', ') || 'Sin participantes'));
-      if (form) {
-        const editar=elemento('button','Editar evento','boton-secundario');editar.type='button';editar.addEventListener('click',()=>{
-          const edicion=elemento('form',undefined,'formulario-inline');
-          [['tipo_evento','Tipo de evento','text'],['lugar','Lugar','text'],['fecha_inicio','Inicio','date'],['fecha_fin','Fin (opcional)','date'],['institucion_responsable','Institución responsable','text']].forEach(([campo,etiqueta,tipo])=>{const label=elemento('label',etiqueta);const input=elemento('input');input.name=campo;input.type=tipo;input.value=operacion[campo]||'';input.required=campo!=='fecha_fin';if(tipo==='text')input.maxLength=160;label.append(input);edicion.append(label);});
-          edicion.append(elemento('button','Guardar cambios'));edicion.addEventListener('submit',async(e)=>{e.preventDefault();try{await apiJson(`/api/operaciones/${operacion.id}`,{method:'PATCH',body:Object.fromEntries(new FormData(edicion))});cerrarEdicion();await cargarOperaciones();}catch(error){mostrarErrorEdicion(error);}});
-          botonEdicion('Editar evento',edicion,'Editar evento').click();
-        });tarjeta.append(editar);
-      }
-      if (!esInstructor) {
-        const vinculo=elemento('form',undefined,'formulario-inline');const label=elemento('fieldset');label.append(elemento('legend','Instructores Voluntarios activos'));const select=elemento('div',undefined,'participantes-checkbox');
-        personal.filter((p)=>!operacion.participantes.some((v)=>v.voluntario_id===p.id)).forEach((p)=>{const opcion=elemento('label',p.nombre),check=elemento('input');check.type='checkbox';check.value=p.id;opcion.prepend(check);select.append(opcion);});label.append(select);vinculo.append(label,elemento('button','Vincular participación'));
-        vinculo.addEventListener('submit',async(e)=>{e.preventDefault();try{await apiJson(`/api/operaciones/${operacion.id}/participaciones`,{method:'POST',body:{voluntario_ids:[...select.querySelectorAll('input:checked')].map(i=>Number(i.value))}});mensaje.textContent='Participación vinculada.';cerrarEdicion();await cargarOperaciones();}catch(error){mostrarErrorEdicion(error);}});tarjeta.append(botonEdicion('Asignar participantes',vinculo,'Asignar participantes'));
-      }fila.append(tarjeta);tbody.append(fila);
-    });
-  }
-  if(form){const cancelarOperacion=form.querySelector('#operacion-cancelar');cancelarOperacion.addEventListener('click',()=>form.reset());form.addEventListener('submit',async(e)=>{e.preventDefault();const body=Object.fromEntries(new FormData(form));delete body.id;try{await apiJson('/api/operaciones',{method:'POST',body});form.reset();document.querySelector('#registro-operacion').open=false;mensaje.textContent='Evento registrado.';await cargarOperaciones();}catch(error){mensaje.textContent=error.message;}});}
-  (async()=>{if(!esInstructor){const {voluntarios}=await apiJson('/api/instructores-voluntarios');personal=voluntarios.filter((p)=>p.estado==='ACTIVO');}await cargarOperaciones();})().catch((error)=>{mensaje.textContent=error.message;});
-}
-
 const reporteCursosForm=document.querySelector('#reporte-cursos-form');
 if(reporteCursosForm)reporteCursosForm.addEventListener('submit',async(evento)=>{
   evento.preventDefault();if(!reporteCursosForm.reportValidity())return;

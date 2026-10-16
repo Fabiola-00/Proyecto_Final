@@ -89,8 +89,8 @@ def calcular(c,uid,pid):
     notas={f:dict(c.execute('SELECT * FROM notas_modelo_anual WHERE periodo_id=? AND voluntario_id=? AND fuente=? ORDER BY id DESC LIMIT 1',(pid,uid,f)).fetchone()) for f in FUENTES}
     bloqueos=[f for f in FUENTES if not habilitada(c,uid,pid,f)]
     cursos=[dict(f) for f in c.execute("SELECT id AS participacion_id,nombre_curso,puntaje,fecha_finalizacion,revision FROM participaciones_curso WHERE voluntario_id=? AND estado='Finalizado' AND fecha_finalizacion BETWEEN ? AND ? ORDER BY fecha_finalizacion,id",(uid,p['fecha_inicio'],p['fecha_fin']))]
-    ops=[dict(f) for f in c.execute('''SELECT n.*,o.tipo_evento,o.fecha_inicio FROM notas_operacion_anual n JOIN operaciones o ON o.id=n.operacion_id
-          WHERE n.periodo_id=? AND n.voluntario_id=? AND o.fecha_inicio BETWEEN ? AND ? AND NOT EXISTS(SELECT 1 FROM notas_operacion_anual x WHERE x.anterior_id=n.id) ORDER BY n.operacion_id''',(pid,uid,p['fecha_inicio'],p['fecha_fin']))]
+    ops=[dict(f) for f in c.execute('''SELECT n.*,COALESCE(o.tipo_operativo,o.tipo_evento) AS tipo_evento,o.fecha_inicio FROM notas_operacion_anual n JOIN operaciones o ON o.id=n.operacion_id
+          WHERE NOT EXISTS(SELECT 1 FROM retiros_operacion r WHERE r.operacion_id=n.operacion_id AND r.voluntario_id=n.voluntario_id) AND n.periodo_id=? AND n.voluntario_id=? AND o.fecha_inicio BETWEEN ? AND ? AND NOT EXISTS(SELECT 1 FROM notas_operacion_anual x WHERE x.anterior_id=n.id) ORDER BY n.operacion_id''',(pid,uid,p['fecha_inicio'],p['fecha_fin']))]
     suma_cursos=sum(f['puntaje']*100 for f in cursos);suma_ops=sum(f['puntos_centesimas'] for f in ops)
     academia=min(10000,suma_cursos+suma_ops) if 'ACADEMICA' not in bloqueos else None
     def media(a,b):return None if a in bloqueos or b in bloqueos else Fraction(notas[a]['puntos_centesimas']+notas[b]['puntos_centesimas'],2)
@@ -196,7 +196,7 @@ def calificar(pid,uid):
             if not c.execute('SELECT 1 FROM personas_modelo_anual WHERE periodo_id=? AND voluntario_id=?',(pid,uid)).fetchone():raise LookupError('Persona no inscrita.')
             from .calculos_5b import calcular as resultado
             from .fisicas import vigente
-            ops=[dict(f) for f in c.execute('SELECT o.* FROM operaciones o JOIN participaciones_operacion x ON x.operacion_id=o.id WHERE x.voluntario_id=? AND o.fecha_inicio<=? AND COALESCE(o.fecha_fin,o.fecha_inicio)>=? ORDER BY o.fecha_inicio,o.id',(uid,p['fecha_fin'],p['fecha_inicio']))]
+            ops=[dict(f) for f in c.execute('SELECT o.*,EXISTS(SELECT 1 FROM bajas_operacion b WHERE b.operacion_id=o.id) AS baja,EXISTS(SELECT 1 FROM retiros_operacion r WHERE r.operacion_id=o.id AND r.voluntario_id=x.voluntario_id) AS retirada FROM operaciones o JOIN participaciones_operacion x ON x.operacion_id=o.id WHERE x.voluntario_id=? AND o.fecha_inicio<=? AND COALESCE(o.fecha_fin,o.fecha_inicio)>=? ORDER BY o.fecha_inicio,o.id',(uid,p['fecha_fin'],p['fecha_inicio']))]
             cursos=[dict(f) for f in c.execute('''SELECT pc.id,pc.curso_id,pc.nombre_curso,pc.entidad_curso,pc.tipo_curso,
                        pc.inicio_curso,pc.fin_curso,pc.estado,pc.puntaje,pc.fecha_finalizacion,
                        EXISTS(SELECT 1 FROM retiros_curso r WHERE r.participacion_id=pc.id) AS retirada
@@ -243,12 +243,16 @@ def operacion(pid,uid,oid):
     try:
         if not isinstance(d,dict) or set(d)-{'motivo'}!={'nota','anterior_id'} or (d['anterior_id'] is not None and type(d['anterior_id']) is not int):raise ValueError('Nota y versión anterior requeridas.')
         valor=puntos(d['nota']);razon=observacion_calificacion(d);c.execute('BEGIN IMMEDIATE');p=periodo(c,pid,True);habilitada=persona(c,pid,uid)
+        from .operaciones import baja
+        if baja(c,oid):raise ValueError('La operación está dada de baja; conserva sus calificaciones históricas.')
+        if c.execute('SELECT 1 FROM retiros_operacion WHERE operacion_id=? AND voluntario_id=?',(oid,uid)).fetchone():raise ValueError('La participación fue retirada; conserva sus notas históricas.')
         if not habilitada(c,uid,pid,'ACADEMICA'):raise ValueError('Académica deshabilitada.')
-        o=c.execute('SELECT o.* FROM operaciones o JOIN participaciones_operacion x ON x.operacion_id=o.id WHERE o.id=? AND x.voluntario_id=?',(oid,uid)).fetchone()
+        o=c.execute('SELECT o.*,EXISTS(SELECT 1 FROM bajas_operacion b WHERE b.operacion_id=o.id) AS baja,EXISTS(SELECT 1 FROM retiros_operacion r WHERE r.operacion_id=o.id AND r.voluntario_id=x.voluntario_id) AS retirada FROM operaciones o JOIN participaciones_operacion x ON x.operacion_id=o.id WHERE o.id=? AND x.voluntario_id=?',(oid,uid)).fetchone()
         if not o or not p['fecha_inicio']<=o['fecha_inicio']<=p['fecha_fin']:raise ValueError('Participación fuera del período o no asignada.')
         anterior=c.execute('SELECT id FROM notas_operacion_anual WHERE periodo_id=? AND voluntario_id=? AND operacion_id=? ORDER BY id DESC LIMIT 1',(pid,uid,oid)).fetchone()
         if d['anterior_id']!=(anterior[0] if anterior else None):raise ValueError('La nota de operación cambió; recarga.')
         c.execute('INSERT INTO notas_operacion_anual(periodo_id,voluntario_id,operacion_id,puntos_centesimas,anterior_id,evidencia_json,motivo,actor_id,actor_nombre,registrada_en) VALUES (?,?,?,?,?,?,?,?,?,?)',(pid,uid,oid,valor,d['anterior_id'],serializar(dict(o)),razon,current_user.id,current_user.nombre,db._ahora_utc()))
+        c.execute('UPDATE participaciones_operacion SET revision=revision+1 WHERE operacion_id=? AND voluntario_id=?',(oid,uid))
         db.registrar_auditoria(c,current_user.id,'OPERACION_ANUAL_CALIFICADA','EXITOSO');c.commit();return jsonify(ok=True),201
     except (ValueError,KeyError,TypeError) as e:c.rollback();return jsonify(error=str(e)),409
     except LookupError as e:c.rollback();return jsonify(error=str(e)),404

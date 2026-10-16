@@ -99,7 +99,7 @@ def reporte(tipo):
         columnas=['Instructor Voluntario','Código','Curso','Tipo','Entidad','Finalización','Puntos']
         anchos=[135,80,150,100,120,95,45]
     else:
-        filas=c.execute("""SELECT o.tipo_evento,o.lugar,o.fecha_inicio,o.fecha_fin,o.institucion_responsable,u.nombre_completo,v.codigo_instructor FROM operaciones o LEFT JOIN participaciones_operacion p ON p.operacion_id=o.id LEFT JOIN usuarios u ON u.id=p.voluntario_id LEFT JOIN voluntarios v ON v.usuario_id=u.id WHERE o.fecha_inicio BETWEEN ? AND ? ORDER BY o.fecha_inicio,o.id,u.nombre_completo""",(desde,hasta)).fetchall()
+        filas=c.execute("""SELECT COALESCE(o.tipo_operativo,o.tipo_evento) AS tipo_evento,CASE WHEN o.departamento IS NOT NULL THEN o.departamento || ' - ' || o.zona ELSE o.lugar END AS lugar,o.fecha_inicio,o.fecha_fin,o.institucion_responsable,u.nombre_completo,v.codigo_instructor FROM operaciones o LEFT JOIN participaciones_operacion p ON p.operacion_id=o.id LEFT JOIN usuarios u ON u.id=p.voluntario_id LEFT JOIN voluntarios v ON v.usuario_id=u.id WHERE o.fecha_inicio BETWEEN ? AND ? ORDER BY o.fecha_inicio,o.id,u.nombre_completo""",(desde,hasta)).fetchall()
         titulo='Operaciones y participantes'
         subtitulo='Por fecha de inicio de operación, inclusive. Cada fila representa una participación; se incluyen eventos sin participantes.'
         columnas=['Operación','Lugar','Inicio','Fin','Institución','Participante','Código']
