@@ -40,6 +40,13 @@ def numero(cent):
     return format(Decimal(cent.numerator)/Decimal(cent.denominator)/100,'f') if isinstance(cent,Fraction) else f'{cent//100}.{cent%100:02d}'
 
 
+def observacion_calificacion(datos):
+    valor = datos.get('motivo', '')
+    if not isinstance(valor, str) or len(valor.strip()) > 2000:
+        raise ValueError('Observación inválida, máximo 2000 caracteres.')
+    return valor.strip()
+
+
 def motivo(datos):
     valor=datos.get('motivo')
     if not isinstance(valor,str) or not 1<=len(valor.strip())<=2000:raise ValueError('Motivo obligatorio, máximo 2000 caracteres.')
@@ -189,15 +196,23 @@ def calificar(pid,uid):
             if not c.execute('SELECT 1 FROM personas_modelo_anual WHERE periodo_id=? AND voluntario_id=?',(pid,uid)).fetchone():raise LookupError('Persona no inscrita.')
             from .calculos_5b import calcular as resultado
             from .fisicas import vigente
-            ops=[dict(f) for f in c.execute('SELECT o.* FROM operaciones o JOIN participaciones_operacion x ON x.operacion_id=o.id WHERE x.voluntario_id=? AND o.fecha_inicio BETWEEN ? AND ? ORDER BY o.fecha_inicio,o.id',(uid,p['fecha_inicio'],p['fecha_fin']))]
+            ops=[dict(f) for f in c.execute('SELECT o.* FROM operaciones o JOIN participaciones_operacion x ON x.operacion_id=o.id WHERE x.voluntario_id=? AND o.fecha_inicio<=? AND COALESCE(o.fecha_fin,o.fecha_inicio)>=? ORDER BY o.fecha_inicio,o.id',(uid,p['fecha_fin'],p['fecha_inicio']))]
+            cursos=[dict(f) for f in c.execute('''SELECT pc.id,pc.curso_id,pc.nombre_curso,pc.entidad_curso,pc.tipo_curso,
+                       pc.inicio_curso,pc.fin_curso,pc.estado,pc.puntaje,pc.fecha_finalizacion,
+                       EXISTS(SELECT 1 FROM retiros_curso r WHERE r.participacion_id=pc.id) AS retirada
+                       FROM participaciones_curso pc WHERE pc.voluntario_id=?
+                       AND ((pc.inicio_curso<=? AND pc.fin_curso>=?) OR pc.fecha_finalizacion BETWEEN ? AND ?)
+                       ORDER BY pc.inicio_curso,pc.id''',(uid,p['fecha_fin'],p['fecha_inicio'],p['fecha_inicio'],p['fecha_fin']))]
+            from .asistencias import PROYECCION, totales
+            asistencia=totales(f['estado'] for f in c.execute(f'SELECT {PROYECCION} AS estado FROM asistencias a WHERE a.voluntario_id=? AND a.fecha BETWEEN ? AND ?',(uid,p['fecha_inicio'],p['fecha_fin'])))
             from .tabla_evaluaciones import habilitacion_personal
-            r={'habilitaciones':{f:habilitacion_personal(c,uid,pid,f) for f in FUENTES},'periodo':p,'calculo':resultado(c,uid,pid),'historial':evidencia(c,pid,uid),'operaciones':ops,'fisicas':{f:vigente(c,pid,f,uid) for f in ('FISICA_1','FISICA_2')}};c.commit();return jsonify(r)
+            r={'habilitaciones':{f:habilitacion_personal(c,uid,pid,f) for f in FUENTES},'periodo':p,'calculo':resultado(c,uid,pid),'historial':evidencia(c,pid,uid),'operaciones':ops,'cursos':cursos,'asistencia':asistencia,'fisicas':{f:vigente(c,pid,f,uid) for f in ('FISICA_1','FISICA_2')}};c.commit();return jsonify(r)
         d=request.get_json(silent=True)
-        if not isinstance(d,dict) or set(d)!={'fuente','nota','anterior_id','motivo','evidencia'}:raise ValueError('Fuente, nota, versión anterior, motivo y evidencia requeridos.')
+        if not isinstance(d,dict) or set(d)-{'motivo'}!={'fuente','nota','anterior_id','evidencia'}:raise ValueError('Fuente, nota, versión anterior y evidencia requeridos.')
         if type(d['anterior_id']) is not int or not isinstance(d['evidencia'],dict):raise ValueError('Versión o evidencia inválida.')
         fuente=d['fuente']
         if fuente not in FUENTES[:-1]:raise ValueError('Académica se calcula; psicometría no está autorizada.')
-        valor=puntos(d['nota']);razon=motivo(d);c.execute('BEGIN IMMEDIATE');p=periodo(c,pid,True);habilitada=persona(c,pid,uid)
+        valor=puntos(d['nota']);razon=observacion_calificacion(d);c.execute('BEGIN IMMEDIATE');p=periodo(c,pid,True);habilitada=persona(c,pid,uid)
         if not habilitada(c,uid,pid,fuente):raise ValueError('Fuente deshabilitada.')
         anterior=c.execute('SELECT id FROM notas_modelo_anual WHERE periodo_id=? AND voluntario_id=? AND fuente=? ORDER BY id DESC LIMIT 1',(pid,uid,fuente)).fetchone()
         if not anterior or anterior[0]!=d['anterior_id']:raise ValueError('La nota cambió; recarga.')
@@ -226,8 +241,8 @@ def calificar(pid,uid):
 def operacion(pid,uid,oid):
     c=db.obtener_conexion();d=request.get_json(silent=True)
     try:
-        if not isinstance(d,dict) or set(d)!={'nota','anterior_id','motivo'} or (d['anterior_id'] is not None and type(d['anterior_id']) is not int):raise ValueError('Nota, motivo y versión anterior requeridos.')
-        valor=puntos(d['nota']);razon=motivo(d);c.execute('BEGIN IMMEDIATE');p=periodo(c,pid,True);habilitada=persona(c,pid,uid)
+        if not isinstance(d,dict) or set(d)-{'motivo'}!={'nota','anterior_id'} or (d['anterior_id'] is not None and type(d['anterior_id']) is not int):raise ValueError('Nota y versión anterior requeridas.')
+        valor=puntos(d['nota']);razon=observacion_calificacion(d);c.execute('BEGIN IMMEDIATE');p=periodo(c,pid,True);habilitada=persona(c,pid,uid)
         if not habilitada(c,uid,pid,'ACADEMICA'):raise ValueError('Académica deshabilitada.')
         o=c.execute('SELECT o.* FROM operaciones o JOIN participaciones_operacion x ON x.operacion_id=o.id WHERE o.id=? AND x.voluntario_id=?',(oid,uid)).fetchone()
         if not o or not p['fecha_inicio']<=o['fecha_inicio']<=p['fecha_fin']:raise ValueError('Participación fuera del período o no asignada.')

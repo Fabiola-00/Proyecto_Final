@@ -54,6 +54,14 @@ class FisicasTestCase(unittest.TestCase):
         self.assertEqual(self.cliente.get(f'/api/5b/periodos/{self.pid}/fisicas').status_code,403)
         self.assertEqual(self.cliente.post(self.ruta,json={'fecha':'2026-03-02','motivo':'Intento','anterior_id':self.cid},headers={'X-CSRFToken':self._csrf_token()}).status_code,403)
 
+    def test_calificacion_fisica_sin_observacion(self):
+        self.preparar()
+        body = {'periodo_id': self.pid, 'fuente': 'FISICA_1', 'nota_0_100': '0',
+                'fisica': {'estado': 'NO_CUMPLIDA', 'fecha_realizacion': None,
+                           'programacion_id': self.cid, 'reprogramacion_id': None}}
+        r = self.cliente.post('/api/5b/personas/3/notas', json=body, headers=self.h)
+        self.assertEqual(r.status_code, 201, r.json)
+
     def test_fechas_motivo_cero_y_revision(self):
         self.preparar()
         for valor in ('2027-01-01','2026-02-30','20260301',None):

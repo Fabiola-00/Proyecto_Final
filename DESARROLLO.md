@@ -1,6 +1,6 @@
 # SICOSE — Bases de desarrollo, reconstrucción limpia y continuidad
 
-**Corte funcional vigente: 2026-10-15, SQLite v25. Bases históricas conservadas: v23/v24.**
+**Corte funcional vigente: 2026-10-16, SQLite v25. Bases históricas conservadas: v23/v24.**
 
 SICOSE significa **Sistema de Control y Evaluación de Personal**. Este archivo es una especificación autónoma para reconstruir el prototipo en un repositorio nuevo y continuar desde el alcance alcanzado. Está dirigido a una persona desarrolladora o a un nuevo chat de Codex. No requiere copiar la conversación anterior ni disponer de sus archivos temporales.
 
@@ -12,7 +12,7 @@ Este bloque prevalece sobre el capítulo 0 v24 y las descripciones históricas. 
 
 - Título HTML único SICOSE - SBRAB y favicon del mismo emblema institucional. Mantener azul #1D1BBE, naranja #F57B1A, superficies discretas, tipografía legible, espacios contenidos, filas compactas, controles con nombre accesible y temas claro/oscuro. El directorio de personal conserva su diseño. Solo el registro de asistencia se compacta; su historial conserva medidas/filtros.
 - Menú del Jefe: Inicio; Personal y Operaciones (Instructores Voluntarios, Asistencias, Cursos y Capacitaciones, Operaciones); Evaluación Anual (Gestión, Evaluaciones, Reportes). Notas y Resultados no es otra pantalla operativa. Gestionar históricos mediante enlaces contextuales funcionales, no duplicar el flujo nuevo.
-- Inicio con tarjetas pequeñas y cuatro gráficos de barras para las cinco últimas gestiones no retiradas: operaciones/cursos por inicio, asistencias como registros personales por fecha y formación por finalización. Explicitar que son conteos de intervalos, sin tratarlos como calificaciones o predicciones.
+- Inicio con tarjetas pequeñas y cuatro gráficos de barras por meses de la Gestión activa no retirada, respetando inicio/fin inclusivos y meses vacíos: operaciones/cursos por inicio, asistencias como días distintos con registros y formación por finalización. Explicitar que son conteos de intervalos, sin tratarlos como calificaciones o predicciones.
 - Cursos/Operaciones: registro desplegable nativo del mismo estilo que Agregar Instructor, tablas compactas, edición en modal y selección múltiple por checkbox. Reportes solo en el centro, no duplicar formularios de exportación en cursos.
 - Gestión: nombre/inicio/fin, Crear Gestión, edición anterior al inicio, inicio explícito, cierre con instantáneas y reapertura solo administrativa. No mostrar Borrador como acción del producto: internamente BORRADOR identifica una Gestión creada/preparada sin resultados. No cerrar otra gestión automáticamente. Al iniciar, todos los Instructores activos reciben ceros oficiales; inactivos mantienen restricciones. Sin botón de inscripción adicional ni alta automática durante un ciclo ya iniciado. Reabrir no reinicia notas.
 - Administrador/Jefe eliminan permanentemente únicamente gestiones sin resultados ni evidencia protegida. Los ceros oficiales son resultados. Transacción con nombre/estado anteriores para concurrencia; auditoría mínima y comprobación FK. No eliminar configuraciones congeladas, habilitaciones históricas, notas, publicaciones o cierres. Los metadatos/eventos de modelos nunca iniciados pueden borrarse junto con la Gestión; el resto permanece inmutable.
@@ -1978,3 +1978,17 @@ BEGIN SELECT RAISE(ABORT,'historial_anual_inmutable'); END;
 - Relectura de la base de trabajo contra el respaldo pre-v25: **49 tablas previas preservadas**, salvo el identificador de versión; cuatro nuevas tablas vacías, v25/quick_check=ok/FK=0. DEMO detenida y base temporal retirada; sin seed, dependencias nuevas o cambios en .venv/.env/fotos.
 
 La aceptación operativa de 5B del 2026-10-14 sigue siendo histórica y no acredita esta reorganización. Pendientes: instrumentos psicométricos autorizados, publicación numérica propia v3, entrenamiento/validación del modelo, aprobación institucional y piloto. Los formularios aritméticos son ejemplos independientes, no resultados psicométricos ni recomendaciones.
+
+
+### 2026-10-16 — Dashboard por meses de la gestión activa
+
+Los gráficos de Inicio del Jefe sustituyen la comparación de últimas gestiones por Operaciones, Cursos registrados, Asistencias registradas y Formaciones finalizadas agrupadas por mes de la Gestión ACTIVA no retirada. Se respeta el intervalo inclusivo de inicio/fin, incluidos meses parciales y períodos que cruzan años. Cada mes aparece con su año y conteo cero cuando no hay registros; sin Gestión activa se solicita activarla, sin inventar un intervalo. En móvil el desplazamiento horizontal se limita al gráfico y admite teclado; dos columnas cuando hay espacio. Indicadores y resúmenes restantes conservan su alcance.
+
+Verificación de esta corrección: cuatro pruebas específicas aprobadas en 0,002 s (límites, cuatro series, ceros, bisiesto, cruce anual y ausencia de Gestión), tres de regresión del espacio del Jefe aprobadas en 7,868 s. Cuatro escenarios con Flask real/DEMO aislada y Chrome, 360/1447 px, claro/oscuro: doce meses por gráfico, conteos comprobados, sin errores JavaScript ni desbordes de página; capturas inspeccionadas. Compilación Python y git diff --check correctos. No cambia JavaScript de producto, esquema ni datos de trabajo; SQLite permanece v25. No se repitió la suite completa: la evidencia de 158 pruebas del 2026-10-15 es histórica. Logs/capturas en .tmp/mensual-regresion.log y .tmp/mensual-ui/.
+
+
+### 2026-10-16 — Días con asistencia registrada por mes
+
+El gráfico de asistencia del Inicio del Jefe cuenta fechas distintas dentro de cada mes de la Gestión activa (COUNT DISTINCT fecha), no filas por persona. Varias personas o actividades registradas el mismo día cuentan como un único día. No se filtra por Asiste: se cuentan días con registro de llamada, independientemente del estado personal. Se conserva el intervalo inclusivo y los meses sin registros. Título: Días con asistencia registrada. Las demás series mantienen sus conteos.
+
+Verificación nueva: cinco pruebas mensuales aprobadas en 0,002 s, incluida deduplicación de fechas con múltiples registros y límites del período; tres pruebas del espacio del Jefe aprobadas en 7,287 s, incluida la etiqueta renderizada. Compilación Python y git diff --check correctos. Sin migración, cambios de datos ni nueva suite completa o ensayo visual. Evidencia en .tmp/dias-asistencia-tests.log y .tmp/dias-asistencia-regresion.log; las verificaciones visuales anteriores siguen siendo históricas.

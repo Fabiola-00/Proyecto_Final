@@ -301,8 +301,8 @@ class AplicacionTestCase(unittest.TestCase):
         _,pid=self._preparar_notas_5b();ruta='/api/5b/personas/3/notas';h={'X-CSRFToken':self._csrf_token()}
         with self.app.app_context():
             c=obtener_conexion();ref=c.execute("INSERT INTO capacitaciones(voluntario_id,nombre,fecha) VALUES (3,'Nombre respaldo','2026-10-01')").lastrowid;c.commit()
-        base={'periodo_id':pid,'fuente':'ACADEMICA','nota_0_100':'0.00','motivo':'Motivo','capacitaciones':[ref]}
-        for extra in ({'motivo':''},{'capacitaciones':[]},{'capacitaciones':[9999]},{'capacitaciones':[ref,ref]},{'nota_0_100':True},{'nota_0_100':'82.345'},{'nota_0_100':'NaN'},{'nota_0_100':'101'},{'evaluador_id':1}):
+        base={'periodo_id':pid,'fuente':'ACADEMICA','nota_0_100':'0.00','motivo':'','capacitaciones':[ref]}
+        for extra in ({'motivo':123},{'capacitaciones':[]},{'capacitaciones':[9999]},{'capacitaciones':[ref,ref]},{'nota_0_100':True},{'nota_0_100':'82.345'},{'nota_0_100':'NaN'},{'nota_0_100':'101'},{'evaluador_id':1}):
             self.assertEqual(self.cliente.post(ruta,json={**base,**extra},headers=h).status_code,400)
         r=self.cliente.post(ruta,json=base,headers=h);self.assertEqual(r.status_code,201,r.json)
         with self.app.app_context():
@@ -432,8 +432,8 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertEqual(self.cliente.post(ruta,json={'voluntario_ids':[3]}).status_code,400)
         self.assertEqual(self.cliente.post(ruta,json={'voluntario_ids':[3]},headers=h).status_code,201)
         p=self.cliente.get(ruta).json['participantes'][0];self.assertEqual(self.cliente.get('/api/cursos').json['cursos'][0]['estado'],'Finalizado');self.assertEqual(p['estado'],'Asignado')
-        url=f"/api/formacion/participaciones/{p['id']}";base={'estado':'Finalizado','puntaje':25,'fecha_finalizacion':'2020-01-10','revision':1,'motivo':'Confirmación'}
-        for cambio in ({'puntaje':True},{'puntaje':1.5},{'fecha_finalizacion':'2035-01-01'},{'fecha_finalizacion':'2019-12-31'},{'motivo':''},{'revision':True},{'voluntario_id':3}):
+        url=f"/api/formacion/participaciones/{p['id']}";base={'estado':'Finalizado','puntaje':25,'fecha_finalizacion':'2020-01-10','revision':1,'motivo':''}
+        for cambio in ({'puntaje':True},{'puntaje':1.5},{'fecha_finalizacion':'2035-01-01'},{'fecha_finalizacion':'2019-12-31'},{'motivo':123},{'revision':True},{'voluntario_id':3}):
             self.assertEqual(self.cliente.patch(url,json={**base,**cambio},headers=h).status_code,400)
         self.assertEqual(self.cliente.patch(url,json={**base,'estado':'En curso'},headers=h).status_code,400)
         with self.app.app_context():

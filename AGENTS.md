@@ -2,7 +2,11 @@
 
 SICOSE significa **Sistema de Control y Evaluación de Personal**. Es un prototipo académico para seguimiento de personal voluntario de rescate y emergencias, no un producto comercial ni clínico.
 
-## Continuidad vigente — 2026-10-15, v25
+## Continuidad vigente — 2026-10-16, v25
+
+Calificación: campo visible Observación (opcional) en físicas, Desempeño, operaciones y cursos, incluidos formularios históricos. Aceptar vacío/omitido; conservar historial y nombre interno motivo. Esta decisión sustituye su obligatoriedad anterior únicamente al calificar; cierre/reapertura, eliminación, publicación y programación conservan motivo obligatorio.
+
+Inicio del Jefe: asistencia cuenta días distintos con registros (no personas ni actividades); gráficos por meses de la Gestión activa (incluidos meses vacíos y fechas parciales), no comparación de últimas gestiones. Sin cambio de esquema o calificaciones.
 
 Leer [organización del espacio de trabajo](docs/21_organizacion_espacio_trabajo.md), que prevalece sobre los alcances anteriores de interfaz, eliminación y programación física v3. Gestión/Evaluaciones separadas; Notas y Resultados sale del menú. Ceros oficiales al inicio para todo el personal activo; sin inscripción adicional en interfaz. Administrador/Jefe eliminan permanentemente solo gestiones sin resultados ni evidencia protegida. Cursos sin vínculos se eliminan; con vínculos baja histórica. Retirada por checkbox conserva revisiones y recalcula abierto, bloqueada por cierre e inactivos. Física v3 se califica sin fecha, preservando programación histórica.
 
@@ -18,7 +22,7 @@ Leer docs/20_modelo_anual_cinco_entradas.md y capítulo 0 de DESARROLLO.md. Las 
 - Backend: Python y Flask; comunicación de interfaz mediante API REST JSON.
 - Persistencia: SQLite con consultas parametrizadas, claves foráneas activadas y cambios de esquema aditivos.
 - Mantener módulos pequeños y nombres consistentes en español. No agregar frameworks/servicios sin necesidad y autorización.
-- Identidad visual aprobada: azul `#1D1BBE`, naranja `#F57B1A`; incorporar el emblema institucional SBRAB proporcionado en la cabecera de la barra lateral. Usar Evaluar.com solo como referencia general, sin copiar marca o interfaz.
+- Identidad visual aprobada: azules `#0500B2`/`#0054B2`, naranjas `#FA9A4B`/`#FCC495`, complementarios `#226DC6`/`#C67B22`; adaptar derivados para modo claro/oscuro con contraste legible; incorporar el emblema institucional SBRAB proporcionado en la cabecera de la barra lateral. Usar Evaluar.com solo como referencia general, sin copiar marca o interfaz.
 
 ## Roles y datos
 
@@ -203,3 +207,22 @@ Verificación del 2026-10-15: suite completa de **149 pruebas aprobadas en 339,5
 - Relectura de la base de trabajo contra el respaldo pre-v25: **49 tablas previas preservadas**, salvo el identificador de versión; cuatro nuevas tablas vacías, v25/quick_check=ok/FK=0. DEMO detenida y base temporal retirada; sin seed, dependencias nuevas o cambios en .venv/.env/fotos.
 
 La aceptación operativa de 5B del 2026-10-14 sigue siendo histórica y no acredita esta reorganización. Pendientes: instrumentos psicométricos autorizados, publicación numérica propia v3, entrenamiento/validación del modelo, aprobación institucional y piloto. Los formularios aritméticos son ejemplos independientes, no resultados psicométricos ni recomendaciones.
+
+
+### 2026-10-16 — Dashboard por meses de la gestión activa
+
+Los gráficos de Inicio del Jefe sustituyen la comparación de últimas gestiones por Operaciones, Cursos registrados, Asistencias registradas y Formaciones finalizadas agrupadas por mes de la Gestión ACTIVA no retirada. Se respeta el intervalo inclusivo de inicio/fin, incluidos meses parciales y períodos que cruzan años. Cada mes aparece con su año y conteo cero cuando no hay registros; sin Gestión activa se solicita activarla, sin inventar un intervalo. En móvil el desplazamiento horizontal se limita al gráfico y admite teclado; dos columnas cuando hay espacio. Indicadores y resúmenes restantes conservan su alcance.
+
+Verificación de esta corrección: cuatro pruebas específicas aprobadas en 0,002 s (límites, cuatro series, ceros, bisiesto, cruce anual y ausencia de Gestión), tres de regresión del espacio del Jefe aprobadas en 7,868 s. Cuatro escenarios con Flask real/DEMO aislada y Chrome, 360/1447 px, claro/oscuro: doce meses por gráfico, conteos comprobados, sin errores JavaScript ni desbordes de página; capturas inspeccionadas. Compilación Python y git diff --check correctos. No cambia JavaScript de producto, esquema ni datos de trabajo; SQLite permanece v25. No se repitió la suite completa: la evidencia de 158 pruebas del 2026-10-15 es histórica. Logs/capturas en .tmp/mensual-regresion.log y .tmp/mensual-ui/.
+
+
+### 2026-10-16 — Días con asistencia registrada por mes
+
+El gráfico de asistencia del Inicio del Jefe cuenta fechas distintas dentro de cada mes de la Gestión activa (COUNT DISTINCT fecha), no filas por persona. Varias personas o actividades registradas el mismo día cuentan como un único día. No se filtra por Asiste: se cuentan días con registro de llamada, independientemente del estado personal. Se conserva el intervalo inclusivo y los meses sin registros. Título: Días con asistencia registrada. Las demás series mantienen sus conteos.
+
+Verificación nueva: cinco pruebas mensuales aprobadas en 0,002 s, incluida deduplicación de fechas con múltiples registros y límites del período; tres pruebas del espacio del Jefe aprobadas en 7,287 s, incluida la etiqueta renderizada. Compilación Python y git diff --check correctos. Sin migración, cambios de datos ni nueva suite completa o ensayo visual. Evidencia en .tmp/dias-asistencia-tests.log y .tmp/dias-asistencia-regresion.log; las verificaciones visuales anteriores siguen siendo históricas.
+
+
+### Reporte individual — 2026-10-16 (sin cambio de esquema)
+
+Leer docs/22_reporte_individual.md. Administrador/Jefe exportan PDF por Instructor admitido ACTIVO/INACTIVO y única Gestión activa no retirada; cambio de Gestión desde la selección produce conflicto. Perfil/foto y fuentes reales, cursos con estados pendientes/finalizados y operaciones por intervalo; calificaciones por regla existente, Desempeño promediado, asistencia porcentual sin gráfico. Psicométricas y subescalas pendientes, red neuronal sin entrenar/recomendación pendiente. No adoptar ejercicios demostrativos ni inventar resultados. No acceso propio del Instructor a este PDF administrativo; respuestas privadas no-store, inline y auditadas sin datos completos. No es instantánea de cierre ni cambia publicación. Datos DEMO en output/pdf/reporte-individual-demo.pdf, no datos reales.

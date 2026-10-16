@@ -19,7 +19,7 @@ def generar_listado(titulo, subtitulo, columnas, filas, anchos):
     if filas:
         ancho=landscape(A4)[0]-60
         tabla=Table([[texto(v) for v in columnas]]+[[texto(v) for v in f] for f in filas],colWidths=[v*ancho/sum(anchos) for v in anchos],repeatRows=1)
-        tabla.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#E8E9FA')),('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.white,colors.HexColor('#F4F5F8')]),('VALIGN',(0,0),(-1,-1),'TOP'),('TOPPADDING',(0,0),(-1,-1),7),('BOTTOMPADDING',(0,0),(-1,-1),7)]))
+        tabla.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#EAF2FC')),('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.white,colors.HexColor('#F6F9FD')]),('VALIGN',(0,0),(-1,-1),'TOP'),('TOPPADDING',(0,0),(-1,-1),7),('BOTTOMPADDING',(0,0),(-1,-1),7)]))
         contenido.append(tabla)
     else:
         contenido.append(Paragraph('Sin registros para los filtros seleccionados.',estilos['Normal']))

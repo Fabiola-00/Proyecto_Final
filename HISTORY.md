@@ -524,3 +524,85 @@ Verificación final del 2026-10-14: **138 pruebas aprobadas en 354,019 s**; cuat
 - Relectura de la base de trabajo contra el respaldo pre-v25: **49 tablas previas preservadas**, salvo el identificador de versión; cuatro nuevas tablas vacías, v25/quick_check=ok/FK=0. DEMO detenida y base temporal retirada; sin seed, dependencias nuevas o cambios en .venv/.env/fotos.
 
 La aceptación operativa de 5B del 2026-10-14 sigue siendo histórica y no acredita esta reorganización. Pendientes: instrumentos psicométricos autorizados, publicación numérica propia v3, entrenamiento/validación del modelo, aprobación institucional y piloto. Los formularios aritméticos son ejemplos independientes, no resultados psicométricos ni recomendaciones.
+
+
+### 2026-10-16 — Dashboard por meses de la gestión activa
+
+Los gráficos de Inicio del Jefe sustituyen la comparación de últimas gestiones por Operaciones, Cursos registrados, Asistencias registradas y Formaciones finalizadas agrupadas por mes de la Gestión ACTIVA no retirada. Se respeta el intervalo inclusivo de inicio/fin, incluidos meses parciales y períodos que cruzan años. Cada mes aparece con su año y conteo cero cuando no hay registros; sin Gestión activa se solicita activarla, sin inventar un intervalo. En móvil el desplazamiento horizontal se limita al gráfico y admite teclado; dos columnas cuando hay espacio. Indicadores y resúmenes restantes conservan su alcance.
+
+Verificación de esta corrección: cuatro pruebas específicas aprobadas en 0,002 s (límites, cuatro series, ceros, bisiesto, cruce anual y ausencia de Gestión), tres de regresión del espacio del Jefe aprobadas en 7,868 s. Cuatro escenarios con Flask real/DEMO aislada y Chrome, 360/1447 px, claro/oscuro: doce meses por gráfico, conteos comprobados, sin errores JavaScript ni desbordes de página; capturas inspeccionadas. Compilación Python y git diff --check correctos. No cambia JavaScript de producto, esquema ni datos de trabajo; SQLite permanece v25. No se repitió la suite completa: la evidencia de 158 pruebas del 2026-10-15 es histórica. Logs/capturas en .tmp/mensual-regresion.log y .tmp/mensual-ui/.
+
+
+### 2026-10-16 — Días con asistencia registrada por mes
+
+El gráfico de asistencia del Inicio del Jefe cuenta fechas distintas dentro de cada mes de la Gestión activa (COUNT DISTINCT fecha), no filas por persona. Varias personas o actividades registradas el mismo día cuentan como un único día. No se filtra por Asiste: se cuentan días con registro de llamada, independientemente del estado personal. Se conserva el intervalo inclusivo y los meses sin registros. Título: Días con asistencia registrada. Las demás series mantienen sus conteos.
+
+Verificación nueva: cinco pruebas mensuales aprobadas en 0,002 s, incluida deduplicación de fechas con múltiples registros y límites del período; tres pruebas del espacio del Jefe aprobadas en 7,287 s, incluida la etiqueta renderizada. Compilación Python y git diff --check correctos. Sin migración, cambios de datos ni nueva suite completa o ensayo visual. Evidencia en .tmp/dias-asistencia-tests.log y .tmp/dias-asistencia-regresion.log; las verificaciones visuales anteriores siguen siendo históricas.
+
+
+## 2026-10-16 — Paleta institucional en modos claro y oscuro
+
+- Se sustituyen los colores de marca anteriores por azules #0500B2/#0054B2, naranjas #FA9A4B/#FCC495 y complementarios #226DC6/#C67B22. Variables comunes para acceso, paneles, botones, enlaces, indicadores, gráficos y calendario; fondos, textos, bordes y sombras adaptados a ambos temas. En oscuro se aclaran los enlaces para conservar legibilidad. Verde/rojo mantienen el significado de estados. Logo institucional conservado.
+- Los cuatro generadores PDF usan fondos azules claros derivados; catálogo y carimbo adoptan el nuevo azul primario. README y guía visual de AGENTS actualizados. Sin cambios de lógica, esquema, entorno o datos de trabajo; cambios locales anteriores preservados.
+- Verificación: siete pruebas relevantes de navegación, reportes PDF, permisos y privacidad aprobadas en 17,175 s; compilación Python de los cuatro generadores y git diff --check correctos. Veinte combinaciones principales de texto/fondo (diez por tema) verificadas por luminancia sRGB, todas >=4,5:1; llaves CSS equilibradas y sin colores de marca anteriores en frontend/sicose. El primer intento de pruebas por módulo no resolvió imports de fixtures; ejecución final con tests en sys.path correcta. No se repitió la suite completa ni se realizó una nueva inspección visual en navegador.
+
+
+## 2026-10-16 — Observación opcional solo al calificar
+
+- Confirmación expresa del solicitante: aplicar únicamente a modales de calificación. Físicas, Desempeño, operaciones y participación en cursos muestran Observación (opcional); servidor acepta texto vacío/omitido con límite de 2000 caracteres y validación de tipo. Formularios históricos de calificación incluidos. Se conserva motivo como clave interna para compatibilidad e historial, sin migrar ni alterar datos anteriores. Otras acciones conservan sus requisitos de motivo.
+- Se mantienen validaciones de notas, referencias académicas históricas, Comandante externo, revisiones, permisos, inactivos y cierres. Documentación vigente alineada.
+- Verificación final: 21 pruebas aprobadas en 36,657 s (modelo anual, físicas y validaciones de formación/Académica histórica), incluidos dos casos nuevos de observación opcional y conservación/rechazo de texto inválido. Sintaxis de tres JavaScript, compilación de tres módulos Python y git diff --check correctos. En los intentos iniciales, la prueba nueva esperaba 400 en rutas que devuelven 409; expectativa corregida y ejecución final aprobada. Sin nueva suite completa ni inspección visual en navegador; pruebas con bases temporales, sin cambios de entorno/base de trabajo.
+
+
+## 2026-10-16 — Cursos, operaciones y asistencia por Instructor/Gestión
+
+- Se amplía la sección Académica para listar cursos asignados/finalizados y operaciones del Instructor seleccionado que coinciden con las fechas de la Gestión seleccionada; muestra identidad, intervalo, estados, fechas, puntajes disponibles y vacíos explícitos. Retiradas identificadas, datos capturados al asignar preservados. Operaciones solapadas consultables, calificación conserva su alcance temporal previo.
+- Porcentaje personal de asistencia según fórmula confirmada (Asiste+Atraso)/(Asiste+Atraso+Falta), Permiso excluido, dos decimales, No disponible sin denominador. Se reutiliza el cálculo existente y compatibilidad de estados históricos. Indicador informativo independiente de notas e instantáneas; aislamiento por persona/intervalo en servidor, rutas y permisos conservados. Sin migración ni cambios en base de trabajo/entorno.
+- Verificación final: 13 pruebas del modelo anual aprobadas en 9,076 s; prueba nueva con participantes ajenos, cursos asignados/finalizados, límites inclusivos, datos fuera de Gestión, asistencia 66,67 %, ausencia de registros, solo permisos y denegación al Instructor. Intento inicial de fixture corrigió rol por rol_id y expectativa incorporó computables del cálculo existente. Sintaxis JavaScript, compilación Python y git diff --check correctos. Sin suite completa ni nueva inspección visual en navegador.
+
+
+## 2026-10-16 — Tablas compactas de participaciones
+
+- Cursos y Capacitaciones y Operaciones del Instructor/Gestión seleccionados sustituyen tarjetas individuales por dos tablas compactas. Cursos: nombre, tipo, entidad, inicio/fin, estado personal, finalización y puntaje; Operaciones: evento, lugar, institución, fechas, nota, estado de calificación y acción existente. Pendientes sin nota muestran raya; cero calificado se conserva como 0.00.
+- Encabezados semánticos, títulos caption, filas vacías explícitas y desplazamiento horizontal dentro de cada tabla con acceso por teclado. Asistencia y resumen se presentan como texto, sin cuadro. Paleta/temas y permisos existentes conservados.
+- Verificación: node --check del JavaScript y git diff --check correctos. Cambio exclusivo de presentación; sin nueva suite backend ni inspección visual en navegador.
+
+
+## 2026-10-16 — Ancho y orden de tablas de participaciones
+
+- La sección Cursos, operaciones y asistencia deja la rejilla multicolumna heredada y usa una sola columna: encabezado, Instructor/Gestión, asistencia, tabla de Cursos y Capacitaciones, resumen académico y tabla de Operaciones. Tablas al 100 % del ancho disponible; títulos/cabeceras alineados a la izquierda y márgenes uniformes. Desplazamiento local conservado cuando el ancho móvil no alcanza.
+- Corrección exclusiva de CSS, sin cambios en datos, APIs o calificaciones. git diff --check correcto; sin nueva suite backend ni revisión visual en navegador.
+
+
+## 2026-10-16 — Historial de notas visible solo en interfaz del Administrador
+
+- Por solicitud expresa, el desplegable Historial de notas y correcciones de Evaluaciones del modelo anual se construye únicamente para Administrador. Jefe de Personal conserva calificación y demás controles; el historial persistido y las APIs existentes permanecen intactos. Cambio de presentación, sin nueva restricción de autorización en servidor.
+- Verificación: sintaxis JavaScript y git diff --check correctos. Sin nueva suite backend ni inspección visual en navegador.
+
+
+## 2026-10-16 — Torres compactas de asistencia personal
+
+- El resumen personal de asistencia de Evaluaciones incorpora cuatro torres Asiste/Atraso/Permiso/Falta, con totales y etiquetas visibles, máximo ancho 22rem y altura 5rem. Alturas relativas al mayor conteo, cero sin barra positiva; sin registros no divide por cero. Porcentaje general y fórmula conservados, sin cambiar cálculo ni fuentes. Colores semánticos de ambos temas, estructura figure/figcaption y barras decorativas para evitar duplicar lectura accesible.
+- Verificación: node --check y git diff --check correctos. Solo presentación, sin nueva suite backend ni inspección visual en navegador.
+
+
+## 2026-10-16 — Tabla compacta de calificación y habilitación
+
+- Se sustituyen los cuadros por fuente por una tabla única al ancho disponible con Evaluación, Nota, Estado/origen, Habilitación y Acción. Reutiliza el constructor de tablas de Cursos/Operaciones y sus estilos, títulos alineados a la izquierda y desplazamiento local. Conserva modales, Observación opcional y condiciones de edición; solo consulta donde no corresponde calificar.
+- Eliminadas reglas de presentación de tarjetas exclusivas de esta sección. Sin cambios de API, permisos, notas o datos. Verificación: node --check y git diff --check correctos; sin nueva suite backend o inspección visual en navegador.
+
+
+## 2026-10-16 — Reporte individual administrativo de la Gestión activa
+
+- Nueva opción en Reportes para Administrador/Jefe: selector de Instructor admitido ACTIVO/INACTIVO y Gestión activa automática, PDF privado no-store/inline en otra pestaña. Identificador vigente detecta cambio de Gestión; sin activa/conflicto o perfil no admitido devuelve error claro. Sin acceso del Instructor. Rutas contexto y PDF con autorización de backend, auditoría mínima de actor/persona/Gestión.
+- A4 vertical con carimbo institucional, logo, fotografía proporcional o ausencia identificada, paleta aprobada, encabezado/pie en todas las páginas, confidencialidad/fecha Bolivia/paginación, secciones numeradas y tablas con encabezados repetidos. Perfil completo disponible sin secretos, cursos pendientes/finalizados, operaciones, físicas, Desempeño promedio Jefe/Comandante y Académico por cálculo existente. Asistencia por registros con porcentaje y fórmula vigente, sin gráfico. Psicométricas oficiales/subescalas y recomendación permanecen pendientes; no se adoptan ejercicios aritméticos ni se realiza inferencia.
+- Investigación de presentación: CIPD (people analytics/confidencialidad) y GOV.UK (estructura clara/encabezados/tablas), referencias y límites documentados en docs/22_reporte_individual.md; no equivalen a aprobación institucional o PDF/UA. README, AGENTS y organización alineados.
+- Verificación: cinco pruebas específicas aprobadas en 7,084 s; regresión final de 22 pruebas aprobadas en 49,040 s (reporte individual, espacio del Jefe, modelo anual y PDF v3). Primer intento ajustó expectativa textual de promedio 85 frente a 85.00, sin cambiar cálculo. Sintaxis de JavaScript y compilación Python correctas; git diff --check correcto. Ejemplo PDF DEMO de tres páginas generado, renderizado con Poppler e inspeccionado; extracción confirmó carimbo/pie en cada página, foto, cifras y pendientes, sin hashes/rutas/secretos. Poppler emitió avisos de fuentes auxiliares Symbol/ArialUnicode; texto usado y páginas inspeccionadas legibles.
+- PDF ilustrativo output/pdf/reporte-individual-demo.pdf con datos ficticios; evidencia .tmp/individual-ui/. Sin suite completa nueva ni ensayo del navegador; pruebas HTTP con Flask test_client y PDF real. Sin migración, dependencias, cambios de entorno o datos de trabajo. Aceptación humana del reporte pendiente.
+
+
+## 2026-10-16 — Centro de reportes compacto en filas
+
+- Reportes de SBRAB sustituye la rejilla de tarjetas por una lista de seis filas apiladas de ancho completo, con separadores, fondos alternos, iconos SVG decorativos propios, título/criterio y formularios alineados. Campos de fechas en paralelo y botón al extremo; en móvil filtros debajo y acción al ancho de la fila. Ambos temas usan las variables institucionales.
+- Se conservan IDs, rutas, parámetros, requeridos, selector individual/Gestión activa, estados/errores y apertura privada de PDF en otra pestaña. Botones con nombre accesible específico por reporte, mensajes aria-live; sin cambios de permisos o backend.
+- Verificación: tres pruebas de regresión del espacio del Jefe aprobadas en 8,706 s, sintaxis de JavaScript y git diff --check correctos. Sin nueva suite completa ni inspección visual en navegador.

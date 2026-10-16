@@ -24,8 +24,8 @@ def generar_pdf(datos):
                           texto('Habilitada' if e['habilitada'] else 'Deshabilitada'), texto(e['estado']), texto(e['nota'])])
     if len(filas) > 1:
         tabla = Table(filas, colWidths=[220, 65, 180, 115, 115, 86.89], repeatRows=1)
-        tabla.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#E8E9FA')), ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                                   ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F4F5F8')]),
+        tabla.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#EAF2FC')), ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                                   ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F6F9FD')]),
                                    ('TOPPADDING', (0, 0), (-1, -1), 5), ('BOTTOMPADDING', (0, 0), (-1, -1), 5)]))
         contenido.append(tabla)
     else:

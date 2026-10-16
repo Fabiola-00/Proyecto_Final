@@ -189,3 +189,64 @@ class ModeloAnualTestCase(unittest.TestCase):
             c.rollback()
             with self.assertRaises(sqlite3.IntegrityError):c.execute("UPDATE periodos SET fecha_fin='2025-12-01' WHERE id=?",(self.pid,))
             c.rollback()
+
+    def test_calificar_observacion_opcional_y_validada(self):
+        self.preparar_anual()
+        for fuente, evidencia in [('FISICA_1', {'estado': 'NO_CUMPLIDA'}), ('DESEMPENO_JEFE', {})]:
+            body = {'fuente': fuente, 'nota': 0, 'anterior_id': self.datos()['calculo']['fuentes'][fuente]['id'], 'evidencia': evidencia}
+            r = self.cliente.post(self.url+'/personas/3', json=body, headers=self.h)
+            self.assertEqual(r.status_code, 201, r.json)
+            self.assertEqual(self.datos()['calculo']['fuentes'][fuente]['motivo'], '')
+        oid = self.operacion_demo()
+        body = {'nota': 75, 'anterior_id': None, 'motivo': ''}
+        ruta = self.url+f'/personas/3/operaciones/{oid}'
+        r = self.cliente.post(ruta, json=body, headers=self.h)
+        self.assertEqual(r.status_code, 201, r.json)
+        anterior = self.datos()['historial']['operaciones'][-1]
+        self.assertEqual(anterior['motivo'], '')
+        body['anterior_id'] = anterior['id']
+        for invalida in (None, 123, 'x'*2001):
+            body['motivo'] = invalida
+            self.assertEqual(self.cliente.post(ruta, json=body, headers=self.h).status_code, 409)
+        body['motivo'] = '  Observación conservada  '
+        self.assertEqual(self.cliente.post(ruta, json=body, headers=self.h).status_code, 201)
+        self.assertEqual(self.datos()['historial']['operaciones'][-1]['motivo'], 'Observación conservada')
+        self.assertEqual(self.cliente.patch(self.url, json={'nombre':'Cambio','fecha_inicio':'2025-08-15','fecha_fin':'2025-11-30','revision':2,'motivo':''}, headers=self.h).status_code, 409)
+
+    def test_participaciones_y_asistencia_por_persona_e_intervalo(self):
+        self.preparar_anual()
+        self.assertIsNone(self.datos()['asistencia']['porcentaje'])
+        oid = self.operacion_demo()
+        fuera = self.operacion_demo('2025-12-01')
+        with self.app.app_context():
+            c = obtener_conexion()
+            c.execute("INSERT INTO usuarios(nombre_completo,username,password_hash,rol_id,estado) VALUES ('Otra persona DEMO','otra.resumen','hash demo',(SELECT id FROM roles WHERE nombre='INSTRUCTOR_VOLUNTARIO'),'ACTIVO')")
+            otra = c.execute("SELECT id FROM usuarios WHERE username='otra.resumen'").fetchone()[0]
+            c.execute('INSERT INTO voluntarios(usuario_id) VALUES (?)', (otra,))
+            for uid, fecha, detalle, antiguo in [(3,'2025-08-15','ASISTE','PRESENTE'),(3,'2025-11-30','ATRASO','PRESENTE'),(3,'2025-09-01','FALTA','AUSENTE'),(3,'2025-09-02','PERMISO','JUSTIFICADO'),(3,'2025-08-14','FALTA','AUSENTE'),(3,'2025-12-01','FALTA','AUSENTE'),(otra,'2025-09-01','FALTA','AUSENTE')]:
+                c.execute('INSERT INTO asistencias(voluntario_id,fecha,estado,estado_detalle,actividad,registrado_por) VALUES (?,?,?,?,?,2)',(uid,fecha,antiguo,detalle,'Ordinaria'))
+            c.commit()
+        def curso(nombre, inicio, fin, uid=3):
+            r = self.cliente.post('/api/cursos', json={'nombre':nombre,'tipo':'Taller','entidad':'Entidad DEMO','fecha_inicio':inicio,'fecha_fin':fin,'puntaje':25}, headers=self.h)
+            self.assertEqual(r.status_code,201,r.json)
+            cid = r.json['id']
+            self.assertEqual(self.cliente.post(f'/api/cursos/{cid}/participantes',json={'voluntario_ids':[uid]},headers=self.h).status_code,201)
+            return self.cliente.get(f'/api/cursos/{cid}/participantes').json['participantes'][0]
+        curso('En curso DEMO','2025-08-01','2025-10-01')
+        final = curso('Finalizado DEMO','2025-09-01','2025-09-05')
+        self.assertEqual(self.cliente.patch(f"/api/formacion/participaciones/{final['id']}",json={'revision':1,'estado':'Finalizado','puntaje':25,'fecha_finalizacion':'2025-09-06'},headers=self.h).status_code,200)
+        curso('Fuera DEMO','2025-12-01','2025-12-03')
+        curso('Ajeno DEMO','2025-09-01','2025-09-05',otra)
+        d = self.datos()
+        self.assertEqual({f['nombre_curso'] for f in d['cursos']},{'En curso DEMO','Finalizado DEMO'})
+        self.assertEqual({f['id'] for f in d['operaciones']},{oid})
+        self.assertNotIn(fuera,{f['id'] for f in d['operaciones']})
+        self.assertEqual(d['asistencia'],{'ASISTE':1,'ATRASO':1,'PERMISO':1,'FALTA':1,'computables':3,'porcentaje':66.67})
+        self.assertEqual(d['calculo']['academica']['valor'],25)
+        with self.app.app_context():
+            c = obtener_conexion()
+            c.execute("UPDATE asistencias SET estado='JUSTIFICADO',estado_detalle='PERMISO' WHERE voluntario_id=3")
+            c.commit()
+        self.assertIsNone(self.datos()['asistencia']['porcentaje'])
+        self._login('voluntario.demo','Clave voluntario 123!')
+        self.assertEqual(self.cliente.get(self.url+'/personas/3').status_code,403)

@@ -154,7 +154,7 @@ if (seguimientoFiltros) {
         const historial = elemento("div");
         notas.forEach((nota) => {
           historial.append(elemento("p", `${nota.nota_0_100} · ${nota.registrada_en} · evaluador: ${nota.evaluador_nombre} · registrado por: ${nota.registrada_por_nombre}${nota.corregida_de_id ? ` · corrige #${nota.corregida_de_id}` : ""}`));
-          if (nota.motivo) historial.append(elemento("p", `Motivo: ${nota.motivo}`));
+          if (nota.motivo) historial.append(elemento("p", `Observación: ${nota.motivo}`));
           if (nota.observacion) historial.append(elemento("p", nota.observacion));
           if (nota.fisica) historial.append(elemento("p", `${nota.fisica.estado === "NO_CUMPLIDA" ? "No cumplida" : "Cumplida"} · ${nota.fisica.fecha_realizacion || "Sin realización"} · programación #${nota.fisica.programacion_id}`));
           (nota.referencias || []).forEach((ref) => historial.append(elemento("p", `Respaldo: ${ref.nombre} · ${ref.fecha || "Sin fecha"}`)));
@@ -173,8 +173,8 @@ if (seguimientoFiltros) {
           const estadoLabel = elemento("label", "Resultado físico"); estadoFisico = elemento("select");
           [["CUMPLIDA", "Cumplida"], ["NO_CUMPLIDA", "No cumplida (cero confirmado)"]].forEach(([valor, nombreEstado]) => { const opcion = elemento("option", nombreEstado); opcion.value = valor; estadoFisico.append(opcion); });
           estadoLabel.append(estadoFisico); const fechaLabel = elemento("label", "Fecha de realización"); fechaFisica = elemento("input"); fechaFisica.type = "date"; fechaFisica.min = datos.periodo.fecha_inicio; fechaFisica.max = datos.periodo.fecha_fin; fechaFisica.value = ultima?.fisica?.fecha_realizacion || ""; fechaLabel.append(fechaFisica);
-          const motivoLabel = elemento("label", "Motivo de confirmación o corrección"); const motivo = elemento("textarea"); motivo.name = "motivo"; motivo.maxLength = 2000; motivoLabel.append(motivo);
-          function cambiarEstado() { const incumplida = estadoFisico.value === "NO_CUMPLIDA"; nota.readOnly = incumplida; if (incumplida) nota.value = "0"; fechaFisica.disabled = incumplida; fechaFisica.required = !incumplida; motivo.required = incumplida || Boolean(ultima); }
+          const motivoLabel = elemento("label", "Observación (opcional)"); const motivo = elemento("textarea"); motivo.name = "motivo"; motivo.maxLength = 2000; motivoLabel.append(motivo);
+          function cambiarEstado() { const incumplida = estadoFisico.value === "NO_CUMPLIDA"; nota.readOnly = incumplida; if (incumplida) nota.value = "0"; fechaFisica.disabled = incumplida; fechaFisica.required = !incumplida; motivo.required = false; }
           estadoFisico.addEventListener("change", cambiarEstado); cambiarEstado(); form.append(estadoLabel, fechaLabel, motivoLabel);
         }
         if (fuente === "DESEMPENO_COMANDANTE") {
@@ -183,7 +183,7 @@ if (seguimientoFiltros) {
         const observado = elemento("label", "Observación propia (opcional)"); const observacion = elemento("textarea"); observacion.name = "observacion"; observacion.maxLength = 2000; observado.append(observacion); form.append(observado);
         let referencias;
         if (fuente === "ACADEMICA") {
-          const motivoLabel = elemento("label", "Motivo y respaldo"); const motivo = elemento("textarea"); motivo.name = "motivo"; motivo.maxLength = 2000; motivo.required = true; motivo.value = ultima?.motivo || ""; motivoLabel.append(motivo); form.append(motivoLabel);
+          const motivoLabel = elemento("label", "Observación de respaldo (opcional)"); const motivo = elemento("textarea"); motivo.name = "motivo"; motivo.maxLength = 2000; motivo.required = false; motivo.value = ultima?.motivo || ""; motivoLabel.append(motivo); form.append(motivoLabel);
           const refs = elemento("label", "Formación personal referenciada (selección múltiple)"); referencias = elemento("select"); referencias.multiple = true; referencias.size = 5; referencias.required = true;
           datos.formacion.forEach((curso) => { const opcion = elemento("option", curso.nombre); opcion.value = curso.id; opcion.selected = (ultima?.referencias || []).some((ref) => ref.capacitacion_id === curso.id); referencias.append(opcion); }); refs.append(referencias); form.append(refs);
         }

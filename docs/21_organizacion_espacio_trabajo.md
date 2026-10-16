@@ -5,7 +5,7 @@ Esta entrega sustituye los recorridos duplicados de Gestión/Modelo Anual/Evalua
 ## Pantallas y navegación
 
 - Todas las plantillas HTML independientes usan `SICOSE - SBRAB` y el PNG institucional del logo como favicon. Las demás heredan la plantilla común.
-- Inicio del Jefe mantiene indicadores pequeños y añade cuatro gráficos de barras de las cinco últimas gestiones no retiradas: operaciones, cursos registrados, asistencias personales registradas y formaciones finalizadas. Cada barra cuenta registros dentro de las fechas inclusivas de su Gestión; no calcula notas ni predicciones. Una Gestión superpuesta histórica puede compartir registros con otra; el gráfico describe intervalos, no suma acumulados de calificación.
+- Inicio del Jefe mantiene indicadores pequeños y añade cuatro gráficos de barras por meses de la Gestión activa no retirada (actualización del 2026-10-16): operaciones, cursos registrados, días distintos con asistencia registrada y formaciones finalizadas. Cada barra cuenta registros del mes dentro de las fechas inclusivas de la Gestión activa; no calcula notas ni predicciones. Una Gestión superpuesta histórica puede compartir registros con otra; el gráfico describe intervalos, no suma acumulados de calificación.
 - Directorio de Instructores sin cambio de organización. Asistencia de registro tiene filas más bajas; el historial conserva sus medidas y filtros.
 - Cursos y Operaciones usan desplegables nativos con el mismo resumen visual de Agregar Instructor. Operaciones presenta una tabla compacta con edición y asignación múltiple. Se retiró el reporte duplicado del catálogo de cursos.
 - Gestión reúne nombre/inicio/fin/creación, edición anterior al inicio, inicio explícito, cierre, reapertura administrativa e instantáneas. La tabla incorpora gestiones nuevas e históricas. La interfaz dice Crear Gestión/Preparada; el estado interno BORRADOR se conserva para compatibilidad y para impedir ceros antes del inicio. Crear no cierra ni activa otro ciclo silenciosamente. Iniciar incluye a todos los Instructores activos, sin reiniciar gestiones anteriores. Se retiró el botón de inscripción adicional durante el ciclo; no se interpretó la respuesta como autorización para incorporar automáticamente nuevas altas a una Gestión ya iniciada. Cuentas inactivas conservan sus restricciones.
@@ -59,3 +59,43 @@ Pendientes: instrumentos psicométricos autorizados, publicación propia numéri
 - Relectura de la base de trabajo contra el respaldo pre-v25: **49 tablas previas preservadas**, salvo el identificador de versión; cuatro nuevas tablas vacías, v25/quick_check=ok/FK=0. DEMO detenida y base temporal retirada; sin seed, dependencias nuevas o cambios en .venv/.env/fotos.
 
 La aceptación operativa de 5B del 2026-10-14 sigue siendo histórica y no acredita esta reorganización. Pendientes: instrumentos psicométricos autorizados, publicación numérica propia v3, entrenamiento/validación del modelo, aprobación institucional y piloto. Los formularios aritméticos son ejemplos independientes, no resultados psicométricos ni recomendaciones.
+
+
+### 2026-10-16 — Dashboard por meses de la gestión activa
+
+Los gráficos de Inicio del Jefe sustituyen la comparación de últimas gestiones por Operaciones, Cursos registrados, Asistencias registradas y Formaciones finalizadas agrupadas por mes de la Gestión ACTIVA no retirada. Se respeta el intervalo inclusivo de inicio/fin, incluidos meses parciales y períodos que cruzan años. Cada mes aparece con su año y conteo cero cuando no hay registros; sin Gestión activa se solicita activarla, sin inventar un intervalo. En móvil el desplazamiento horizontal se limita al gráfico y admite teclado; dos columnas cuando hay espacio. Indicadores y resúmenes restantes conservan su alcance.
+
+Verificación de esta corrección: cuatro pruebas específicas aprobadas en 0,002 s (límites, cuatro series, ceros, bisiesto, cruce anual y ausencia de Gestión), tres de regresión del espacio del Jefe aprobadas en 7,868 s. Cuatro escenarios con Flask real/DEMO aislada y Chrome, 360/1447 px, claro/oscuro: doce meses por gráfico, conteos comprobados, sin errores JavaScript ni desbordes de página; capturas inspeccionadas. Compilación Python y git diff --check correctos. No cambia JavaScript de producto, esquema ni datos de trabajo; SQLite permanece v25. No se repitió la suite completa: la evidencia de 158 pruebas del 2026-10-15 es histórica. Logs/capturas en .tmp/mensual-regresion.log y .tmp/mensual-ui/.
+
+
+### 2026-10-16 — Días con asistencia registrada por mes
+
+El gráfico de asistencia del Inicio del Jefe cuenta fechas distintas dentro de cada mes de la Gestión activa (COUNT DISTINCT fecha), no filas por persona. Varias personas o actividades registradas el mismo día cuentan como un único día. No se filtra por Asiste: se cuentan días con registro de llamada, independientemente del estado personal. Se conserva el intervalo inclusivo y los meses sin registros. Título: Días con asistencia registrada. Las demás series mantienen sus conteos.
+
+Verificación nueva: cinco pruebas mensuales aprobadas en 0,002 s, incluida deduplicación de fechas con múltiples registros y límites del período; tres pruebas del espacio del Jefe aprobadas en 7,287 s, incluida la etiqueta renderizada. Compilación Python y git diff --check correctos. Sin migración, cambios de datos ni nueva suite completa o ensayo visual. Evidencia en .tmp/dias-asistencia-tests.log y .tmp/dias-asistencia-regresion.log; las verificaciones visuales anteriores siguen siendo históricas.
+
+
+### 2026-10-16 — Observación opcional al calificar
+
+Por confirmación del solicitante, únicamente los formularios de calificación sustituyen Motivo por Observación (opcional): físicas, Desempeño, operaciones y finalización/corrección de cursos, incluidos formularios históricos de notas. Se permite texto vacío u omitido en servidor; texto presente debe ser cadena de hasta 2000 caracteres. Se conserva el campo interno motivo y su historial para compatibilidad, sin migración ni modificación retroactiva de registros. No cambia la exigencia de motivo en cierre/reapertura, eliminación, publicación, activación o programación física. Las referencias académicas históricas y el nombre del Comandante siguen siendo obligatorios.
+
+
+### 2026-10-16 — Participaciones y asistencia del Instructor seleccionado
+
+Evaluaciones muestra en Cursos, operaciones y asistencia las participaciones del Instructor seleccionado dentro de las fechas de la Gestión seleccionada (alcance y fórmula confirmados por el solicitante). Cursos por solapamiento del intervalo capturado al asignar o fecha personal de finalización dentro de Gestión; estados personales y retiradas identificados, sin confundir asignación con finalización. Operaciones por solapamiento inclusivo, usando inicio cuando el histórico no tiene fin; la calificación conserva la regla vigente de inicio dentro de Gestión. La lista informativa no cambia las fuentes del acumulado académico.
+
+Asistencia reutiliza la proyección histórica y la fórmula del reporte: (Asiste + Atraso)/(Asiste + Atraso + Falta), dos decimales; Permiso excluido, sin registros computables No disponible. Conteo por registros personales, sin inventar faltas por fechas sin registro. Indicador separado de Académica y de instantáneas de cierre; las participaciones y asistencias se consultan en su estado actual. API administrativa existente protegida por roles, usuario y período; sin ampliar proyección propia de Instructor.
+
+Presentación actualizada 2026-10-16: las participaciones del Instructor se muestran en dos tablas compactas independientes (Cursos y Capacitaciones / Operaciones), con información, estados, fechas y acción de calificar donde corresponde. Desplazamiento horizontal local en móvil, encabezados y caption; asistencia como resumen de texto sin tarjeta.
+
+Corrección de distribución 2026-10-16: la sección de participaciones se apila en una sola columna; ambas tablas ocupan todo el ancho disponible y títulos/cabeceras se alinean a la izquierda. En móvil el desplazamiento horizontal permanece dentro de cada tabla.
+
+Visibilidad 2026-10-16: el desplegable Historial de notas y correcciones del modelo anual se muestra únicamente al Administrador, retirado de la interfaz del Jefe de Personal. Se conserva la evidencia persistida y los contratos administrativos de API existentes.
+
+Asistencia personal 2026-10-16: resumen con gráfico compacto de cuatro torres por estado, conteos y etiquetas visibles, junto al porcentaje general existente. Ceros sin altura positiva; sin cambio de fórmula o calificaciones.
+
+Calificación y habilitación 2026-10-16: tabla compacta con Evaluación, Nota, Estado/origen, Habilitación y Acción, con el mismo constructor y estilo de las tablas de Cursos y Operaciones. Se conservan las condiciones y modales de calificación.
+
+Reporte individual 2026-10-16: se añade una opción administrativa en Reportes para seleccionar Instructor admitido y exportar su expediente de la Gestión activa. Perfil/foto, formación, operaciones, notas, asistencia, psicometría y recomendación pendientes. Alcance, permisos y referencias de presentación en [reporte individual](22_reporte_individual.md).
+
+Centro de reportes 2026-10-16: las seis opciones se presentan como filas compactas apiladas, con icono, título/criterio, filtros y botón alineados. Filtros debajo del nombre en pantallas pequeñas; permisos, criterios y generación PDF permanecen intactos.

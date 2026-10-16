@@ -26,6 +26,7 @@ class EspacioJefeTestCase(unittest.TestCase):
         pagina=self.cliente.get('/gestion/periodos-5b').data.decode()
         self.assertNotIn('periodo-5b-alta',pagina);self.assertIn('modelo-lista-gestiones',pagina)
         self.assertIn('Resumen SBRAB',html);self.assertNotIn('Seguimiento asignado',html)
+        self.assertIn('Días con asistencia registrada',html)
         h={'X-CSRFToken':self._csrf_token()}
         self.assertEqual(self.cliente.post(f'/api/admin/5b/periodos/{self.pid}/publicar',json={'revision':1},headers=h).status_code,403)
 

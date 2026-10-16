@@ -76,7 +76,7 @@ if (cursosCatalogo) {
     const fechaLabel = elemento("label", "Fecha de finalización personal"); const fecha = elemento("input"); fecha.type = "date"; fecha.name = "fecha_finalizacion"; fecha.min = p.inicio_curso; fecha.max = hoy; fecha.value = p.fecha_finalizacion || ""; fechaLabel.append(fecha); final.append(puntoLabel, fechaLabel); form.append(final);
     function alternar() { const esFinal = estado.value === "Finalizado"; final.hidden = !esFinal; [puntos, fecha].forEach((control) => { control.required = esFinal; control.disabled = !esFinal; }); }
     estado.addEventListener("change", alternar); alternar();
-    const motivoLabel = elemento("label", "Motivo del cambio"); const motivo = elemento("textarea"); motivo.name = "motivo"; motivo.required = true; motivo.maxLength = 2000; motivoLabel.append(motivo); form.append(motivoLabel);
+    const motivoLabel = elemento("label", "Observación (opcional)"); const motivo = elemento("textarea"); motivo.name = "motivo"; motivo.required = false; motivo.maxLength = 2000; motivoLabel.append(motivo); form.append(motivoLabel);
     const guardar = elemento("button", "Guardar cambio"); form.append(guardar);
     form.addEventListener("submit", async (event) => {
       event.preventDefault(); if (!form.reportValidity()) return; guardar.disabled = true;

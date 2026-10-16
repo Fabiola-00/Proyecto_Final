@@ -1,9 +1,26 @@
 {% extends "_dashboard_base.html" %}
+{% macro icono_reporte(tipo) -%}
+<span class="reporte-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+{% if tipo == 'individual' %}<rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="9" r="2.5"/><path d="M8 17c0-4 8-4 8 0"/>
+{% elif tipo == 'evaluaciones' %}<path d="M9 4H6a2 2 0 0 0-2 2v14h16V6a2 2 0 0 0-2-2h-3"/><rect x="9" y="2" width="6" height="4" rx="1"/><path d="m8 12 2 2 5-5M8 17h8"/>
+{% elif tipo == 'asistencias' %}<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18m-13 5 3 3 5-5"/>
+{% elif tipo == 'cursos' %}<path d="M12 5C9 3 5 3 2 4v15c4-1 7-1 10 1 3-2 6-2 10-1V4c-3-1-7-1-10 1zm0 0v15"/>
+{% elif tipo == 'formacion' %}<path d="m2 8 10-5 10 5-10 5zm4 3v6c4 3 8 3 12 0v-6m4-3v9"/>
+{% else %}<path d="m12 2 9 5v10l-9 5-9-5V7zm0 0v20M3 7l9 5 9-5M8 5l9 5"/>{% endif %}
+</svg></span>
+{%- endmacro %}
 {% block contenido %}
-<section class="seccion-panel"><h2>Reportes de SBRAB</h2><p>PDF administrativos. Selecciona la gestión o el rango inclusivo indicado en cada reporte.</p>
-<div class="rejilla-modulos">
-<article class="tarjeta-modulo"><h3>Evaluaciones</h3><form class="reporte-central formulario-inline" data-url="/api/evaluaciones/reporte.pdf"><label>Gestión<select name="periodo_id" id="reporte-gestion" required><option value="">Seleccionar gestión</option></select></label><button>Generar PDF</button><p role="status"></p></form></article>
-{% for titulo,url,criterio in [('Asistencias','/api/jefe-personal/asistencias/reporte.pdf','Fecha de asistencia'),('Cursos y Capacitaciones','/api/cursos/reporte.pdf','Inicio del curso (catálogo)'),('Formación personal','/api/reportes/formacion.pdf','Finalización personal; solo participaciones finalizadas'),('Operaciones y participantes','/api/reportes/operaciones.pdf','Inicio de la operación')] %}
-<article class="tarjeta-modulo"><h3>{{ titulo }}</h3><p>{{ criterio }}</p><form class="reporte-central formulario-inline" data-url="{{ url }}"><label>Desde<input name="desde" type="date" required></label><label>Hasta<input name="hasta" type="date" required></label><button>Generar PDF</button><p role="status"></p></form></article>{% endfor %}
+<section class="seccion-panel reportes-panel"><h2>Reportes de SBRAB</h2><p>PDF administrativos. Selecciona los filtros y abre el reporte en otra pestaña.</p>
+<div class="lista-reportes" role="list" aria-label="Reportes disponibles">
+<article class="fila-reporte" role="listitem">
+<div class="reporte-identidad">{{ icono_reporte('individual') }}<div><h3>Reporte individual</h3><p>Perfil, foto, formación, operaciones, notas y asistencia. Psicometría y recomendación pendientes.</p></div></div>
+<form id="reporte-individual" class="reporte-central formulario-inline reporte-filtros reporte-filtros-individual" data-url="">
+<p id="reporte-individual-gestion" class="reporte-contexto">Consultando Gestión activa…</p><input type="hidden" name="periodo_id">
+<label>Instructor Voluntario<select id="reporte-individual-persona" required disabled><option value="">Seleccionar Instructor</option></select></label><button disabled aria-label="Generar PDF individual">Generar PDF</button><p role="status" aria-live="polite"></p></form></article>
+<article class="fila-reporte" role="listitem"><div class="reporte-identidad">{{ icono_reporte('evaluaciones') }}<div><h3>Evaluaciones</h3><p>Calificaciones administrativas de la Gestión seleccionada.</p></div></div>
+<form class="reporte-central formulario-inline reporte-filtros reporte-filtros-gestion" data-url="/api/evaluaciones/reporte.pdf"><label>Gestión<select name="periodo_id" id="reporte-gestion" required><option value="">Seleccionar gestión</option></select></label><button aria-label="Generar PDF de evaluaciones">Generar PDF</button><p role="status" aria-live="polite"></p></form></article>
+{% for titulo,url,criterio,tipo in [('Asistencias','/api/jefe-personal/asistencias/reporte.pdf','Por fecha de asistencia.','asistencias'),('Cursos y Capacitaciones','/api/cursos/reporte.pdf','Por fecha de inicio del curso en el catálogo.','cursos'),('Formación personal','/api/reportes/formacion.pdf','Por finalización personal; solo participaciones finalizadas.','formacion'),('Operaciones y participantes','/api/reportes/operaciones.pdf','Por fecha de inicio de la operación.','operaciones')] %}
+<article class="fila-reporte" role="listitem"><div class="reporte-identidad">{{ icono_reporte(tipo) }}<div><h3>{{ titulo }}</h3><p>{{ criterio }}</p></div></div>
+<form class="reporte-central formulario-inline reporte-filtros" data-url="{{ url }}"><label>Desde<input name="desde" type="date" required></label><label>Hasta<input name="hasta" type="date" required></label><button aria-label="Generar PDF de {{ titulo }}">Generar PDF</button><p role="status" aria-live="polite"></p></form></article>{% endfor %}
 </div></section><script src="{{ url_for('static',filename='js/espacio_jefe.js') }}" defer></script>
 {% endblock %}

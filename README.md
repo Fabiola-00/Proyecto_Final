@@ -2,6 +2,8 @@
 
 **Sistema de Control y Evaluación de Personal** es un prototipo académico para el seguimiento de personal voluntario de rescate y emergencias. Usa Flask, SQLite y HTML/CSS/JavaScript puro. No es un producto comercial ni clínico.
 
+Paleta institucional vigente (2026-10-16): azules `#0500B2` y `#0054B2`, naranjas `#FA9A4B` y `#FCC495`, complementarios `#226DC6` y `#C67B22`. Interfaz con tonos derivados para modos claro/oscuro; PDF en paleta clara para impresión. Verde/rojo conservan su significado de estado.
+
 ## Estado actual — revisión 2026-10-15
 
 **SQLite v25. Espacio de trabajo organizado, Gestión/Evaluaciones separadas, cursos con bajas y retiradas auditadas, físicas v3 sin fechas y formularios aritméticos demostrativos independientes. PDF anual v3 administrativo y reportes en otra pestaña. Psicometría oficial y red neuronal pendientes.** Véase [organización vigente](docs/21_organizacion_espacio_trabajo.md). Véase la actualización v24 al final. El siguiente resumen v23 conserva el alcance histórico aceptado, no sustituye las decisiones nuevas.
@@ -235,3 +237,23 @@ Verificación del 2026-10-15: suite completa de **149 pruebas aprobadas en 339,5
 - Relectura de la base de trabajo contra el respaldo pre-v25: **49 tablas previas preservadas**, salvo el identificador de versión; cuatro nuevas tablas vacías, v25/quick_check=ok/FK=0. DEMO detenida y base temporal retirada; sin seed, dependencias nuevas o cambios en .venv/.env/fotos.
 
 La aceptación operativa de 5B del 2026-10-14 sigue siendo histórica y no acredita esta reorganización. Pendientes: instrumentos psicométricos autorizados, publicación numérica propia v3, entrenamiento/validación del modelo, aprobación institucional y piloto. Los formularios aritméticos son ejemplos independientes, no resultados psicométricos ni recomendaciones.
+
+
+### 2026-10-16 — Dashboard por meses de la gestión activa
+
+Los gráficos de Inicio del Jefe sustituyen la comparación de últimas gestiones por Operaciones, Cursos registrados, Asistencias registradas y Formaciones finalizadas agrupadas por mes de la Gestión ACTIVA no retirada. Se respeta el intervalo inclusivo de inicio/fin, incluidos meses parciales y períodos que cruzan años. Cada mes aparece con su año y conteo cero cuando no hay registros; sin Gestión activa se solicita activarla, sin inventar un intervalo. En móvil el desplazamiento horizontal se limita al gráfico y admite teclado; dos columnas cuando hay espacio. Indicadores y resúmenes restantes conservan su alcance.
+
+Verificación de esta corrección: cuatro pruebas específicas aprobadas en 0,002 s (límites, cuatro series, ceros, bisiesto, cruce anual y ausencia de Gestión), tres de regresión del espacio del Jefe aprobadas en 7,868 s. Cuatro escenarios con Flask real/DEMO aislada y Chrome, 360/1447 px, claro/oscuro: doce meses por gráfico, conteos comprobados, sin errores JavaScript ni desbordes de página; capturas inspeccionadas. Compilación Python y git diff --check correctos. No cambia JavaScript de producto, esquema ni datos de trabajo; SQLite permanece v25. No se repitió la suite completa: la evidencia de 158 pruebas del 2026-10-15 es histórica. Logs/capturas en .tmp/mensual-regresion.log y .tmp/mensual-ui/.
+
+
+### 2026-10-16 — Días con asistencia registrada por mes
+
+El gráfico de asistencia del Inicio del Jefe cuenta fechas distintas dentro de cada mes de la Gestión activa (COUNT DISTINCT fecha), no filas por persona. Varias personas o actividades registradas el mismo día cuentan como un único día. No se filtra por Asiste: se cuentan días con registro de llamada, independientemente del estado personal. Se conserva el intervalo inclusivo y los meses sin registros. Título: Días con asistencia registrada. Las demás series mantienen sus conteos.
+
+Verificación nueva: cinco pruebas mensuales aprobadas en 0,002 s, incluida deduplicación de fechas con múltiples registros y límites del período; tres pruebas del espacio del Jefe aprobadas en 7,287 s, incluida la etiqueta renderizada. Compilación Python y git diff --check correctos. Sin migración, cambios de datos ni nueva suite completa o ensayo visual. Evidencia en .tmp/dias-asistencia-tests.log y .tmp/dias-asistencia-regresion.log; las verificaciones visuales anteriores siguen siendo históricas.
+
+Actualización 2026-10-16: los modales de calificación usan Observación opcional (también validada como opcional en servidor); el resto de las acciones conserva sus requisitos de motivo. Véase docs/21_organizacion_espacio_trabajo.md.
+
+Evaluaciones: Cursos, operaciones y asistencia muestra las participaciones y el porcentaje de asistencia del Instructor y la Gestión seleccionados; indicador informativo separado de las notas.
+
+Reporte individual administrativo (2026-10-16): en Reportes, seleccionar Instructor y generar PDF de la Gestión activa con perfil/foto, formación finalizada/pendiente, operaciones, calificaciones, asistencia y psicometría/recomendación pendientes. Disponible para Administrador/Jefe. Véase [reporte individual](docs/22_reporte_individual.md).

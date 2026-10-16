@@ -31,7 +31,7 @@ def generar_pdf_asistencias(datos):
         disponible=ancho-60;fijos=[22,65,130];finales=[30,30,30,30,60]
         anchos=fijos+[(disponible-sum(fijos)-sum(finales))/len(bloque)]*len(bloque)+finales if bloque else fijos+finales
         tabla=Table(filas,colWidths=anchos,repeatRows=1,hAlign='LEFT')
-        tabla.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#E8E9FA')),('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.white,colors.HexColor('#F4F5F8')]),('VALIGN',(0,0),(-1,-1),'TOP'),('GRID',(0,0),(-1,-1),.25,colors.HexColor('#D7DBE5')),('LEFTPADDING',(0,0),(-1,-1),4),('RIGHTPADDING',(0,0),(-1,-1),4),('TOPPADDING',(0,0),(-1,-1),6),('BOTTOMPADDING',(0,0),(-1,-1),6)]))
+        tabla.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#EAF2FC')),('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.white,colors.HexColor('#F6F9FD')]),('VALIGN',(0,0),(-1,-1),'TOP'),('GRID',(0,0),(-1,-1),.25,colors.HexColor('#DCE6F2')),('LEFTPADDING',(0,0),(-1,-1),4),('RIGHTPADDING',(0,0),(-1,-1),4),('TOPPADDING',(0,0),(-1,-1),6),('BOTTOMPADDING',(0,0),(-1,-1),6)]))
         contenido.append(tabla)
     documento=SimpleDocTemplate(salida,pagesize=landscape(A4),leftMargin=30,rightMargin=30,topMargin=105,bottomMargin=40,title='Reporte Asistencia',author='SBRAB')
     documento.build(contenido,onFirstPage=carimbo_institucional,onLaterPages=carimbo_institucional);salida.seek(0);return salida

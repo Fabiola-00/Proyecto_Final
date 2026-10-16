@@ -160,7 +160,7 @@ def registrar_nota(identificador):
         comandante_nombre = texto(datos, "comandante_nombre", 160, fuente == "DESEMPENO_COMANDANTE")
         if fuente != "DESEMPENO_COMANDANTE" and comandante_nombre:
             raise ValueError("Nombre del Comandante solo para su aportación.")
-        motivo = texto(datos, "motivo", 2000, fuente == "ACADEMICA")
+        motivo = texto(datos, "motivo", 2000)
         observacion = texto(datos, "observacion", 2000)
         referencias = datos.get("capacitaciones", [])
         if not isinstance(referencias, list) or len(referencias) > 100 or any(isinstance(i, bool) or not isinstance(i, int) or i < 1 for i in referencias) or len(set(referencias)) != len(referencias):
@@ -217,8 +217,6 @@ def registrar_nota(identificador):
         from .fisicas import validar_resultado, Conflicto
         try:
             resultado_fisico = validar_resultado(c, identificador, pid, fuente, datos.get('fisica'), puntos)
-            if resultado_fisico and (ultima or resultado_fisico['estado'] == 'NO_CUMPLIDA') and not motivo:
-                raise ValueError('La corrección o No cumplida requiere motivo.')
         except Conflicto as error:
             return rechazar(str(error), 409)
         except ValueError as error:

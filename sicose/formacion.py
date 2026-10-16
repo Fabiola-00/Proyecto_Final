@@ -118,9 +118,9 @@ def actualizar(identificador):
     entrada = request.get_json(silent=True)
     if not isinstance(entrada, dict) or set(entrada) - {'revision', 'estado', 'puntaje', 'fecha_finalizacion', 'motivo'} or type(entrada.get('revision')) is not int or entrada.get('revision', 0) < 1 or entrada.get('estado') not in ESTADOS:
         return fallo('Estado y revisión vigentes requeridos.')
-    motivo = entrada.get('motivo')
-    if not isinstance(motivo, str) or not 1 <= len(motivo.strip()) <= 2000:
-        return fallo('Ingresa el motivo del cambio (máximo 2000 caracteres).')
+    motivo = entrada.get('motivo', '')
+    if not isinstance(motivo, str) or len(motivo.strip()) > 2000:
+        return fallo('Observación inválida (máximo 2000 caracteres).')
     puntos, finalizacion = entrada.get('puntaje'), entrada.get('fecha_finalizacion')
     try:
         if entrada['estado'] == 'Finalizado':

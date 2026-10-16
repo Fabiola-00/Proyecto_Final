@@ -51,4 +51,16 @@
     evento.preventDefault();if(!form.reportValidity())return;const mensaje=form.querySelector('[role=status]'),boton=form.querySelector('button');boton.disabled=true;mensaje.textContent='Generando reporte…';const vista=window.open('about:blank','_blank');if(vista)vista.opener=null;
     try{const respuesta=await fetch(`${form.dataset.url}?${new URLSearchParams(new FormData(form))}`,{credentials:'same-origin'});if(!respuesta.ok){const error=await respuesta.json();throw new Error(error.error || 'No se pudo generar el reporte.');}if(!respuesta.headers.get('Content-Type')?.includes('application/pdf'))throw new Error('La sesión no permite descargar este reporte. Vuelve a ingresar.');if(!vista)throw new Error('Permite abrir una pestaña para visualizar el reporte.');const url=URL.createObjectURL(await respuesta.blob());vista.location.replace(url);setTimeout(()=>URL.revokeObjectURL(url),300000);mensaje.textContent='Reporte abierto en otra pestaña.';}catch(e){if(vista)vista.close();mensaje.textContent=e.message;}finally{boton.disabled=false;}
   }));
+  const individual=document.querySelector('#reporte-individual');
+  if(individual){
+    const persona=individual.querySelector('select'),boton=individual.querySelector('button');
+    persona.addEventListener('change',()=>{individual.dataset.url=persona.value?`/api/reportes/individual/${persona.value}.pdf`:'';boton.disabled=!persona.value;});
+    apiJson('/api/reportes/individual/contexto').then(d=>{
+      individual.elements.periodo_id.value=d.periodo.id;
+      document.querySelector('#reporte-individual-gestion').textContent=`Gestión activa: ${d.periodo.nombre} · ${d.periodo.fecha_inicio} — ${d.periodo.fecha_fin}`;
+      d.personas.forEach(p=>{const o=elemento('option',`${p.nombre} · ${p.codigo||'Sin código'} · ${p.estado}`);o.value=p.id;persona.append(o);});
+      persona.disabled=!d.personas.length;
+      if(!d.personas.length)individual.querySelector('[role=status]').textContent='Sin Instructores admitidos para consultar.';
+    }).catch(e=>{document.querySelector('#reporte-individual-gestion').textContent='Reporte individual no disponible.';individual.querySelector('[role=status]').textContent=e.message;});
+  }
 }

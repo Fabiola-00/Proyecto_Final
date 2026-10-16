@@ -8,6 +8,30 @@ from .formacion import hoy_bolivia
 espacio_bp = Blueprint('espacio_jefe', __name__)
 
 
+def tendencias_mensuales(c, periodo):
+    """Conteos por mes dentro del intervalo inclusivo de la Gestión activa."""
+    meses=[]
+    if periodo:
+        inicio=date.fromisoformat(periodo['fecha_inicio'])
+        fin=date.fromisoformat(periodo['fecha_fin'])
+        mes=inicio.replace(day=1)
+        nombres=('Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic')
+        while mes<=fin:
+            meses.append((mes.strftime('%Y-%m'),f'{nombres[mes.month-1]} {mes.year}'))
+            if mes.year==fin.year and mes.month==fin.month: break
+            mes=date(mes.year+1,1,1) if mes.month==12 else date(mes.year,mes.month+1,1)
+    tendencias=[]
+    for titulo,tabla,columna,extra in [('Operaciones','operaciones','fecha_inicio',''),('Cursos registrados','cursos','fecha_inicio',''),('Días con asistencia registrada','asistencias','fecha',''),('Formaciones finalizadas','participaciones_curso','fecha_finalizacion'," AND estado='Finalizado'")]:
+        # Tabla/columna provienen de esta lista fija; solo fechas recibidas como parámetros.
+        conteo='COUNT(DISTINCT fecha)' if tabla=='asistencias' else 'COUNT(*)'
+        valores=dict(c.execute(f'SELECT substr({columna},1,7),{conteo} FROM {tabla} WHERE {columna} BETWEEN ? AND ?'+extra+f' GROUP BY substr({columna},1,7)',(periodo['fecha_inicio'],periodo['fecha_fin'])).fetchall()) if periodo else {}
+        filas=[dict(mes=clave,nombre=nombre,valor=valores.get(clave,0)) for clave,nombre in meses]
+        mayor=max([f['valor'] for f in filas] or [1]) or 1
+        for f in filas: f['alto']=round(f['valor']/mayor*110)
+        tendencias.append(dict(titulo=titulo,filas=filas))
+    return tendencias
+
+
 def resumen_panel(c):
     personal = {r['estado']: r['n'] for r in c.execute("SELECT u.estado,COUNT(*) n FROM usuarios u JOIN voluntarios v ON v.usuario_id=u.id WHERE u.estado IN ('ACTIVO','INACTIVO') GROUP BY u.estado")}
     formacion = {r['estado']: r['n'] for r in c.execute('SELECT estado,COUNT(*) n FROM participaciones_curso GROUP BY estado')}
@@ -32,13 +56,7 @@ def resumen_panel(c):
     def grafico(titulo, alcance, valores):
         return dict(titulo=titulo, alcance=alcance, total=sum(valores.values()), filas=[dict(etiqueta=k,valor=v) for k,v in valores.items()])
     gestion = f"Gestión activa: {periodo['nombre']}." if periodo else 'Sin gestión activa.'
-    tendencias=[]
-    gestiones=c.execute("SELECT p.id,p.nombre,p.fecha_inicio,p.fecha_fin FROM periodos p WHERE NOT EXISTS(SELECT 1 FROM bajas_gestion b WHERE b.periodo_id=p.id) ORDER BY p.fecha_inicio DESC,p.id DESC LIMIT 5").fetchall()[::-1]
-    for titulo,tabla,columna,extra in [('Operaciones','operaciones','fecha_inicio',''),('Cursos registrados','cursos','fecha_inicio',''),('Asistencias registradas','asistencias','fecha',''),('Formaciones finalizadas','participaciones_curso','fecha_finalizacion'," AND estado='Finalizado'")]:
-        filas=[dict(nombre=p['nombre'],valor=c.execute(f'SELECT COUNT(*) FROM {tabla} WHERE {columna} BETWEEN ? AND ?'+extra,(p['fecha_inicio'],p['fecha_fin'])).fetchone()[0]) for p in gestiones]
-        mayor=max([f['valor'] for f in filas] or [1]) or 1
-        for f in filas: f['alto']=round(f['valor']/mayor*110)
-        tendencias.append(dict(titulo=titulo,filas=filas))
+    tendencias=tendencias_mensuales(c,periodo)
     return dict(gestion=gestion, tendencias=tendencias, indicadores=[
         dict(etiqueta='Instructores Voluntarios activos',valor=personal.get('ACTIVO',0),detalle='Directorio global SBRAB'),
         dict(etiqueta='Formaciones finalizadas',valor=formacion.get('Finalizado',0),detalle='Finalizaciones personales de todos los años'),
@@ -91,5 +109,50 @@ def reporte(tipo):
     from flask_login import current_user
     db.registrar_auditoria(c,current_user.id,'REPORTE_'+tipo.upper()+'_GENERADO','EXITOSO');c.commit()
     respuesta=send_file(archivo,mimetype='application/pdf',as_attachment=False,download_name=f'{tipo}-{desde}-{hasta}.pdf',max_age=0)
+    respuesta.headers['Cache-Control']='private, no-store'
+    return respuesta
+
+
+@espacio_bp.get('/api/reportes/individual/contexto')
+@role_required('ADMINISTRADOR','JEFE_PERSONAL')
+def contexto_individual():
+    from .reporte_individual import gestion_activa
+    c=db.obtener_conexion()
+    try:
+        c.execute('BEGIN')
+        periodo=gestion_activa(c)
+        personas=[dict(f) for f in c.execute("""SELECT u.id,u.nombre_completo AS nombre,
+            v.codigo_instructor AS codigo,u.estado FROM usuarios u
+            JOIN voluntarios v ON v.usuario_id=u.id JOIN roles r ON r.id=u.rol_id
+            WHERE r.nombre='INSTRUCTOR_VOLUNTARIO' AND u.estado IN ('ACTIVO','INACTIVO')
+            ORDER BY u.nombre_completo,u.id""")]
+        c.commit();respuesta=jsonify(periodo=periodo,personas=personas)
+    except ValueError as error:
+        c.rollback();respuesta=jsonify(error=str(error));respuesta.status_code=409
+    respuesta.headers['Cache-Control']='private, no-store'
+    return respuesta
+
+
+@espacio_bp.get('/api/reportes/individual/<int:uid>.pdf')
+@role_required('ADMINISTRADOR','JEFE_PERSONAL')
+def reporte_individual(uid):
+    from .reporte_individual import datos_individual,generar_individual
+    from flask_login import current_user
+    c=db.obtener_conexion()
+    try:
+        if set(request.args)!={'periodo_id'} or len(request.args.getlist('periodo_id'))!=1:
+            return jsonify(error='Selecciona la Gestión activa del reporte.'),400
+        pid=int(request.args['periodo_id'])
+        c.execute('BEGIN')
+        datos=datos_individual(c,uid,pid)
+        archivo=generar_individual(datos)
+        db.registrar_auditoria(c,current_user.id,f'REPORTE_INDIVIDUAL:PERSONA={uid}:GESTION={pid}','EXITOSO')
+        c.commit()
+        respuesta=send_file(archivo,mimetype='application/pdf',as_attachment=False,
+                            download_name=f'individual-{uid}-gestion-{pid}.pdf',max_age=0)
+    except LookupError as error:
+        c.rollback();respuesta=jsonify(error=str(error));respuesta.status_code=404
+    except (ValueError,TypeError) as error:
+        c.rollback();respuesta=jsonify(error=str(error));respuesta.status_code=409
     respuesta.headers['Cache-Control']='private, no-store'
     return respuesta
