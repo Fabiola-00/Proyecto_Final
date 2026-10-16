@@ -4,7 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Sistema de Control y Evaluación de Personal">
-  <title>{{ titulo_pagina }} | SICOSE</title>
+  <title>SICOSE - SBRAB</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/sbrab-logo.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
   <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
 </head>
@@ -28,7 +29,7 @@
           <a class="enlace-nav{% if nav_activo == clave %} activo{% endif %}" href="{{ url_for(ruta) }}" aria-label="{{ etiqueta }}"{% if nav_activo == clave %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">{{ icono }}</span><span>{{ etiqueta }}</span></a>
           {% endfor %}
           <p class="etiqueta-nav grupo-nav">EVALUACIÓN ANUAL</p>
-          {% for clave,etiqueta,ruta,icono in [('periodos_5b','Gestión','periodos_5b.pagina','▦'),('evaluaciones_jefe','Evaluaciones','espacio_jefe.evaluaciones','✓'),('seguimiento_5b','Notas y Resultados','seguimiento.pagina_seguimiento','✓'),('reportes','Reportes','espacio_jefe.reportes','▤')] %}
+          {% for clave,etiqueta,ruta,icono in [('periodos_5b','Gestión','periodos_5b.pagina','▦'),('evaluaciones_jefe','Evaluaciones','modelo_anual.pagina','✓'),('reportes','Reportes','espacio_jefe.reportes','▤')] %}
           <a class="enlace-nav{% if nav_activo == clave or (clave == 'evaluaciones_jefe' and nav_activo in ['tabla_evaluaciones','evaluaciones']) %} activo{% endif %}" href="{{ url_for(ruta) }}" aria-label="{{ etiqueta }}"{% if nav_activo == clave %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">{{ icono }}</span><span>{{ etiqueta }}</span></a>
           {% endfor %}
         {% elif current_user.rol == 'ADMINISTRADOR' %}
@@ -39,16 +40,15 @@
           <a class="enlace-nav{% if nav_activo == 'capacitaciones' %} activo{% endif %}" href="{{ url_for('evaluations.pagina_capacitaciones') }}" aria-label="Capacitaciones y Cursos"><span class="nav-icono" aria-hidden="true">▤</span><span>Capacitaciones y Cursos</span></a>
           <a class="enlace-nav{% if nav_activo == 'operaciones' %} activo{% endif %}" href="{{ url_for('relaciones.pagina_operaciones') }}" aria-label="Operaciones"><span class="nav-icono" aria-hidden="true">▦</span><span>Operaciones</span></a>
           <p class="etiqueta-nav grupo-nav">EVALUACIÓN ANUAL</p>
-          <a class="enlace-nav{% if nav_activo == 'periodos_5b' %} activo{% endif %}" href="{{ url_for('periodos_5b.pagina') }}" aria-label="Gestiones (año)"><span class="nav-icono" aria-hidden="true">▦</span><span>Gestiones (año)</span></a>
-          <a class="enlace-nav{% if nav_activo == 'evaluaciones' %} activo{% endif %}" href="{{ url_for('evaluations.pagina_catalogo') }}" aria-label="Catálogo de evaluaciones"><span class="nav-icono" aria-hidden="true">▤</span><span>Catálogo de evaluaciones</span></a>
-          <a class="enlace-nav{% if nav_activo == 'tabla_evaluaciones' %} activo{% endif %}" href="{{ url_for('tabla_evaluaciones.pagina') }}" aria-label="Habilitación y avance"><span class="nav-icono" aria-hidden="true">✓</span><span>Habilitación y avance</span></a>
-          <a class="enlace-nav{% if nav_activo == 'seguimiento_5b' %} activo{% endif %}" href="{{ url_for('seguimiento.pagina_seguimiento') }}" aria-label="Notas y resultados"><span class="nav-icono" aria-hidden="true">✓</span><span>Notas y resultados</span></a>
+          <a class="enlace-nav{% if nav_activo == 'periodos_5b' %} activo{% endif %}" href="{{ url_for('periodos_5b.pagina') }}" aria-label="Gestión"><span class="nav-icono" aria-hidden="true">▦</span><span>Gestión</span></a>
+          <a class="enlace-nav{% if nav_activo == 'evaluaciones' %} activo{% endif %}" href="{{ url_for('modelo_anual.pagina') }}" aria-label="Evaluaciones"><span class="nav-icono" aria-hidden="true">▤</span><span>Evaluaciones</span></a>
+          <a class="enlace-nav" href="{{ url_for('espacio_jefe.reportes') }}">Reportes</a>
           {% if current_user.rol == 'ADMINISTRADOR' %}<p class="etiqueta-nav grupo-nav">CUENTA</p><a class="enlace-nav{% if nav_activo == 'configuracion' %} activo{% endif %}" href="{{ url_for('management.pagina_configuracion') }}" aria-label="Mi cuenta y contraseña"><span class="nav-icono" aria-hidden="true">⚙</span><span>Mi cuenta y contraseña</span></a>{% endif %}
         {% elif current_user.rol == 'INSTRUCTOR_VOLUNTARIO' %}
           <p class="etiqueta-nav grupo-nav">MI INFORMACIÓN</p>
           <a class="enlace-nav{% if nav_activo == 'perfil' %} activo{% endif %}" href="{{ url_for('management.pagina_perfil_propio') }}" aria-label="Mi perfil"><span class="nav-icono" aria-hidden="true">♙</span><span>Mi perfil</span></a>
           <a class="enlace-nav{% if nav_activo == 'asistencias' %} activo{% endif %}" href="{{ url_for('asistencias.pagina_propia') }}"><span class="nav-icono" aria-hidden="true">◷</span><span>Mis asistencias</span></a>
-          <a class="enlace-nav{% if nav_activo == 'tabla_evaluaciones' %} activo{% endif %}" href="{{ url_for('tabla_evaluaciones.pagina_propia') }}" aria-label="Mis evaluaciones"><span class="nav-icono" aria-hidden="true">✓</span><span>Mis evaluaciones</span></a>
+          <a class="enlace-nav{% if nav_activo == 'tabla_evaluaciones' %} activo{% endif %}" href="{{ url_for('demostraciones.pagina') }}" aria-label="Mis evaluaciones"><span class="nav-icono" aria-hidden="true">✓</span><span>Mis evaluaciones</span></a>
           <a class="enlace-nav{% if nav_activo == 'capacitaciones' %} activo{% endif %}" href="{{ url_for('relaciones.pagina_cursos_propios') }}"><span class="nav-icono" aria-hidden="true">▤</span><span>Mis cursos</span></a>
           <a class="enlace-nav{% if nav_activo == 'operaciones' %} activo{% endif %}" href="{{ url_for('relaciones.pagina_operaciones') }}"><span class="nav-icono" aria-hidden="true">▦</span><span>Mis operaciones</span></a>
         {% endif %}

@@ -66,6 +66,8 @@ def guardar_fuentes(c, cid, filas):
 @periodos_5b_bp.get("/gestion/periodos-5b")
 @role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def pagina():
+    if request.args.get('historico') != '1':
+        return render_template('modelo_anual.html',modo_gestion=True,titulo_pagina='Gestión',nav_activo='periodos_5b',indicadores=[],periodo_actual=db.periodo_actual(),descripcion='Crea, inicia y cierra los períodos de evaluación del personal.')
     return render_template("gestion_jefe_gestiones.html" if current_user.rol == "JEFE_PERSONAL" else "gestion_periodos_5b.html", titulo_pagina="Gestión" if current_user.rol == "JEFE_PERSONAL" else "Gestiones (año)",
                            nav_activo="periodos_5b", indicadores=[], periodo_actual=db.periodo_actual(),
                            descripcion="Consulta y administra los años de evaluación." if current_user.rol == "JEFE_PERSONAL" else "Gestiona los años evaluados y configura sus evaluaciones.")
@@ -80,6 +82,9 @@ def listar():
     for fila in c.execute("SELECT * FROM periodos ORDER BY fecha_inicio DESC,id DESC"):
         periodo = dict(fila)
         periodo["anual"] = anual(periodo)
+        from .modelo_anual import es_modelo
+        periodo["modelo_anual"] = es_modelo(c,periodo["id"])
+        periodo["modelo_revision"] = c.execute("SELECT revision FROM modelos_anuales WHERE periodo_id=?",(periodo["id"],)).fetchone()[0] if periodo["modelo_anual"] else None
         periodo["configuracion"] = configuracion(c, periodo["id"])
         periodo["tiene_asignaciones"] = bool(c.execute("SELECT 1 FROM asignaciones_evaluacion WHERE periodo_id=? LIMIT 1", (periodo["id"],)).fetchone())
         periodo["tiene_notas_5b"] = bool(c.execute("SELECT 1 FROM notas_operativas WHERE periodo_id=? LIMIT 1", (periodo["id"],)).fetchone())
@@ -121,6 +126,9 @@ def crear():
 @periodos_5b_bp.patch("/api/admin/5b/periodos/<int:pid>")
 @role_required("ADMINISTRADOR", "JEFE_PERSONAL")
 def editar_gestion(pid):
+    from .modelo_anual import es_modelo
+    if es_modelo(db.obtener_conexion(),pid):
+        return fallo('Edita las fechas propias desde el modelo anual.',409)
     datos = request.get_json(silent=True)
     if not isinstance(datos, dict) or set(datos) != {"nombre", "ano", "nombre_anterior", "ano_anterior"}:
         return fallo("Ingresa nombre, año y los valores anteriores de la gestión.")
@@ -157,6 +165,9 @@ def editar_gestion(pid):
 @periodos_5b_bp.patch("/api/admin/5b/periodos/<int:pid>/configuracion")
 @role_required("ADMINISTRADOR")
 def editar_configuracion(pid):
+    from .modelo_anual import es_modelo
+    if es_modelo(db.obtener_conexion(),pid):
+        return fallo('Esta Gestión pertenece al modelo anual de cinco entradas.',409)
     datos = request.get_json(silent=True)
     campos = {"fuentes"} if request.method == "POST" else {"fuentes", "revision"}
     if not isinstance(datos, dict) or set(datos) != campos:
@@ -197,6 +208,9 @@ def editar_configuracion(pid):
 @periodos_5b_bp.post("/api/admin/5b/periodos/<int:pid>/publicar")
 @role_required("ADMINISTRADOR")
 def publicar(pid):
+    from .modelo_anual import es_modelo
+    if es_modelo(db.obtener_conexion(),pid):
+        return fallo('Esta Gestión pertenece al modelo anual de cinco entradas.',409)
     datos = request.get_json(silent=True)
     if not isinstance(datos, dict) or set(datos) != {"revision"} or isinstance(datos["revision"], bool) or not isinstance(datos["revision"], int):
         return fallo("Selecciona la revisión de configuración vigente.")

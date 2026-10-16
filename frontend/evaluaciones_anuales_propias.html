@@ -1,0 +1,5 @@
+{% extends '_dashboard_base.html' %}
+{% block contenido %}
+<section class="seccion-panel"><h2>Gestión activa</h2><p>Las calificaciones oficiales permanecen sujetas a publicación. Los ejercicios de sumas/restas son demostrativos y no constituyen pruebas psicométricas.</p><div id="evaluaciones-anuales-propias"></div><p id="ejemplo-mensaje" role="status" aria-live="polite"></p><a href="{{ url_for('tabla_evaluaciones.pagina_propia') }}">Consultar evaluaciones históricas publicadas</a></section>
+<script src="{{ url_for('static',filename='js/ejemplos.js') }}" defer></script>
+{% endblock %}

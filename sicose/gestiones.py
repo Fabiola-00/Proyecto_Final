@@ -85,6 +85,9 @@ def cambiar(pid, clave):
 @gestiones_bp.delete('/api/admin/5b/periodos/<int:pid>')
 @role_required('ADMINISTRADOR', 'JEFE_PERSONAL')
 def eliminar(pid):
+    from .modelo_anual import es_modelo
+    if es_modelo(db.obtener_conexion(),pid):
+        return jsonify(error='Retira esta Gestión desde el modelo anual con su revisión.'),409
     datos = request.get_json(silent=True)
     if not isinstance(datos, dict) or set(datos) != {'motivo', 'nombre_anterior', 'ano_anterior', 'estado_anterior'} or not isinstance(datos['motivo'], str) or not 1 <= len(datos['motivo'].strip()) <= 2000 or type(datos['ano_anterior']) is not int:
         return jsonify(error='Motivo y valores vigentes de la gestión requeridos.'), 400

@@ -67,3 +67,13 @@ En 5B.4 se confirmó bloquear registrar/corregir una finalización si su año an
 
 
 Actualización de permisos y navegación — 2026-10-14: Administrador/Jefe crean y editan operaciones y asignan participantes, también mediante lote atómico por checkbox. Centro de reportes administrativo con PDF de formación personal finalizada y operaciones/participantes; campos privados excluidos. Esto sustituye el alcance anterior de eventos exclusivos del Administrador. [Espacio del Jefe y reportes](19_espacio_jefe_reportes.md).
+
+
+### Modelo anual de cinco entradas — 2026-10-15, v24
+
+Acuerdos posteriores al corte v23: Gestión con fechas propias; Jefe inicia y cierra, reapertura administrativa. Inicio registra ceros oficiales salvo dos psicométricas pendientes. Académica suma cursos y notas de operaciones del intervalo hasta 100; sin operaciones, estado Pendiente y aporte cero. Física y Desempeño conservan sus dos fuentes. Formato CINCO_ENTRADAS_V3 separado de históricos V1/V2, sin adopción ni reseteo al migrar. Modelo SIN_ENTRENAR y sin recomendaciones; no se sustituye por promedio. Instructor sin acceso v3 hasta publicación específica, aún pendiente; PDF v3 también pendiente. [Reglas, APIs, compatibilidad y verificación](20_modelo_anual_cinco_entradas.md). La aceptación previa de 5B no se extiende a esta reformulación.
+
+
+## Reorganización posterior — 2026-10-15, v25
+
+Véase [espacio de trabajo vigente](21_organizacion_espacio_trabajo.md): Gestión/Evaluaciones sin duplicación, eliminación permanente solo sin resultados/evidencia protegida, cursos con baja y retirada auditadas, físicas v3 sin fechas, estados propios, ejemplos aritméticos sin valor psicométrico y PDF anual v3 administrativo. Cierres/históricos conservados. La aceptación anterior no se extiende automáticamente a este cambio; psicometría oficial, publicación numérica propia v3, IA, institución y piloto pendientes.

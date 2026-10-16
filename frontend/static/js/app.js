@@ -286,6 +286,7 @@ function iconoAccionInstructor(boton, tipo, etiqueta) {
     asignar: ["M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0", "M20 8v6", "M17 11h6"],
     editar: ["M16 3l5 5-12 12-6 1 1-6L16 3Z", "M13 6l5 5"],
     desactivar: ["M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0", "M6 6l12 12"],
+    retirar: ["M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0", "M17 11h6"],
     activar: ["M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0", "M8 12l3 3 5-6"]
   };
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -938,9 +939,10 @@ if (operacionesLista) {
   async function cargarOperaciones() {
     const {operaciones} = await apiJson('/api/operaciones'); operacionesLista.replaceChildren();
     if (!operaciones.length) operacionesLista.append(elemento('p','Sin operaciones registradas en tu ámbito.'));
+    const tabla=elemento('table',undefined,'tabla-registros tabla-compacta');const thead=elemento('thead'),cabecera=elemento('tr'),tbody=elemento('tbody'),wrap=elemento('div',undefined,'tabla-contenedor');['Operación','Lugar / Fechas','Institución','Participantes','Acciones'].forEach(t=>cabecera.append(elemento('th',t)));thead.append(cabecera);tabla.append(thead,tbody);wrap.append(tabla);if(operaciones.length)operacionesLista.append(wrap);
     operaciones.forEach((operacion)=>{
-      const tarjeta=elemento('article',undefined,'tarjeta-modulo');tarjeta.append(elemento('h3',operacion.tipo_evento),elemento('p',`${operacion.lugar} · ${operacion.fecha_inicio} — ${operacion.fecha_fin || 'Sin fecha final'} · ${operacion.institucion_responsable}`));
-      tarjeta.append(elemento('p',`Participaciones: ${operacion.participantes.map((p)=>p.nombre).join(', ') || 'Sin participantes de tu ámbito'}`));
+      const fila=elemento('tr'),tarjeta=elemento('td');fila.append(elemento('td',operacion.tipo_evento),elemento('td',`${operacion.lugar} · ${operacion.fecha_inicio} — ${operacion.fecha_fin || 'Sin fecha final'}`),elemento('td',operacion.institucion_responsable));
+      fila.append(elemento('td',operacion.participantes.map(p=>p.nombre).join(', ') || 'Sin participantes'));
       if (form) {
         const editar=elemento('button','Editar evento','boton-secundario');editar.type='button';editar.addEventListener('click',()=>{
           const edicion=elemento('form',undefined,'formulario-inline');
@@ -953,10 +955,10 @@ if (operacionesLista) {
         const vinculo=elemento('form',undefined,'formulario-inline');const label=elemento('fieldset');label.append(elemento('legend','Instructores Voluntarios activos'));const select=elemento('div',undefined,'participantes-checkbox');
         personal.filter((p)=>!operacion.participantes.some((v)=>v.voluntario_id===p.id)).forEach((p)=>{const opcion=elemento('label',p.nombre),check=elemento('input');check.type='checkbox';check.value=p.id;opcion.prepend(check);select.append(opcion);});label.append(select);vinculo.append(label,elemento('button','Vincular participación'));
         vinculo.addEventListener('submit',async(e)=>{e.preventDefault();try{await apiJson(`/api/operaciones/${operacion.id}/participaciones`,{method:'POST',body:{voluntario_ids:[...select.querySelectorAll('input:checked')].map(i=>Number(i.value))}});mensaje.textContent='Participación vinculada.';cerrarEdicion();await cargarOperaciones();}catch(error){mostrarErrorEdicion(error);}});tarjeta.append(botonEdicion('Asignar participantes',vinculo,'Asignar participantes'));
-      }operacionesLista.append(tarjeta);
+      }fila.append(tarjeta);tbody.append(fila);
     });
   }
-  if(form){const cancelarOperacion=form.querySelector('#operacion-cancelar');form.remove();const abrir=botonEdicion('Registrar operación',form,'Registrar operación');document.querySelector('#operacion-alta').append(abrir);cancelarOperacion.addEventListener('click',()=>form.reset());form.addEventListener('submit',async(e)=>{e.preventDefault();const body=Object.fromEntries(new FormData(form));delete body.id;try{await apiJson('/api/operaciones',{method:'POST',body});form.reset();cerrarEdicion();mensaje.textContent='Evento registrado.';await cargarOperaciones();}catch(error){mostrarErrorEdicion(error);}});}
+  if(form){const cancelarOperacion=form.querySelector('#operacion-cancelar');cancelarOperacion.addEventListener('click',()=>form.reset());form.addEventListener('submit',async(e)=>{e.preventDefault();const body=Object.fromEntries(new FormData(form));delete body.id;try{await apiJson('/api/operaciones',{method:'POST',body});form.reset();document.querySelector('#registro-operacion').open=false;mensaje.textContent='Evento registrado.';await cargarOperaciones();}catch(error){mensaje.textContent=error.message;}});}
   (async()=>{if(!esInstructor){const {voluntarios}=await apiJson('/api/instructores-voluntarios');personal=voluntarios.filter((p)=>p.estado==='ACTIVO');}await cargarOperaciones();})().catch((error)=>{mensaje.textContent=error.message;});
 }
 

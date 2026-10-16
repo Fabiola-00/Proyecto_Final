@@ -1,6 +1,7 @@
 {% extends "_dashboard_base.html" %}
 {% block contenido %}
-<p>Selecciona una gestión para activar sus evaluaciones y habilitar a cada Instructor Voluntario. La activación del ciclo corresponde al Administrador. Las notas se gestionan en Notas y Resultados.</p>
+<section class="seccion-panel"><h2>Evaluación anual de cinco entradas</h2><p>Física, Desempeño, Académica y dos psicométricas pendientes. Académica suma cursos y operaciones, hasta 100.</p><a class="boton" href="{{ url_for('modelo_anual.pagina') }}">Abrir modelo anual</a></section>
+<p>Selecciona una gestión para activar sus evaluaciones y habilitar a cada Instructor Voluntario. La activación del circuito anterior corresponde al Administrador. Para períodos con fechas propias utiliza el modelo anual. Las notas se gestionan en Notas y Resultados.</p>
 {% set centralizar_reportes = true %}{% include "_tabla_evaluaciones.html" %}
 <section class="seccion-panel"><h2>Evaluaciones de la gestión</h2><div id="activacion-evaluaciones-anual"></div><p id="activacion-evaluaciones-mensaje" role="status"></p></section>
 <script src="{{ url_for('static',filename='js/espacio_jefe.js') }}" defer></script>

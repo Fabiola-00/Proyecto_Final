@@ -2,7 +2,9 @@
 
 **Sistema de Control y Evaluación de Personal** es un prototipo académico para el seguimiento de personal voluntario de rescate y emergencias. Usa Flask, SQLite y HTML/CSS/JavaScript puro. No es un producto comercial ni clínico.
 
-## Estado actual — revisión 2026-10-14
+## Estado actual — revisión 2026-10-15
+
+**SQLite v25. Espacio de trabajo organizado, Gestión/Evaluaciones separadas, cursos con bajas y retiradas auditadas, físicas v3 sin fechas y formularios aritméticos demostrativos independientes. PDF anual v3 administrativo y reportes en otra pestaña. Psicometría oficial y red neuronal pendientes.** Véase [organización vigente](docs/21_organizacion_espacio_trabajo.md). Véase la actualización v24 al final. El siguiente resumen v23 conserva el alcance histórico aceptado, no sustituye las decisiones nuevas.
 
 Fases 4A/4B y 5A implementadas técnicamente, con aceptación operativa pendiente. **Fase 5B implementada técnicamente y aceptada operativamente por el solicitante el 2026-10-14; SQLite v23.** Están implementados períodos y configuración, habilitación individual por gestión, notas manuales auditadas, cursos con puntaje y estado automático, asignación/finalización personal y PDF operativos. 5B.1 física, 5B.2 acumulación/cálculos y 5B.3 publicación/republicación implementadas; regla nueva y publicación requieren acciones explícitas. 5B.4 cierre/reapertura con instantáneas y reapertura excepcional de históricos sin instantánea implementadas técnicamente; aceptación operativa confirmada; aprobación institucional pendiente. Psicometría e IA no están implementadas.
 
@@ -209,3 +211,27 @@ Navegación del Jefe organizada en Inicio, Personal y Operaciones y Evaluación 
 
 
 Verificación final del 2026-10-14: **138 pruebas aprobadas en 354,019 s**; cuatro dirigidas finales en 10,106 s y una del Inicio administrativo en 0,664 s. Treinta escenarios visuales con Flask real/base DEMO, 360/1447 px y ambos temas, sin errores JavaScript ni desbordes; capturas revisadas. Dos PDF nuevos, caso vacío y paginación de 80 filas/11 páginas renderizados e inspeccionados. Compilación Python, seis JavaScript, 159 enlaces en 22 documentos y git diff --check correctos. Sin migración, nuevas dependencias ni seed de la base de trabajo; v23/quick_check=ok/FK=0 en consulta solo lectura. Entorno, fotos, historial y trabajo local previo conservados. Servidores DEMO detenidos y sus bases temporales retiradas. La aceptación operativa previa de 5B no se extiende automáticamente a esta reorganización; aprobación institucional/piloto conservan sus pendientes.
+
+
+### Guía autónoma de reconstrucción — 2026-10-15
+
+[DESARROLLO.md](DESARROLLO.md) reúne el alcance vigente, diseño claro/oscuro, permisos, reglas de dominio, arquitectura propuesta para un proyecto limpio, etapas implementadas/pendientes, contratos HTTP y anexos completos del esquema v23 sin datos. Es la base para reconstruir en otro proyecto/chat sin repetir decisiones antiguas. No contiene secretos ni transfiere datos, activos gráficos o aceptación institucional. La evidencia funcional del 2026-10-14 se identifica como histórica; la revisión actual es documental y estructural.
+
+
+### Modelo anual de cinco entradas — 2026-10-15, v24
+
+Acuerdos posteriores al corte v23: Gestión con fechas propias; Jefe inicia y cierra, reapertura administrativa. Inicio registra ceros oficiales salvo dos psicométricas pendientes. Académica suma cursos y notas de operaciones del intervalo hasta 100; sin operaciones, estado Pendiente y aporte cero. Física y Desempeño conservan sus dos fuentes. Formato CINCO_ENTRADAS_V3 separado de históricos V1/V2, sin adopción ni reseteo al migrar. Modelo SIN_ENTRENAR y sin recomendaciones; no se sustituye por promedio. Instructor sin acceso v3 hasta publicación específica, aún pendiente; PDF v3 también pendiente. [Reglas, APIs, compatibilidad y verificación](docs/20_modelo_anual_cinco_entradas.md). La aceptación previa de 5B no se extiende a esta reformulación.
+
+
+Verificación del 2026-10-15: suite completa de **149 pruebas aprobadas en 339,579 s**; regresión posterior de doce pruebas en **21,002 s**, incluida consulta histórica de retiradas y cierre del Jefe. Dieciséis escenarios visuales finales con Flask real/base DEMO, 360/1447 px y ambos temas, sin errores JavaScript ni desbordes; capturas revisadas. Python, siete JavaScript, 167 enlaces locales en 24 documentos y git diff --check correctos. DESARROLLO conserva DDL v23 y suplemento v24: ambos ejecutados dos veces en temporal, 49 tablas/13 índices explícitos/50 triggers, quick_check=ok/FK=0. Base de trabajo migrada tras respaldo, dos inicializaciones y 44 tablas anteriores preservadas salvo versión; cinco tablas nuevas vacías, v24/quick_check=ok/FK=0, ninguna Gestión ni cero creado automáticamente. Servidores DEMO detenidos y bases temporales retiradas. Sin dependencias nuevas, seed ni cambio de .env/.venv/fotos; documentación previa preservada. Psicométricas, red neuronal, publicación propia y PDF específicos de v3 pendientes; no se declara aceptación humana/institucional ni cierre global de 5B.
+
+
+### Verificación final de la reorganización v25 — 2026-10-15
+
+- Suite completa final: **158 pruebas aprobadas en 286,819 s**; nueve específicas de esta entrega aprobadas previamente en **17,368 s**. Se actualizaron las expectativas de navegación anteriores que exigían Notas y Resultados/Gestiones (año); no se restauraron controles retirados para satisfacerlas. Log final `.tmp/organizacion-suite-cierre.log`.
+- **48 escenarios visuales** con Flask/Werkzeug real y base DEMO aislada: 36 del recorrido integral, ocho tras el ajuste final de ancho de cursos/eliminación visible solo en Gestión preparada y cuatro de Asistencias con guardado real DEMO y comprobación de padding exclusivo del registro. Chrome, 360/1447 px, temas claro/oscuro, tres roles; cero errores JavaScript y cero desbordes globales. Capturas inspeccionadas. Se comprobó el puntaje de ejemplo 100 calculado por servidor y actualizado en el Jefe sin recargar, retirada por checkbox con historial, navegación, desplegables y PDF actual/operaciones en pestaña sin descarga. Evidencias `.tmp/organizacion-ui/resultado.json` y `ajuste-resultado.json` y `asistencias-resultado.json`.
+- PDF v3 real generado/renderizado e inspeccionado; encabezado institucional, tabla y pendientes legibles. El test verifica privacidad, denegación a Instructor e identidad congelada tras cierre aunque cambie el directorio.
+- Compilación Python, sintaxis de los ocho JavaScript, **174 enlaces locales en 25 documentos** y git diff --check correctos. DDL de DESARROLLO (v23+v24+v25) ejecutado dos veces en SQLite temporal: **53 tablas/56 triggers**, quick_check=ok/FK=0.
+- Relectura de la base de trabajo contra el respaldo pre-v25: **49 tablas previas preservadas**, salvo el identificador de versión; cuatro nuevas tablas vacías, v25/quick_check=ok/FK=0. DEMO detenida y base temporal retirada; sin seed, dependencias nuevas o cambios en .venv/.env/fotos.
+
+La aceptación operativa de 5B del 2026-10-14 sigue siendo histórica y no acredita esta reorganización. Pendientes: instrumentos psicométricos autorizados, publicación numérica propia v3, entrenamiento/validación del modelo, aprobación institucional y piloto. Los formularios aritméticos son ejemplos independientes, no resultados psicométricos ni recomendaciones.

@@ -105,5 +105,5 @@ def reporte_pdf():
     except ValueError as e:return fallo(str(e))
     archivo=generar_pdf_asistencias(datos)
     conexion=db.obtener_conexion();db.registrar_auditoria(conexion,current_user.id,'REPORTE_ASISTENCIAS_GENERADO','EXITOSO');conexion.commit()
-    respuesta=send_file(archivo,mimetype='application/pdf',as_attachment=True,download_name=f"asistencias-{datos['desde']}-{datos['hasta']}.pdf",max_age=0)
+    respuesta=send_file(archivo,mimetype='application/pdf',as_attachment=False,download_name=f"asistencias-{datos['desde']}-{datos['hasta']}.pdf",max_age=0)
     respuesta.headers['Cache-Control']='private, no-store';return respuesta

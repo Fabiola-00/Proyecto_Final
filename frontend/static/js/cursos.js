@@ -45,9 +45,9 @@ if (cursosCatalogo) {
         participantes.forEach((p) => {
           const tr = elemento("tr"); const nombre = elemento("td", p.nombre);
           nombre.append(elemento("small", p.cuenta_estado, `participante-cuenta ${p.cuenta_estado === "ACTIVO" ? "participante-activo" : "participante-inactivo"}`));
-          tr.append(nombre, elemento("td", p.estado), elemento("td", p.puntaje === null ? "Pendiente" : `${p.puntaje} pts`), elemento("td", p.fecha_finalizacion || "Pendiente"));
+          tr.append(nombre, elemento("td", p.retirada ? "Retirado" : p.estado), elemento("td", p.puntaje === null ? "Pendiente" : `${p.puntaje} pts`), elemento("td", p.fecha_finalizacion || "Pendiente"));
           const acciones = elemento("td"); const fila = elemento("div", undefined, "acciones-curso");
-          if (p.cuenta_estado === "ACTIVO") fila.append(editarParticipacion(curso, p));
+          if (p.cuenta_estado === "ACTIVO" && !p.retirada) fila.append(editarParticipacion(curso, p));
           const historia = elemento("div"); const ver = icono(`Historial · ${p.nombre}`, historia, "ver", `Ver historial de ${p.nombre}`);
           ver.addEventListener("click", async () => {
             historia.replaceChildren(elemento("p", "Cargando historial…"));
@@ -125,25 +125,44 @@ if (cursosCatalogo) {
       } catch (error) { panel.replaceChildren(elemento("p", error.message)); }
     }); return boton;
   }
+  function retirarParticipantes(curso) {
+    const panel=elemento('div'),boton=botonEdicion(`Retirar participantes · ${curso.nombre}`,panel,'Retirar participantes');
+    boton.addEventListener('click',async()=>{
+      panel.replaceChildren(elemento('p','Cargando participantes…'));
+      try {
+        const {participantes}=await apiJson(`/api/cursos/${curso.id}/participantes`),form=elemento('form',undefined,'formulario-inline'),grupo=elemento('fieldset',undefined,'campo-ancho');grupo.append(elemento('legend','Participantes que se retirarán'));
+        participantes.filter(p=>!p.retirada).forEach(p=>{const l=elemento('label',undefined,'asignacion-participante'),i=elemento('input');i.type='checkbox';i.value=p.id;i.dataset.revision=p.revision;i.disabled=p.cuenta_estado!=='ACTIVO';l.append(i,elemento('span',`${p.nombre} · ${p.estado} · ${p.cuenta_estado}`));grupo.append(l);});
+        const l=elemento('label','Motivo'),m=elemento('textarea');m.required=true;m.maxLength=2000;l.append(m);const b=elemento('button','Retirar seleccionados');b.disabled=true;grupo.addEventListener('change',()=>b.disabled=!grupo.querySelector('input:checked'));form.append(grupo,l,elemento('p','Se conserva el historial. Los puntajes se retiran del acumulado vigente; las gestiones cerradas requieren reapertura.'),b);panel.replaceChildren(form);
+        form.addEventListener('submit',async e=>{e.preventDefault();const seleccion=[...grupo.querySelectorAll('input:checked')].map(i=>({id:Number(i.value),revision:Number(i.dataset.revision)}));if(!seleccion.length)return;b.disabled=true;try{await apiJson(`/api/cursos/${curso.id}/retirar-participantes`,{method:'POST',body:{motivo:m.value,participaciones:seleccion}});cerrarEdicion();informar('Participantes retirados; historial conservado.',true);await cargarCursos();}catch(err){mostrarErrorEdicion(err);b.disabled=false;}});
+      } catch(err){panel.replaceChildren(elemento('p',err.message));}
+    });return iconoAccionInstructor(boton,'retirar','Retirar participantes');
+  }
+  function eliminarCurso(curso) {
+    const f=elemento('form',undefined,'formulario-inline');f.append(elemento('p','Sin participaciones se eliminará permanentemente. Con vínculos se dará de baja conservando formación e historial.'));const l=elemento('label','Motivo'),m=elemento('textarea');m.required=true;m.maxLength=2000;l.append(m);f.append(l,elemento('button','Eliminar / dar de baja'));
+    f.addEventListener('submit',async e=>{e.preventDefault();const b=f.querySelector('button');b.disabled=true;try{const r=await apiJson(`/api/cursos/${curso.id}`,{method:'DELETE',body:{motivo:m.value}});cerrarEdicion();informar(r.baja?'Curso dado de baja; historial conservado.':'Curso eliminado.',true);await cargarCursos();}catch(err){mostrarErrorEdicion(err);b.disabled=false;}});
+    return icono(`Eliminar curso · ${curso.nombre}`,f,'desactivar',`Eliminar curso ${curso.nombre}`);
+  }
   async function cargarCursos() {
-    const datos = await apiJson("/api/cursos"); hoy = datos.hoy; cursosCatalogo.replaceChildren(); estadoVistaInicial();
+    const datos = await apiJson("/api/cursos"+(document.querySelector('#cursos-incluir-bajas').checked?'?incluir_bajas=1':'')); hoy = datos.hoy; cursosCatalogo.replaceChildren(); estadoVistaInicial();
     if (!datos.cursos.length) { cursosCatalogo.append(elemento("p", "Sin cursos registrados.")); return; }
     const t = tabla(["Curso / Entidad", "Tipo", "Inicio / Fin", "Estado automático", "Puntaje", "Participantes", "Acciones"], "tabla-cursos");
     datos.cursos.forEach((curso) => {
-      const tr = elemento("tr"); const nombre = elemento("td"); nombre.append(elemento("strong", curso.nombre), elemento("small", curso.entidad || "Entidad sin registrar"));
+      const tr = elemento("tr"); const nombre = elemento("td"); nombre.append(elemento("strong", curso.nombre+(curso.baja?' · Baja':'')), elemento("small", curso.entidad || "Entidad sin registrar"));
       const fechas = elemento("td"); fechas.append(elemento("span", curso.fecha_inicio || "Sin inicio"), elemento("small", curso.fecha_fin || "Sin fin"));
       const estado = elemento("td"); estado.append(elemento("span", curso.estado || "Sin fechas completas", `estado-curso estado-curso-${estadoClase(curso.estado)}`));
       tr.append(nombre, elemento("td", curso.tipo || "Sin registrar"), fechas, estado, elemento("td", curso.puntaje === null ? "Pendiente" : `${curso.puntaje} pts`), elemento("td", `${curso.participantes_total} (${curso.finalizados_total} finalizados)`));
       const acciones = elemento("td"); const fila = elemento("div", undefined, "acciones-curso"); fila.append(abrirParticipantes(curso));
+      if(curso.baja){fila.append(retirarParticipantes(curso));acciones.append(fila);tr.append(acciones);t.body.append(tr);return;}
       const edicion = document.querySelector("#curso-edicion-template").content.firstElementChild.cloneNode(true);
       ["nombre", "tipo", "entidad", "fecha_inicio", "fecha_fin", "puntaje", "observaciones"].forEach((campo) => { edicion.elements[campo].value = curso[campo] ?? ""; }); estadoVista(edicion);
       edicion.addEventListener("submit", async (event) => { event.preventDefault(); try { if (await guardarCurso(edicion, curso.id)) { cerrarEdicion(); informar("Curso actualizado; asignaciones previas conservadas.", true); await cargarCursos(); } } catch (error) { mostrarErrorEdicion(error); } });
-      fila.append(icono(`Editar curso · ${curso.nombre}`, edicion, "editar", `Editar curso ${curso.nombre}`), asignarParticipantes(curso)); acciones.append(fila); tr.append(acciones); t.body.append(tr);
+      fila.append(icono(`Editar curso · ${curso.nombre}`, edicion, "editar", `Editar curso ${curso.nombre}`), asignarParticipantes(curso), retirarParticipantes(curso), eliminarCurso(curso)); acciones.append(fila); tr.append(acciones); t.body.append(tr);
     }); cursosCatalogo.append(t.contenedor);
   }
   let vistaConfigurada = false;
   function estadoVistaInicial() { if (!vistaConfigurada) { estadoVista(alta); vistaConfigurada = true; } else alta.elements.fecha_inicio.dispatchEvent(new Event("change")); }
-  alta.addEventListener("submit", async (event) => { event.preventDefault(); try { if (await guardarCurso(alta)) { alta.reset(); informar("Curso registrado.", true); await cargarCursos(); } } catch (error) { informar(error.message); } });
+  alta.addEventListener("submit", async (event) => { event.preventDefault(); try { if (await guardarCurso(alta)) { alta.reset(); document.querySelector('#registro-curso').open=false; informar("Curso registrado.", true); await cargarCursos(); } } catch (error) { informar(error.message); } });
+  document.querySelector('#cursos-incluir-bajas').addEventListener('change',()=>cargarCursos().catch(e=>informar(e.message)));
   cargarCursos().catch((error) => informar(error.message));
 }
 

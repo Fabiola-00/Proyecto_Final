@@ -483,3 +483,108 @@ CREATE TRIGGER IF NOT EXISTS reapertura_historica_update BEFORE UPDATE ON reaper
 BEGIN SELECT RAISE(ABORT,'evidencia_historica_inmutable'); END;
 CREATE TRIGGER IF NOT EXISTS reapertura_historica_delete BEFORE DELETE ON reaperturas_historicas_5b
 BEGIN SELECT RAISE(ABORT,'evidencia_historica_inmutable'); END;
+
+-- Modelo anual de cinco entradas v3: no adopta ni modifica las reglas v1/v2.
+CREATE TABLE IF NOT EXISTS modelos_anuales (
+ periodo_id INTEGER PRIMARY KEY REFERENCES periodos(id) ON DELETE RESTRICT,
+ formato TEXT NOT NULL DEFAULT 'CINCO_ENTRADAS_V3' CHECK(formato='CINCO_ENTRADAS_V3'),
+ revision INTEGER NOT NULL DEFAULT 1 CHECK(revision>0),
+ creada_por INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ creada_en TEXT NOT NULL, iniciada_por INTEGER REFERENCES usuarios(id) ON DELETE RESTRICT, iniciada_en TEXT
+);
+CREATE TABLE IF NOT EXISTS personas_modelo_anual (
+ periodo_id INTEGER NOT NULL REFERENCES modelos_anuales(periodo_id) ON DELETE RESTRICT,
+ voluntario_id INTEGER NOT NULL REFERENCES voluntarios(usuario_id) ON DELETE RESTRICT,
+ registrada_por INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT, registrada_en TEXT NOT NULL,
+ PRIMARY KEY(periodo_id,voluntario_id)
+);
+CREATE TABLE IF NOT EXISTS notas_modelo_anual (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL, voluntario_id INTEGER NOT NULL,
+ fuente TEXT NOT NULL CHECK(fuente IN ('FISICA_1','FISICA_2','DESEMPENO_JEFE','DESEMPENO_COMANDANTE','ACADEMICA')),
+ puntos_centesimas INTEGER NOT NULL CHECK(typeof(puntos_centesimas)='integer' AND puntos_centesimas BETWEEN 0 AND 10000),
+ origen TEXT NOT NULL CHECK(origen IN ('CERO_INICIAL','CUMPLIDA','NO_CUMPLIDA','MANUAL')),
+ anterior_id INTEGER UNIQUE REFERENCES notas_modelo_anual(id) ON DELETE RESTRICT,
+ evidencia_json TEXT NOT NULL, motivo TEXT NOT NULL,
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT, actor_nombre TEXT NOT NULL, registrada_en TEXT NOT NULL,
+ FOREIGN KEY(periodo_id,voluntario_id) REFERENCES personas_modelo_anual(periodo_id,voluntario_id) ON DELETE RESTRICT,
+ CHECK(origen!='CERO_INICIAL' OR (puntos_centesimas=0 AND anterior_id IS NULL)),
+ CHECK(origen!='NO_CUMPLIDA' OR puntos_centesimas=0)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS nota_anual_inicial ON notas_modelo_anual(periodo_id,voluntario_id,fuente) WHERE anterior_id IS NULL;
+CREATE TABLE IF NOT EXISTS notas_operacion_anual (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL, voluntario_id INTEGER NOT NULL,
+ operacion_id INTEGER NOT NULL,
+ puntos_centesimas INTEGER NOT NULL CHECK(typeof(puntos_centesimas)='integer' AND puntos_centesimas BETWEEN 0 AND 10000),
+ anterior_id INTEGER UNIQUE REFERENCES notas_operacion_anual(id) ON DELETE RESTRICT,
+ evidencia_json TEXT NOT NULL, motivo TEXT NOT NULL,
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT, actor_nombre TEXT NOT NULL, registrada_en TEXT NOT NULL,
+ FOREIGN KEY(periodo_id,voluntario_id) REFERENCES personas_modelo_anual(periodo_id,voluntario_id) ON DELETE RESTRICT,
+ FOREIGN KEY(operacion_id,voluntario_id) REFERENCES participaciones_operacion(operacion_id,voluntario_id) ON DELETE RESTRICT
+);
+CREATE UNIQUE INDEX IF NOT EXISTS operacion_anual_inicial ON notas_operacion_anual(periodo_id,voluntario_id,operacion_id) WHERE anterior_id IS NULL;
+CREATE TRIGGER IF NOT EXISTS persona_modelo_update BEFORE UPDATE ON personas_modelo_anual BEGIN SELECT RAISE(ABORT,'historial_anual_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS persona_modelo_delete BEFORE DELETE ON personas_modelo_anual BEGIN SELECT RAISE(ABORT,'historial_anual_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS nota_modelo_update BEFORE UPDATE ON notas_modelo_anual BEGIN SELECT RAISE(ABORT,'historial_anual_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS nota_modelo_delete BEFORE DELETE ON notas_modelo_anual BEGIN SELECT RAISE(ABORT,'historial_anual_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS nota_operacion_update BEFORE UPDATE ON notas_operacion_anual BEGIN SELECT RAISE(ABORT,'historial_anual_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS nota_operacion_delete BEFORE DELETE ON notas_operacion_anual BEGIN SELECT RAISE(ABORT,'historial_anual_inmutable'); END;
+
+CREATE TRIGGER IF NOT EXISTS periodo_modelo_fechas BEFORE UPDATE OF fecha_inicio,fecha_fin,nombre ON periodos
+WHEN EXISTS(SELECT 1 FROM modelos_anuales m WHERE m.periodo_id=OLD.id AND m.iniciada_en IS NOT NULL)
+AND (NEW.fecha_inicio!=OLD.fecha_inicio OR NEW.fecha_fin!=OLD.fecha_fin OR NEW.nombre!=OLD.nombre)
+BEGIN SELECT RAISE(ABORT,'periodo_modelo_iniciado_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS modelo_iniciado_update BEFORE UPDATE ON modelos_anuales
+WHEN OLD.iniciada_en IS NOT NULL BEGIN SELECT RAISE(ABORT,'modelo_iniciado_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS modelo_anual_delete BEFORE DELETE ON modelos_anuales BEGIN SELECT RAISE(ABORT,'modelo_anual_inmutable'); END;
+
+CREATE TABLE IF NOT EXISTS eventos_modelo_anual (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL REFERENCES modelos_anuales(periodo_id) ON DELETE RESTRICT,
+ accion TEXT NOT NULL, anterior_json TEXT NOT NULL, nuevo_json TEXT NOT NULL, motivo TEXT NOT NULL,
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT, actor_nombre TEXT NOT NULL, registrada_en TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS evento_modelo_update BEFORE UPDATE ON eventos_modelo_anual BEGIN SELECT RAISE(ABORT,'historial_anual_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS evento_modelo_delete BEFORE DELETE ON eventos_modelo_anual BEGIN SELECT RAISE(ABORT,'historial_anual_inmutable'); END;
+
+-- v25: bajas con historial y ejercicios didácticos sin valor psicométrico.
+CREATE TABLE IF NOT EXISTS bajas_curso (
+ curso_id INTEGER PRIMARY KEY REFERENCES cursos(id) ON DELETE RESTRICT,
+ motivo TEXT NOT NULL, actor_id INTEGER NOT NULL REFERENCES usuarios(id),
+ actor_nombre TEXT NOT NULL, registrada_en TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS retiros_curso (
+ participacion_id INTEGER PRIMARY KEY REFERENCES participaciones_curso(id) ON DELETE RESTRICT,
+ motivo TEXT NOT NULL, actor_id INTEGER NOT NULL REFERENCES usuarios(id),
+ actor_nombre TEXT NOT NULL, registrada_en TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS activaciones_demo (
+ periodo_id INTEGER NOT NULL REFERENCES modelos_anuales(periodo_id) ON DELETE RESTRICT,
+ clave TEXT NOT NULL CHECK(clave IN ('PSICOMETRICA_1','PSICOMETRICA_2')),
+ activa INTEGER NOT NULL CHECK(activa IN (0,1)), actor_id INTEGER NOT NULL REFERENCES usuarios(id),
+ modificada_en TEXT NOT NULL, PRIMARY KEY(periodo_id,clave)
+);
+CREATE TABLE IF NOT EXISTS intentos_demo (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL, voluntario_id INTEGER NOT NULL,
+ clave TEXT NOT NULL CHECK(clave IN ('PSICOMETRICA_1','PSICOMETRICA_2')),
+ preguntas_json TEXT NOT NULL, iniciada_en TEXT NOT NULL,
+ puntaje INTEGER CHECK(puntaje IN (0,50,100)), finalizada_en TEXT,
+ UNIQUE(periodo_id,voluntario_id,clave),
+ FOREIGN KEY(periodo_id,voluntario_id) REFERENCES personas_modelo_anual(periodo_id,voluntario_id) ON DELETE RESTRICT,
+ CHECK((puntaje IS NULL AND finalizada_en IS NULL) OR (puntaje IS NOT NULL AND finalizada_en IS NOT NULL))
+);
+CREATE TRIGGER IF NOT EXISTS baja_curso_update BEFORE UPDATE ON bajas_curso BEGIN SELECT RAISE(ABORT,'baja_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS baja_curso_delete BEFORE DELETE ON bajas_curso BEGIN SELECT RAISE(ABORT,'baja_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS retiro_curso_update BEFORE UPDATE ON retiros_curso BEGIN SELECT RAISE(ABORT,'retiro_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS retiro_curso_delete BEFORE DELETE ON retiros_curso BEGIN SELECT RAISE(ABORT,'retiro_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS intento_demo_update BEFORE UPDATE ON intentos_demo
+WHEN OLD.finalizada_en IS NOT NULL OR NEW.periodo_id!=OLD.periodo_id OR NEW.voluntario_id!=OLD.voluntario_id OR NEW.clave!=OLD.clave OR NEW.preguntas_json!=OLD.preguntas_json OR NEW.iniciada_en!=OLD.iniciada_en
+BEGIN SELECT RAISE(ABORT,'ejemplo_finalizado_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS intento_demo_delete BEFORE DELETE ON intentos_demo BEGIN SELECT RAISE(ABORT,'ejemplo_inmutable'); END;
+-- Solo se admite eliminar metadatos de una gestión que nunca se inició.
+DROP TRIGGER IF EXISTS modelo_anual_delete;
+CREATE TRIGGER modelo_anual_delete BEFORE DELETE ON modelos_anuales
+WHEN OLD.iniciada_en IS NOT NULL OR EXISTS(SELECT 1 FROM personas_modelo_anual WHERE periodo_id=OLD.periodo_id)
+BEGIN SELECT RAISE(ABORT,'modelo_anual_inmutable'); END;
+DROP TRIGGER IF EXISTS evento_modelo_delete;
+CREATE TRIGGER evento_modelo_delete BEFORE DELETE ON eventos_modelo_anual
+WHEN EXISTS(SELECT 1 FROM modelos_anuales WHERE periodo_id=OLD.periodo_id AND iniciada_en IS NOT NULL)
+BEGIN SELECT RAISE(ABORT,'historial_anual_inmutable'); END;

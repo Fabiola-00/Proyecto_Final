@@ -5,4 +5,5 @@
 <p>Las gestiones nuevas van del 1 de enero al 31 de diciembre. Solo puede haber una gestión operativa activa. La baja lógica conserva historial; no equivale a cerrar con instantánea. <a href="{{ url_for('evaluations.pagina_catalogo') }}">Consultar el catálogo común de evaluaciones</a>.</p>
 <p id="periodos-5b-mensaje" class="mensaje" role="status" aria-live="polite"></p><div id="periodos-5b-lista" class="rejilla-modulos"></div>
 </section><script src="{{ url_for('static', filename='js/periodos_5b.js') }}" defer></script>
+{% include '_crear_modelo_anual.html' %}
 {% endblock %}

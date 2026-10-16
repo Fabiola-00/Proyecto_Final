@@ -82,7 +82,7 @@ def jefe_personal():
     return _renderizar_panel(
         "dashboard_jefe_personal.html", "Panel del Jefe de Personal", "inicio",
         resumen['indicadores'], "Resumen global del personal, la formación y las evaluaciones de SBRAB.",
-        graficos=resumen['graficos'], gestion_panel=resumen['gestion'])
+        graficos=resumen['graficos'], tendencias=resumen['tendencias'], gestion_panel=resumen['gestion'])
 
 
 

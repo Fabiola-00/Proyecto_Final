@@ -41,7 +41,9 @@ def periodo_activo(c, pid):
     if p is None:
         raise ValueError('Gestión no encontrada.')
     from .gestiones import retirada
-    if retirada(c, pid) or p['estado'] != 'ACTIVO' or not anual(p) or not c.execute("SELECT 1 FROM configuraciones_5b WHERE periodo_id=? AND estado='PUBLICADA'", (pid,)).fetchone():
+    from .modelo_anual import es_modelo
+    nuevo = es_modelo(c,pid)
+    if retirada(c, pid) or p['estado'] != 'ACTIVO' or (not nuevo and (not anual(p) or not c.execute("SELECT 1 FROM configuraciones_5b WHERE periodo_id=? AND estado='PUBLICADA'", (pid,)).fetchone())):
         raise Conflicto('Requiere gestión anual activa y configuración publicada.')
     return p
 

@@ -27,6 +27,9 @@ def calcular(c, uid, pid):
     if periodo and periodo['estado'] == 'CERRADO':
         from .cierres_5b import resultado_cerrado
         return resultado_cerrado(c, uid, pid)
+    from .modelo_anual import es_modelo, calcular as calcular_anual
+    if es_modelo(c, pid):
+        return calcular_anual(c, uid, pid)
     r = regla(c, pid)
     if r is None:
         return {'regla': None, 'estado': 'SIN_REGLA_NUEVA', 'resultado_conjunto': None, 'faltantes': [],
@@ -89,6 +92,9 @@ def activar(pid):
         c.execute('BEGIN IMMEDIATE')
         from .fisicas import periodo_activo
         p = periodo_activo(c, pid)
+        from .modelo_anual import es_modelo
+        if es_modelo(c,pid):
+            c.rollback();return jsonify(error='La Gestión usa CINCO_ENTRADAS_V3; no se adopta V2.'),409
         if (c.execute('SELECT 1 FROM cierres_5b WHERE periodo_id=?', (pid,)).fetchone()
                 or c.execute('SELECT 1 FROM reaperturas_historicas_5b WHERE periodo_id=?', (pid,)).fetchone()):
             c.rollback(); return jsonify(error='La Gestión ya tiene cierres: conserva su regla original; una regla nueva corresponde a una Gestión futura.'), 409

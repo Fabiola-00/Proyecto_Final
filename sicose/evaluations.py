@@ -75,7 +75,7 @@ def pagina_asistencias():
 def pagina_capacitaciones():
     return render_template("gestion_capacitaciones.html", titulo_pagina="Capacitaciones y Cursos",
                            nav_activo="capacitaciones", indicadores=[],
-                           descripcion="Registra y edita cursos; genera reportes del catálogo.",
+                           descripcion="Registra cursos y administra su formación individual. Los PDF están en Reportes.",
                            periodo_actual=db.periodo_actual())
 
 
@@ -559,6 +559,9 @@ def registrar_calificacion(assignment_id):
         return rechazar("Asignación no encontrada en tu ámbito.", "asignacion_no_encontrada", 404)
     if assignment["cuenta_estado"] != "ACTIVO":
         return _bad("Reactiva la cuenta antes de modificar evaluaciones.", "cuenta_inactiva", 409)
+    from .modelo_anual import es_modelo
+    if es_modelo(connection,assignment["periodo_id"]):
+        return rechazar("Usa el modelo anual para esta Gestión.", "modelo_anual_v3",409)
     if connection.execute("SELECT 1 FROM configuraciones_5b WHERE periodo_id=? AND estado='PUBLICADA'", (assignment["periodo_id"],)).fetchone():
         return rechazar("Usa Notas operativas 5B para este período configurado.", "periodo_configurado_5b", 409)
     if assignment["categoria"] == "PSICOMETRICA":

@@ -97,7 +97,7 @@ def pagina():
 def gestiones():
     c = db.obtener_conexion()
     from .gestiones import retirada
-    valores = [{**dict(p), 'retirada': retirada(c, p['id'])} for p in c.execute('SELECT id,nombre,estado,substr(fecha_inicio,1,4) AS gestion FROM periodos ORDER BY fecha_inicio DESC,id DESC')]
+    valores = [{**dict(p), 'retirada': retirada(c, p['id'])} for p in c.execute('SELECT id,nombre,estado,substr(fecha_inicio,1,4) AS gestion FROM periodos WHERE NOT EXISTS(SELECT 1 FROM modelos_anuales m WHERE m.periodo_id=periodos.id) ORDER BY fecha_inicio DESC,id DESC')]
     return jsonify(periodos=[p for p in valores if not p['retirada']],
                    retiradas=[p for p in valores if p['retirada']] if current_user.rol != 'INSTRUCTOR_VOLUNTARIO' else [])
 
@@ -139,7 +139,8 @@ def cambiar(uid):
         if entrada['habilitada'] and not activa(c, entrada['periodo_id'], clave):
             c.rollback(); return jsonify(error='Activa primero la evaluación en esta gestión.'), 409
         if clave in FUENTES:
-            if entrada['habilitada'] and not c.execute("SELECT 1 FROM configuraciones_5b WHERE periodo_id=? AND estado='PUBLICADA'", (entrada['periodo_id'],)).fetchone():
+            from .modelo_anual import es_modelo
+            if entrada['habilitada'] and not es_modelo(c,entrada['periodo_id']) and not c.execute("SELECT 1 FROM configuraciones_5b WHERE periodo_id=? AND estado='PUBLICADA'", (entrada['periodo_id'],)).fetchone():
                 c.rollback(); return jsonify(error='Primero publica la configuración de la gestión.'), 409
         else:
             eid = int(clave[6:])
@@ -178,6 +179,9 @@ def propias():
         p = c.execute('SELECT id,nombre,estado FROM periodos WHERE id=?', (pid,)).fetchone()
         if p is None:
             raise ValueError('Gestión no encontrada.')
+        from .modelo_anual import es_modelo
+        if es_modelo(c,pid):
+            c.rollback();return jsonify(error='El modelo anual no tiene publicación propia habilitada.'),403
         valores = evaluaciones_persona(c, current_user.id, pid)
         # Ni filas ni denominadores propios revelan estados de Desempeño.
         valores = [e for e in valores if not e['clave'].startswith('DESEMPENO_')]
@@ -200,13 +204,31 @@ def reporte():
     c = db.obtener_conexion()
     try:
         c.execute('BEGIN')
-        datos = datos_gestion(c, periodo_solicitado())
+        pid=periodo_solicitado()
+        from .modelo_anual import es_modelo, periodo
+        if es_modelo(c,pid):
+            p=periodo(c,pid)
+            from .calculos_5b import calcular
+            from .reportes_personal import generar_listado
+            filas=[]
+            if p['estado']=='CERRADO':
+                import json
+                personas=[json.loads(f[0]) for f in c.execute('SELECT i.contenido_json FROM instantaneas_cierre_5b i JOIN cierres_5b x ON x.id=i.cierre_id WHERE x.periodo_id=? AND x.id=(SELECT MAX(id) FROM cierres_5b WHERE periodo_id=?) ORDER BY i.voluntario_id',(pid,pid))]
+            else:
+                personas=[{'persona':dict(u),'calculo':calcular(c,u['id'],pid)} for u in c.execute('SELECT u.id,u.nombre_completo AS nombre,v.codigo_instructor AS codigo FROM personas_modelo_anual a JOIN usuarios u ON u.id=a.voluntario_id JOIN voluntarios v ON v.usuario_id=u.id WHERE a.periodo_id=? ORDER BY u.nombre_completo,u.id',(pid,)).fetchall()]
+            for item in personas:
+                u=item['persona'];r=item['calculo']
+                filas.append([u['nombre'],u['codigo'] or 'Sin código',r['fisica'] if r['fisica'] is not None else 'No disponible',r['desempeno'] if r['desempeno'] is not None else 'No disponible',r['academica']['valor'] if r['academica']['valor'] is not None else 'No disponible','Pendiente','Pendiente'])
+            archivo=generar_listado('Evaluaciones anuales - '+p['nombre'],f"{p['fecha_inicio']} a {p['fecha_fin']}. {'Instantánea del último cierre' if p['estado']=='CERRADO' else 'Resultados vigentes; ceros iniciales oficiales'}. Psicometría pendiente de instrumentos. Ejercicios de ejemplo excluidos. Sin recomendación de modelo.",['Instructor Voluntario','Código','Física','Desempeño','Académica','Psicométrica 1','Psicométrica 2'],filas,[155,85,65,80,70,95,95])
+        else:
+            datos = datos_gestion(c,pid)
+            archivo = generar_pdf(datos)
         c.commit()
-    except ValueError as error:
+    except (ValueError,LookupError) as error:
+        c.rollback()
         return jsonify(error=str(error)), 400
-    archivo = generar_pdf(datos)
     db.registrar_auditoria(c, current_user.id, 'REPORTE_EVALUACIONES_GENERADO', 'EXITOSO')
     c.commit()
-    respuesta = send_file(archivo, mimetype='application/pdf', as_attachment=True, download_name='evaluaciones-gestion.pdf', max_age=0)
+    respuesta = send_file(archivo, mimetype='application/pdf', as_attachment=False, download_name='evaluaciones-gestion.pdf', max_age=0)
     respuesta.headers['Cache-Control'] = 'private, no-store'
     return respuesta

@@ -64,6 +64,11 @@ def preparar(c, pid, documental=False):
                 'ponderaciones_historicas': filas(c, 'SELECT * FROM versiones_ponderacion WHERE periodo_id=? ORDER BY id', (pid,)),
                 'pesos_historicos': filas(c, 'SELECT pe.* FROM pesos_evaluacion pe JOIN versiones_ponderacion v ON v.id=pe.version_id WHERE v.periodo_id=? ORDER BY pe.version_id,pe.evaluacion_id', (pid,)),
                 'reapertura_historica': filas(c, 'SELECT id,motivo,actor_id,actor_nombre,registrada_en FROM reaperturas_historicas_5b WHERE periodo_id=?', (pid,))}
+    from .modelo_anual import es_modelo, evidencia
+    nuevo = es_modelo(c, pid)
+    if nuevo:
+        contexto['modelo_anual'] = dict(c.execute('SELECT * FROM modelos_anuales WHERE periodo_id=?',(pid,)).fetchone())
+        contexto['historial_modelo_anual'] = filas(c,'SELECT * FROM eventos_modelo_anual WHERE periodo_id=? ORDER BY id',(pid,))
     if documental:
         contexto.update(fecha_cierre_original=None, sin_instantanea_original=True,
                         advertencia='Evidencia disponible al reabrir; no representa los resultados del cierre original.')
@@ -76,6 +81,8 @@ def preparar(c, pid, documental=False):
                          ORDER BY u.id''', (pid, pid))
     for persona in miembros:
         uid = persona['id']
+        if nuevo and not c.execute('SELECT 1 FROM personas_modelo_anual WHERE periodo_id=? AND voluntario_id=?',(pid,uid)).fetchone():
+            continue
         calculo = ({'regla': None, 'estado': 'NO_RECONSTRUIDO', 'resultado_conjunto': None,
                     'faltantes': [], 'provisional': False} if documental else calcular(c, uid, pid))
         if not documental and calculo['regla'] is None:
@@ -97,6 +104,8 @@ def preparar(c, pid, documental=False):
         pub = c.execute('SELECT * FROM publicaciones_5b WHERE voluntario_id=? AND periodo_id=? ORDER BY id DESC LIMIT 1', (uid,pid)).fetchone()
         if pub:
             datos['publicacion'] = dict(pub)
+        if nuevo:
+            datos['evidencia_modelo_anual'] = evidencia(c,pid,uid)
         personas.append(datos)
     previo = ultimo(c, pid)
     contenido = {'contexto': contexto, 'personas': personas, 'cierre_anterior_id': previo['id'] if previo else None}
@@ -124,7 +133,7 @@ def vista(pid):
 
 
 @cierres_bp.post('/api/admin/5b/periodos/<int:pid>/cerrar')
-@role_required('ADMINISTRADOR')
+@role_required('ADMINISTRADOR','JEFE_PERSONAL')
 def cerrar(pid):
     datos = request.get_json(silent=True)
     if (not isinstance(datos,dict) or set(datos) != {'motivo','firma_fuentes','cierre_anterior_id','confirmar_incompletos'}

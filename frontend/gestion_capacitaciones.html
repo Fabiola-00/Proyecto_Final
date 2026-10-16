@@ -11,18 +11,10 @@
 {% endmacro %}
 {% block contenido %}
 {% if current_user.rol in ['ADMINISTRADOR','JEFE_PERSONAL'] %}
-<section class="seccion-panel"><h2>Registro de curso</h2><form id="curso-catalogo-form" class="tarjeta-amplia formulario-inline">{{ campos_curso() }}<button type="submit">Registrar curso</button></form></section>
+<section class="seccion-panel"><details class="bloque-alta-manual" id="registro-curso"><summary class="alta-manual-resumen"><span class="alta-manual-mas" aria-hidden="true">+</span><span><strong>Registro de curso</strong><small>Agregar curso o capacitación</small></span></summary><form id="curso-catalogo-form" class="tarjeta-amplia formulario-inline">{{ campos_curso() }}<button type="submit">Registrar curso</button></form></details></section>
 <template id="curso-edicion-template"><form class="formulario-inline">{{ campos_curso() }}<button type="submit">Guardar cambios</button></form></template>
 {% endif %}
-<section class="seccion-panel"><h2>Capacitaciones y Cursos</h2><p class="evaluaciones-ayuda">El estado del curso se calcula por sus fechas. Cada participante tiene su propia finalización y puntaje, con historial de cambios.</p><div id="curso-catalogo-lista"></div><p id="curso-catalogo-mensaje" class="mensaje" role="status" aria-live="polite"></p></section>
-<section class="seccion-panel"><h2>Reporte de cursos</h2>
-<form id="reporte-cursos-form" action="{{ url_for('relaciones.reporte_cursos') }}" method="get" class="tarjeta-amplia formulario-inline">
-<label>Inicio del curso desde<input name="desde" type="date" required></label>
-<label>Inicio del curso hasta<input name="hasta" type="date" required></label>
-<label>Tipo<select name="tipo"><option value="">Todos los tipos</option>{% for tipo in ['Capacitación','Especialización','Actualización','Taller','Seminario (Webinar)'] %}<option>{{ tipo }}</option>{% endfor %}</select></label>
-<label>Estado<select name="estado"><option value="">Todos los estados</option>{% for estado in ['Próximo','En curso','Finalizado'] %}<option>{{ estado }}</option>{% endfor %}</select></label>
-<button type="submit">Generar reporte PDF</button>
-<p class="campo-ancho">Rango inclusivo por fecha de inicio. Los cursos sin fecha de inicio quedan fuera del reporte.</p>
-</form><p id="reporte-cursos-mensaje" class="mensaje" role="status"></p></section>
+<section class="seccion-panel"><h2>Capacitaciones y Cursos</h2><p class="evaluaciones-ayuda">El estado del curso se calcula por sus fechas. Cada participante tiene su propia finalización y puntaje, con historial de cambios.</p><label class="fila-compacta"><input id="cursos-incluir-bajas" type="checkbox"> Mostrar también cursos dados de baja</label><div id="curso-catalogo-lista"></div><p id="curso-catalogo-mensaje" class="mensaje" role="status" aria-live="polite"></p></section>
+
 <script src="{{ url_for('static', filename='js/cursos.js') }}" defer></script>
 {% endblock %}

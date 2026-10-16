@@ -138,6 +138,7 @@ if (periodo5bAlta) {
     periodos.forEach((periodo) => {
       const conf = periodo.configuracion; const tarjeta = elemento("article", undefined, "tarjeta-modulo");
       tarjeta.append(elemento("h3", periodo.nombre), elemento("p", `${periodo.fecha_inicio} — ${periodo.fecha_fin} · ${periodo.estado}`));
+      if (periodo.modelo_anual) { const enlace=elemento('a','Administrar período y evaluación','boton');enlace.href=`/gestion/modelo-anual?periodo_id=${periodo.id}`;tarjeta.append(elemento('p','Modelo de cinco entradas · ceros oficiales'),enlace);lista.append(tarjeta);return; }
       if (conf) {
         tarjeta.append(elemento("p", `Configuración ${conf.version} · revisión ${conf.revision} · ${conf.estado}`));
         conf.fuentes.forEach((f) => tarjeta.append(elemento("p", `${nombres[f.fuente]}: ${f.nombre} (${f.codigo})`)));

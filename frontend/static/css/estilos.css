@@ -698,3 +698,58 @@ a.modulo-estado:hover { text-decoration: underline; }
 .participantes-checkbox input { width: 1.1rem; flex: 0 0 1.1rem; }
 #activacion-evaluaciones-anual { display: grid; gap: 1rem; }
 #gestiones-jefe-lista { display: grid; gap: 1rem; }
+
+/* Modelo anual: cinco entradas y acciones legibles sin desbordar el viewport. */
+#modelo-anual { min-width: 0; }
+#modelo-anual .tarjeta-amplia { min-width: 0; max-width: 100%; flex-direction: column; align-items: stretch; }
+#modelo-anual button, #modelo-anual summary, #modelo-anual p { white-space: normal; overflow-wrap: anywhere; }
+#modelo-ciclo { margin-block: 1rem; }
+#modelo-ciclo h2 { margin: 0; }
+#modelo-entradas { margin-block: 1.25rem; }
+#modelo-entradas strong { font-size: 1.65rem; color: var(--text-strong); }
+#modelo-notas, #modelo-operaciones { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,22rem),1fr)); gap: 1rem; margin-block: 1.25rem; }
+#modelo-notas > h2, #modelo-operaciones > h2, #modelo-operaciones > p { grid-column: 1 / -1; }
+#modelo-anual details { min-width: 0; padding-block: .5rem; }
+#modelo-anual details button { margin: .35rem .35rem .35rem 0; }
+
+/* Registro compacto; el historial de asistencia conserva sus medidas. */
+.tabla-asistencia-formulario thead th,.tabla-asistencia-formulario tbody td { padding: .35rem .65rem; }
+.tabla-asistencia-formulario .avatar { width: 2rem; height: 2rem; }
+.tabla-asistencia-formulario select { min-height: 2rem; padding-block: .25rem; }
+.tabla-compacta { min-width: 38rem; }
+.tabla-compacta th,.tabla-compacta td { padding: .45rem .65rem; }
+#modelo-anual .tarjeta-amplia { padding: .8rem; margin-block: .5rem; gap: .5rem; }
+#modelo-anual .tarjeta-amplia h3 { font-size: .95rem; margin: 0; }
+#modelo-anual .tarjeta-amplia p { margin: .2rem 0; }
+.resumen-evaluaciones-compacto { grid-template-columns: repeat(auto-fit,minmax(min(100%,8rem),1fr)); gap: .5rem; }
+.resumen-evaluaciones-compacto .tarjeta-modulo { padding: .65rem; min-height: 0; gap: .25rem; }
+.resumen-evaluaciones-compacto h3 { font-size: .9rem; }
+.resumen-evaluaciones-compacto p { font-size: .75rem; margin: 0; }
+.fila-compacta { display:flex; flex-wrap:wrap; align-items:center; gap:.65rem; padding:.5rem 0; border-bottom:1px solid var(--border); }
+.reporte-central { gap: .65rem; }
+.pagina-panel:has(#evaluaciones-anuales-propias) .fila-compacta { justify-content:space-between; }
+.tendencias-panel { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr)); gap:.8rem; }
+.grafico-tendencia { margin:0; padding:.85rem; border:1px solid var(--border); border-radius:1rem; background:var(--surface); min-width:0; }
+.grafico-tendencia h3 { margin:0 0 .6rem; font-size:1rem; }
+.torres-gestiones { display:flex; align-items:end; gap:.6rem; min-height:10rem; padding:.5rem 0; }
+.torre-gestion { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:end; gap:.3rem; font-size:.75rem; text-align:center; }
+.torre-gestion .torre { display:block; width:min(100%,2.5rem); height:var(--alto); min-height:2px; background:#1D1BBE; border-radius:.3rem .3rem 0 0; }
+.torre-gestion small { overflow-wrap:anywhere; }
+.tarjeta-indicador { padding: .9rem; }
+.indicador-valor { font-size: 1.75rem; }
+.fila-compacta input[type="checkbox"] { width:1.1rem; height:1.1rem; min-height:1.1rem; flex:0 0 1.1rem; margin:0; }
+label.fila-compacta { flex-direction:row; justify-content:flex-start; font-size:.8rem; }
+.tabla-cursos { min-width:68rem; }
+.tabla-cursos th:nth-child(1) { width:22%; }
+.tabla-cursos th:nth-child(2) { width:13%; }
+.tabla-cursos th:nth-child(3) { width:13%; }
+.tabla-cursos th:nth-child(4) { width:12%; }
+.tabla-cursos th:nth-child(5) { width:6%; }
+.tabla-cursos th:nth-child(6) { width:11%; }
+.tabla-cursos th:nth-child(7) { width:23%; }
+.pagina-panel:has(.tendencias-panel) .tarjeta-modulo { min-height:0; padding:.85rem; }
+#modelo-notas { grid-template-columns:1fr; gap:.35rem; }
+#modelo-anual #modelo-notas .tarjeta-amplia { flex-direction:row; flex-wrap:wrap; align-items:center; margin:0; }
+#modelo-notas .tarjeta-amplia h3 { min-width:12rem; }
+#modelo-notas .tarjeta-amplia button { margin-left:auto; width:auto; }
+@media(max-width:600px) { #modelo-notas .tarjeta-amplia button { margin-left:0; } }

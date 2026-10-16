@@ -81,10 +81,10 @@ class CierresTestCase(unittest.TestCase):
         self.assertEqual(self.cliente.post(url,json=body).status_code,400)
         self.assertEqual(self.cliente.post(url,json={**body,'motivo':' '},headers=self.h).status_code,400)
         self._login('instructor.demo','Clave instructor 123!');self.h={'X-CSRFToken':self._csrf_token()}
-        self.assertEqual(self.cerrar(v).status_code,403)
-        self.assertEqual(self.reabrir(1).status_code,403)
+        r=self.cerrar(v);self.assertEqual(r.status_code,201);cid=r.json['cierre_id']
+        self.assertEqual(self.reabrir(cid).status_code,403)
         self._login();self.h={'X-CSRFToken':self._csrf_token()}
-        cid=self.cerrar(v).json['cierre_id']
+        self.assertEqual(self.cerrar(v).status_code,409)
         self.assertEqual(self.cliente.get(f'/api/5b/periodos/999/cierres/{cid}').status_code,404)
         self.assertEqual(self.reabrir(cid+1).status_code,409)
         with self.app.app_context():
@@ -164,7 +164,7 @@ class CierresTestCase(unittest.TestCase):
             c=obtener_conexion();antes=[tuple(r) for r in c.execute('SELECT * FROM cierres_5b')]
             inicializar_base_datos();inicializar_base_datos()
             self.assertEqual([tuple(r) for r in c.execute('SELECT * FROM cierres_5b')],antes)
-            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'23')
+            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'25')
             self.assertEqual(c.execute('PRAGMA quick_check').fetchone()[0],'ok')
             self.assertEqual(c.execute('PRAGMA foreign_key_check').fetchall(),[])
 

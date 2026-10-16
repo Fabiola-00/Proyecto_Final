@@ -91,3 +91,13 @@ API: `PATCH /api/instructores-voluntarios/<id>/estado`, con `estado` y `estado_a
 ### Complemento 5B.4 confirmado — 2026-10-14, v23
 
 Se permite la reapertura excepcional de históricos ya CERRADO sin instantáneas: exclusivamente Administrador, con motivo, firma y constancia expresa de ausencia de instantánea original. Evidencia disponible al reabrir conservada como registro inmutable separado, sin atribuirla al cierre antiguo ni adoptar notas/cambiar reglas. Primer cierre posterior crea la primera instantánea auténtica y referencia la reapertura; desde ahí ciclo ordinario. Administrador/Jefe consultan, Instructor sin ampliación de visibilidad. [Compatibilidad](16_cierres_reaperturas.md) y [aceptación humana pendiente](17_validacion_integral_5b.md).
+
+
+### Modelo anual de cinco entradas — 2026-10-15, v24
+
+Acuerdos posteriores al corte v23: Gestión con fechas propias; Jefe inicia y cierra, reapertura administrativa. Inicio registra ceros oficiales salvo dos psicométricas pendientes. Académica suma cursos y notas de operaciones del intervalo hasta 100; sin operaciones, estado Pendiente y aporte cero. Física y Desempeño conservan sus dos fuentes. Formato CINCO_ENTRADAS_V3 separado de históricos V1/V2, sin adopción ni reseteo al migrar. Modelo SIN_ENTRENAR y sin recomendaciones; no se sustituye por promedio. Instructor sin acceso v3 hasta publicación específica, aún pendiente; PDF v3 también pendiente. [Reglas, APIs, compatibilidad y verificación](20_modelo_anual_cinco_entradas.md). La aceptación previa de 5B no se extiende a esta reformulación.
+
+
+## Reorganización posterior — 2026-10-15, v25
+
+Véase [espacio de trabajo vigente](21_organizacion_espacio_trabajo.md): Gestión/Evaluaciones sin duplicación, eliminación permanente solo sin resultados/evidencia protegida, cursos con baja y retirada auditadas, físicas v3 sin fechas, estados propios, ejemplos aritméticos sin valor psicométrico y PDF anual v3 administrativo. Cierres/históricos conservados. La aceptación anterior no se extiende automáticamente a este cambio; psicometría oficial, publicación numérica propia v3, IA, institución y piloto pendientes.

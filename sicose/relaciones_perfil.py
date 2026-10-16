@@ -29,12 +29,14 @@ def curso_para_registro(conexion, valor):
     if not isinstance(valor, int) or isinstance(valor, bool): raise ValueError('Selecciona un curso válido.')
     fila = conexion.execute('SELECT id,nombre FROM cursos WHERE id=?', (valor,)).fetchone()
     if fila is None: raise ValueError('Curso no encontrado.')
+    if conexion.execute('SELECT 1 FROM bajas_curso WHERE curso_id=?',(valor,)).fetchone(): raise ValueError('El curso está dado de baja.')
     return fila
 
 @relaciones_bp.get('/api/cursos')
 @role_required('ADMINISTRADOR', 'JEFE_PERSONAL')
 def listar_cursos():
-    return jsonify(hoy=hoy_bolivia().isoformat(), cursos=[proyectar_curso(f) for f in db.obtener_conexion().execute("SELECT c.*,(SELECT COUNT(*) FROM participaciones_curso p WHERE p.curso_id=c.id) AS participantes_total,(SELECT COUNT(*) FROM participaciones_curso p WHERE p.curso_id=c.id AND p.estado='Finalizado') AS finalizados_total FROM cursos c ORDER BY c.nombre,c.id")])
+    filtro='' if request.args.get('incluir_bajas')=='1' else ' WHERE NOT EXISTS(SELECT 1 FROM bajas_curso b WHERE b.curso_id=c.id)'
+    return jsonify(hoy=hoy_bolivia().isoformat(), cursos=[proyectar_curso(f) for f in db.obtener_conexion().execute("SELECT c.*,EXISTS(SELECT 1 FROM bajas_curso b WHERE b.curso_id=c.id) AS baja,(SELECT COUNT(*) FROM participaciones_curso p WHERE p.curso_id=c.id) AS participantes_total,(SELECT COUNT(*) FROM participaciones_curso p WHERE p.curso_id=c.id AND p.estado='Finalizado') AS finalizados_total FROM cursos c"+filtro+" ORDER BY c.nombre,c.id")])
 
 @relaciones_bp.post('/api/cursos')
 @relaciones_bp.patch('/api/cursos/<int:curso_id>')
@@ -44,7 +46,10 @@ def guardar_curso(curso_id=None):
     campos = ("nombre", "tipo", "entidad", "fecha_inicio", "fecha_fin", "puntaje", "observaciones")
     if entrada is None or not entrada or set(entrada)-set(campos): return error("Campos de curso no válidos.")
     conexion = db.obtener_conexion()
+    try: conexion.execute('BEGIN IMMEDIATE')
+    except sqlite3.OperationalError: return error('Edición concurrente del curso. Recarga.',409)
     anterior = conexion.execute("SELECT * FROM cursos WHERE id=?", (curso_id,)).fetchone() if curso_id else None
+    if curso_id and conexion.execute('SELECT 1 FROM bajas_curso WHERE curso_id=?',(curso_id,)).fetchone(): return error('El curso está dado de baja.',409)
     if curso_id and anterior is None: return error("Curso no encontrado.",404)
     valores = dict(anterior) if anterior else {}
     valores.update(entrada)
@@ -134,6 +139,12 @@ def guardar_operacion(operacion_id=None):
         valores['fecha_fin']=fin
     except (ValueError,TypeError):return error('Revisa los campos obligatorios y las fechas de inicio/fin.')
     registro=tuple(valores.get(c) for c in ('tipo_evento','lugar','fecha_inicio','fecha_fin','institucion_responsable'))
+    try:
+        conexion.execute('BEGIN IMMEDIATE')
+    except sqlite3.OperationalError:
+        return error('Edición concurrente; recarga la operación.',409)
+    if operacion_id and conexion.execute("SELECT 1 FROM notas_operacion_anual n JOIN periodos p ON p.id=n.periodo_id WHERE n.operacion_id=? AND p.estado='CERRADO' LIMIT 1",(operacion_id,)).fetchone():
+        conexion.rollback();return error('La operación tiene notas en una Gestión cerrada; requiere reapertura administrativa.',409)
     if operacion_id:
         conexion.execute('UPDATE operaciones SET tipo_evento=?,lugar=?,fecha_inicio=?,fecha_fin=?,institucion_responsable=? WHERE id=?',(*registro,operacion_id))
     else:
@@ -186,6 +197,6 @@ def reporte_cursos():
     if estado: filas=[f for f in filas if f['estado']==estado]
     archivo=generar_pdf_cursos(filas,desde,hasta,tipo,estado)
     auditar(conexion,'REPORTE_CURSOS_GENERADO');conexion.commit()
-    respuesta=send_file(archivo,mimetype='application/pdf',as_attachment=True,download_name=f'cursos-{desde}-{hasta}.pdf',max_age=0)
+    respuesta=send_file(archivo,mimetype='application/pdf',as_attachment=False,download_name=f'cursos-{desde}-{hasta}.pdf',max_age=0)
     respuesta.headers['Cache-Control']='private, no-store'
     return respuesta

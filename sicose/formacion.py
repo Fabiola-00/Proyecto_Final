@@ -61,7 +61,7 @@ def listar(cid):
     c = db.obtener_conexion()
     if not c.execute('SELECT 1 FROM cursos WHERE id=?', (cid,)).fetchone():
         return fallo('Curso no encontrado.', 404)
-    filas = c.execute('SELECT p.*,u.nombre_completo AS nombre,u.estado AS cuenta_estado,v.codigo_instructor AS codigo FROM participaciones_curso p JOIN usuarios u ON u.id=p.voluntario_id JOIN voluntarios v ON v.usuario_id=p.voluntario_id WHERE p.curso_id=? ORDER BY u.nombre_completo,p.id', (cid,))
+    filas = c.execute('SELECT p.*,EXISTS(SELECT 1 FROM retiros_curso r WHERE r.participacion_id=p.id) AS retirada,u.nombre_completo AS nombre,u.estado AS cuenta_estado,v.codigo_instructor AS codigo FROM participaciones_curso p JOIN usuarios u ON u.id=p.voluntario_id JOIN voluntarios v ON v.usuario_id=p.voluntario_id WHERE p.curso_id=? ORDER BY u.nombre_completo,p.id', (cid,))
     return jsonify(participantes=[dict(f) for f in filas])
 
 
@@ -78,6 +78,7 @@ def asignar(cid):
     try:
         c.execute('BEGIN IMMEDIATE')
         curso = c.execute('SELECT * FROM cursos WHERE id=?', (cid,)).fetchone()
+        if c.execute('SELECT 1 FROM bajas_curso WHERE curso_id=?',(cid,)).fetchone(): raise ValueError('El curso está dado de baja.')
         if curso is None:
             c.rollback(); return fallo('Curso no encontrado.', 404)
         if not curso['entidad'] or curso['tipo'] not in TIPOS or not curso['fecha_inicio'] or not curso['fecha_fin'] or curso['puntaje'] is None:
@@ -137,6 +138,8 @@ def actualizar(identificador):
         fila = c.execute('SELECT p.*,u.estado AS cuenta_estado FROM participaciones_curso p JOIN usuarios u ON u.id=p.voluntario_id WHERE p.id=?', (identificador,)).fetchone()
         if fila is None:
             c.rollback(); return fallo('Participación no encontrada.', 404)
+        if c.execute('SELECT 1 FROM retiros_curso WHERE participacion_id=?',(identificador,)).fetchone(): raise ValueError('La participación fue retirada; su historial está conservado.')
+        if c.execute('SELECT 1 FROM bajas_curso WHERE curso_id=?',(fila['curso_id'],)).fetchone(): raise ValueError('El curso está dado de baja; conserva su formación como historial.')
         if fila['cuenta_estado'] != 'ACTIVO':
             c.rollback(); return fallo('Reactiva la cuenta antes de registrar o corregir su formación.', 409)
         if fila['revision'] != entrada['revision']:
@@ -148,6 +151,9 @@ def actualizar(identificador):
         final = finalizacion.isoformat() if finalizacion else None
         if (entrada['estado'], puntos, final) == (fila['estado'], fila['puntaje'], fila['fecha_finalizacion']):
             c.rollback(); return jsonify(ok=True, revision=fila['revision'])
+        for dia in (fila['fecha_finalizacion'], final):
+            if dia and c.execute("SELECT 1 FROM periodos p JOIN modelos_anuales m ON m.periodo_id=p.id WHERE p.estado='CERRADO' AND ? BETWEEN p.fecha_inicio AND p.fecha_fin",(dia,)).fetchone():
+                c.rollback();return fallo('La finalización anterior o nueva pertenece a un período cerrado. Requiere reapertura administrativa.',409)
         # Tanto retirar una imputación anterior como agregar una nueva afecta al año.
         anos = {f[:4] for f in (fila['fecha_finalizacion'], final) if f}
         for ano in anos:

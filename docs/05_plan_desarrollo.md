@@ -1,6 +1,6 @@
 # 05. Plan de desarrollo
 
-Estado revisado: **2026-10-14; SQLite v23**. Fases 0–3 y 4A/4B/5A implementadas técnicamente para el prototipo local; aceptación operativa de 4A/4B/5A pendiente. **5B implementada técnicamente y aceptada operativamente** por declaración explícita del solicitante el 2026-10-14; aprobación institucional y piloto pendientes, sin declarar cierre global de Fase 5B. Fase 7 parcial con PDF de cursos, asistencia y evaluaciones; Fase 6 condicionada y Fase 8 opcional sin implementación. Piloto pendiente.
+Estado revisado: **2026-10-15; SQLite v24**. Nueva reformulación de cinco entradas implementada técnicamente; véase entrega v24 al final. El alcance v23 siguiente conserva su aceptación histórica. Fases 0–3 y 4A/4B/5A implementadas técnicamente para el prototipo local; aceptación operativa de 4A/4B/5A pendiente. **5B implementada técnicamente y aceptada operativamente** por declaración explícita del solicitante el 2026-10-14; aprobación institucional y piloto pendientes, sin declarar cierre global de Fase 5B. Fase 7 parcial con PDF de cursos, asistencia y evaluaciones; Fase 6 condicionada y Fase 8 opcional sin implementación. Piloto pendiente.
 
 Este resumen y los alcances vigentes siguientes prevalecen sobre los puntos de control históricos al final. Los acuerdos del 2026-10-12 están en [reformulación](10_reformulacion_evaluaciones.md) y [formación v18](11_cursos_formacion.md). El diagnóstico estructural y documental está en [revisión del proyecto](12_revision_proyecto.md).
 
@@ -263,3 +263,13 @@ Ensayo adicional de servidor real — 2026-10-14, v23: 12 comprobaciones funcion
 ### Espacio del Jefe y reportes — 2026-10-14 (v23)
 
 Navegación del Jefe organizada en Inicio, Personal y Operaciones y Evaluación Anual: Gestión, Evaluaciones, Notas y Resultados, Reportes. Dashboard global con tarjetas y gráficos descriptivos; Gestión separada de activación anual e habilitación individual. Activación/configuración del ciclo y regla de cálculo siguen exclusivas del Administrador (confirmado). Administrador/Jefe ahora crean y editan operaciones y asignan participantes, incluidos lotes por checkbox con validación íntegra; sustituye restricciones antiguas de eventos solo administrativos. Centro de PDF existentes y nuevos reportes de formación personal finalizada y operaciones con participantes, solo Administrador/Jefe, sin contactos/observaciones/motivos privados. [Alcance y verificación](19_espacio_jefe_reportes.md). Sin migración ni adopción de históricos.
+
+
+### Modelo anual de cinco entradas — 2026-10-15, v24
+
+Acuerdos posteriores al corte v23: Gestión con fechas propias; Jefe inicia y cierra, reapertura administrativa. Inicio registra ceros oficiales salvo dos psicométricas pendientes. Académica suma cursos y notas de operaciones del intervalo hasta 100; sin operaciones, estado Pendiente y aporte cero. Física y Desempeño conservan sus dos fuentes. Formato CINCO_ENTRADAS_V3 separado de históricos V1/V2, sin adopción ni reseteo al migrar. Modelo SIN_ENTRENAR y sin recomendaciones; no se sustituye por promedio. Instructor sin acceso v3 hasta publicación específica, aún pendiente; PDF v3 también pendiente. [Reglas, APIs, compatibilidad y verificación](20_modelo_anual_cinco_entradas.md). La aceptación previa de 5B no se extiende a esta reformulación.
+
+
+## Reorganización posterior — 2026-10-15, v25
+
+Véase [espacio de trabajo vigente](21_organizacion_espacio_trabajo.md): Gestión/Evaluaciones sin duplicación, eliminación permanente solo sin resultados/evidencia protegida, cursos con baja y retirada auditadas, físicas v3 sin fechas, estados propios, ejemplos aritméticos sin valor psicométrico y PDF anual v3 administrativo. Cierres/históricos conservados. La aceptación anterior no se extiende automáticamente a este cambio; psicometría oficial, publicación numérica propia v3, IA, institución y piloto pendientes.

@@ -3,7 +3,7 @@ import sqlite3
 import re
 from decimal import Decimal, InvalidOperation
 
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, jsonify, render_template, request, redirect
 from flask_login import current_user
 
 from . import db
@@ -50,6 +50,7 @@ def panel_comandante():
 @seguimiento_bp.get("/gestion/seguimiento-operativo")
 @role_required(*GESTORES)
 def pagina_seguimiento():
+    if request.args.get('historico') != '1': return redirect('/gestion/modelo-anual')
     return pagina("Notas y resultados", "seguimiento_5b", "seguimiento_operativo.html")
 
 
@@ -83,7 +84,7 @@ def opciones():
              JOIN usuarios u ON u.id=v.usuario_id WHERE u.estado IN ('ACTIVO','INACTIVO')"""
     args = []
     personal = [dict(f) for f in c.execute(sql + " ORDER BY u.nombre_completo", args)]
-    periodos = [dict(f) for f in c.execute("SELECT id,nombre,estado,fecha_inicio,fecha_fin FROM periodos WHERE NOT EXISTS(SELECT 1 FROM bajas_gestion b WHERE b.periodo_id=periodos.id) ORDER BY fecha_inicio DESC,id DESC")]
+    periodos = [dict(f) for f in c.execute("SELECT id,nombre,estado,fecha_inicio,fecha_fin FROM periodos WHERE NOT EXISTS(SELECT 1 FROM modelos_anuales m WHERE m.periodo_id=periodos.id) AND NOT EXISTS(SELECT 1 FROM bajas_gestion b WHERE b.periodo_id=periodos.id) ORDER BY fecha_inicio DESC,id DESC")]
     return jsonify(personal=personal, periodos=periodos)
 
 
@@ -182,6 +183,9 @@ def registrar_nota(identificador):
         c.execute("BEGIN IMMEDIATE")
     except sqlite3.OperationalError:
         return fallo("Hay una actualización en curso. Recarga el historial e inténtalo de nuevo.", 409)
+    from .modelo_anual import es_modelo
+    if es_modelo(c,pid):
+        c.rollback();return fallo('Usa el registro del modelo anual para esta Gestión.',409)
     def rechazar(mensaje, estado):
         c.rollback()
         return fallo(mensaje, estado)

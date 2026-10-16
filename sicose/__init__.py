@@ -90,6 +90,12 @@ def create_app(test_config=None):
     app.register_blueprint(historicos_bp)
     from .espacio_jefe import espacio_bp
     app.register_blueprint(espacio_bp)
+    from .modelo_anual import anual_bp
+    app.register_blueprint(anual_bp)
+    from .organizacion import organizacion_bp
+    from .demostraciones import demo_bp
+    app.register_blueprint(organizacion_bp)
+    app.register_blueprint(demo_bp)
 
     @login_manager.user_loader
     def cargar_usuario(user_id):

@@ -19,11 +19,12 @@ class EspacioJefeTestCase(unittest.TestCase):
         self.preparar_publicable();self._login('instructor.demo','Clave instructor 123!')
         html=self.cliente.get('/panel/jefe-personal').data.decode()
         nav=html.split('<nav class="navegacion">')[1].split('</nav>')[0]
-        for texto in ('Cursos y Capacitaciones','Evaluaciones','Notas y Resultados','Reportes','Gestión'):self.assertIn(texto,nav)
+        for texto in ('Cursos y Capacitaciones','Evaluaciones','Reportes','Gestión'):self.assertIn(texto,nav)
+        self.assertNotIn('Notas y Resultados',nav)
         self.assertNotIn('Catálogo',nav);self.assertNotIn('Habilitación y avance',nav)
-        for ruta in ('/gestion/periodos-5b','/gestion/evaluaciones-personal','/gestion/reportes'):self.assertEqual(self.cliente.get(ruta).status_code,200)
+        for ruta in ('/gestion/periodos-5b','/gestion/evaluaciones-personal','/gestion/reportes'):self.assertEqual(self.cliente.get(ruta,follow_redirects=True).status_code,200)
         pagina=self.cliente.get('/gestion/periodos-5b').data.decode()
-        self.assertNotIn('periodo-5b-alta',pagina);self.assertIn('gestiones-jefe-lista',pagina)
+        self.assertNotIn('periodo-5b-alta',pagina);self.assertIn('modelo-lista-gestiones',pagina)
         self.assertIn('Resumen SBRAB',html);self.assertNotIn('Seguimiento asignado',html)
         h={'X-CSRFToken':self._csrf_token()}
         self.assertEqual(self.cliente.post(f'/api/admin/5b/periodos/{self.pid}/publicar',json={'revision':1},headers=h).status_code,403)

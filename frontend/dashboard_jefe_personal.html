@@ -1,5 +1,6 @@
 {% extends "_dashboard_base.html" %}
 {% block contenido %}
+<section class="seccion-panel"><h2>Últimas gestiones</h2><p>Registros dentro del inicio y fin de cada Gestión. Asistencias cuenta registros personales; cursos y operaciones cuentan eventos.</p><div class="tendencias-panel">{% for grafico in tendencias %}<figure class="grafico-tendencia"><h3>{{ grafico.titulo }}</h3><div class="torres-gestiones">{% for fila in grafico.filas %}<div class="torre-gestion"><strong>{{ fila.valor }}</strong><span class="torre" style="--alto:{{ fila.alto }}px" aria-hidden="true"></span><small>{{ fila.nombre }}</small></div>{% else %}<p>Sin gestiones registradas.</p>{% endfor %}</div></figure>{% endfor %}</div></section>
 <section class="seccion-panel"><h2>Resumen SBRAB</h2><p>Alcance global; las asignaciones históricas a un Jefe no limitan estas cifras. {{ gestion_panel }}</p>
 <div class="panel-graficos">
 {% for grafico in graficos %}<article class="tarjeta-modulo grafico-resumen"><h3>{{ grafico.titulo }}</h3><p>{{ grafico.alcance }}</p>
