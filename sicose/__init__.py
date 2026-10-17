@@ -1,6 +1,7 @@
 """Fábrica de la aplicación Flask SICOSE."""
 
 import os
+import json
 from datetime import timedelta
 from pathlib import Path
 
@@ -40,7 +41,11 @@ def create_app(test_config=None):
         WTF_CSRF_TIME_LIMIT=3600,
         MAX_CONTENT_LENGTH=3 * 1024 * 1024 + 64 * 1024,
         PERFIL_MEDIA_FOLDER=str(Path(app.instance_path) / "perfiles"),
+        PSICOMETRIA_REVISIONES={},
     )
+    expediente = Path(app.instance_path) / 'psicometria_revisionada.json'
+    if test_config is None and expediente.is_file():
+        app.config['PSICOMETRIA_REVISIONES'] = json.loads(expediente.read_text(encoding='utf-8'))
     if test_config is not None:
         app.config.update(test_config)
 
@@ -98,6 +103,12 @@ def create_app(test_config=None):
     app.register_blueprint(demo_bp)
     from .operaciones import operaciones_bp
     app.register_blueprint(operaciones_bp)
+    from .psicometria import psicometria_bp
+    app.register_blueprint(psicometria_bp)
+    from .pruebas_actuales import pruebas_bp
+    from .recomendaciones import recomendaciones_bp
+    app.register_blueprint(pruebas_bp)
+    app.register_blueprint(recomendaciones_bp)
 
     @login_manager.user_loader
     def cargar_usuario(user_id):

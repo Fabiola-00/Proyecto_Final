@@ -615,3 +615,104 @@ CREATE TABLE IF NOT EXISTS retiros_operacion (
 );
 CREATE TRIGGER IF NOT EXISTS retiro_operacion_update BEFORE UPDATE ON retiros_operacion BEGIN SELECT RAISE(ABORT,'retiro_operacion_inmutable'); END;
 CREATE TRIGGER IF NOT EXISTS retiro_operacion_delete BEFORE DELETE ON retiros_operacion BEGIN SELECT RAISE(ABORT,'retiro_operacion_inmutable'); END;
+
+-- Circuito oficial condicionado a versión/revisión externa; sin reactivos semilla.
+CREATE TABLE IF NOT EXISTS activaciones_psicometria (
+ periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ clave TEXT NOT NULL CHECK(clave IN ('DASS21','CBI')),
+ activa INTEGER NOT NULL CHECK(activa IN (0,1)),
+ revision INTEGER NOT NULL CHECK(revision>0),
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ modificada_en TEXT NOT NULL, PRIMARY KEY(periodo_id,clave)
+);
+CREATE TABLE IF NOT EXISTS historial_activaciones_psicometria (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ clave TEXT NOT NULL CHECK(clave IN ('DASS21','CBI')), activa INTEGER NOT NULL CHECK(activa IN (0,1)),
+ revision INTEGER NOT NULL, actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ registrada_en TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS intentos_psicometria (
+ id INTEGER PRIMARY KEY,
+ periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ voluntario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ clave TEXT NOT NULL CHECK(clave IN ('DASS21','CBI')),
+ version TEXT NOT NULL, firma_formulario TEXT NOT NULL, formulario_json TEXT NOT NULL,
+ respuestas_json TEXT NOT NULL, resultados_json TEXT,
+ revision INTEGER NOT NULL CHECK(revision>0),
+ iniciada_en TEXT NOT NULL, guardada_en TEXT NOT NULL, finalizada_en TEXT,
+ UNIQUE(periodo_id,voluntario_id,clave),
+ CHECK((finalizada_en IS NULL AND resultados_json IS NULL) OR (finalizada_en IS NOT NULL AND resultados_json IS NOT NULL))
+);
+CREATE TRIGGER IF NOT EXISTS intento_psicometria_update BEFORE UPDATE ON intentos_psicometria
+WHEN OLD.finalizada_en IS NOT NULL OR NEW.periodo_id!=OLD.periodo_id OR NEW.voluntario_id!=OLD.voluntario_id
+ OR NEW.clave!=OLD.clave OR NEW.version!=OLD.version OR NEW.firma_formulario!=OLD.firma_formulario OR NEW.formulario_json!=OLD.formulario_json OR NEW.iniciada_en!=OLD.iniciada_en
+BEGIN SELECT RAISE(ABORT,'psicometria_finalizada_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS intento_psicometria_delete BEFORE DELETE ON intentos_psicometria BEGIN SELECT RAISE(ABORT,'psicometria_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS historial_psicometria_update BEFORE UPDATE ON historial_activaciones_psicometria BEGIN SELECT RAISE(ABORT,'historial_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS historial_psicometria_delete BEFORE DELETE ON historial_activaciones_psicometria BEGIN SELECT RAISE(ABORT,'historial_inmutable'); END;
+
+-- v29: instrumentos actuales y recomendaciones; históricos DASS/CBI intactos.
+CREATE TABLE IF NOT EXISTS revisiones_pruebas (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ clave TEXT NOT NULL CHECK(clave IN ('GSE','MINIIPIP')), firma_formulario TEXT NOT NULL,
+ formulario_json TEXT NOT NULL, observacion TEXT NOT NULL,
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ actor_nombre TEXT NOT NULL, rol TEXT NOT NULL CHECK(rol IN ('ADMINISTRADOR','JEFE_PERSONAL')),
+ registrada_en TEXT NOT NULL, UNIQUE(periodo_id,clave,firma_formulario,rol)
+);
+CREATE TABLE IF NOT EXISTS activaciones_pruebas (
+ periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ clave TEXT NOT NULL CHECK(clave IN ('GSE','MINIIPIP')), activa INTEGER NOT NULL CHECK(activa IN (0,1)),
+ revision INTEGER NOT NULL CHECK(revision>0), actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ modificada_en TEXT NOT NULL, PRIMARY KEY(periodo_id,clave)
+);
+CREATE TABLE IF NOT EXISTS historial_activaciones_pruebas (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ clave TEXT NOT NULL CHECK(clave IN ('GSE','MINIIPIP')), activa INTEGER NOT NULL CHECK(activa IN (0,1)),
+ revision INTEGER NOT NULL, actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ registrada_en TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS intentos_pruebas (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ voluntario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ clave TEXT NOT NULL CHECK(clave IN ('GSE','MINIIPIP')), version TEXT NOT NULL,
+ firma_formulario TEXT NOT NULL, formulario_json TEXT NOT NULL,
+ respuestas_json TEXT NOT NULL, resultados_json TEXT, revision INTEGER NOT NULL CHECK(revision>0),
+ iniciada_en TEXT NOT NULL, guardada_en TEXT NOT NULL, finalizada_en TEXT,
+ UNIQUE(periodo_id,voluntario_id,clave),
+ CHECK((finalizada_en IS NULL AND resultados_json IS NULL) OR (finalizada_en IS NOT NULL AND resultados_json IS NOT NULL))
+);
+CREATE TABLE IF NOT EXISTS recomendaciones (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ voluntario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ anterior_id INTEGER UNIQUE REFERENCES recomendaciones(id) ON DELETE RESTRICT,
+ firma_fuentes TEXT NOT NULL, fuentes_json TEXT NOT NULL, entradas_json TEXT NOT NULL,
+ modelo_sha256 TEXT NOT NULL, resultado_json TEXT NOT NULL,
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ actor_nombre TEXT NOT NULL, generada_en TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_recomendaciones_persona ON recomendaciones(periodo_id,voluntario_id,id);
+CREATE UNIQUE INDEX IF NOT EXISTS recomendacion_inicial ON recomendaciones(periodo_id,voluntario_id) WHERE anterior_id IS NULL;
+CREATE TRIGGER IF NOT EXISTS recomendacion_anterior_insert BEFORE INSERT ON recomendaciones
+WHEN NEW.anterior_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM recomendaciones r WHERE r.id=NEW.anterior_id AND r.periodo_id=NEW.periodo_id AND r.voluntario_id=NEW.voluntario_id)
+BEGIN SELECT RAISE(ABORT,'recomendacion_anterior_invalida'); END;
+CREATE TABLE IF NOT EXISTS confirmaciones_recomendacion (
+ recomendacion_id INTEGER PRIMARY KEY REFERENCES recomendaciones(id) ON DELETE RESTRICT,
+ observacion TEXT NOT NULL CHECK(length(trim(observacion)) BETWEEN 1 AND 2000),
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ actor_nombre TEXT NOT NULL, confirmada_en TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS intento_prueba_update BEFORE UPDATE ON intentos_pruebas
+WHEN OLD.finalizada_en IS NOT NULL OR NEW.periodo_id!=OLD.periodo_id OR NEW.voluntario_id!=OLD.voluntario_id
+ OR NEW.clave!=OLD.clave OR NEW.version!=OLD.version OR NEW.firma_formulario!=OLD.firma_formulario
+ OR NEW.formulario_json!=OLD.formulario_json OR NEW.iniciada_en!=OLD.iniciada_en
+BEGIN SELECT RAISE(ABORT,'prueba_finalizada_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS intento_prueba_delete BEFORE DELETE ON intentos_pruebas BEGIN SELECT RAISE(ABORT,'prueba_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS revision_prueba_update BEFORE UPDATE ON revisiones_pruebas BEGIN SELECT RAISE(ABORT,'revision_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS revision_prueba_delete BEFORE DELETE ON revisiones_pruebas BEGIN SELECT RAISE(ABORT,'revision_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS historial_prueba_update BEFORE UPDATE ON historial_activaciones_pruebas BEGIN SELECT RAISE(ABORT,'historial_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS historial_prueba_delete BEFORE DELETE ON historial_activaciones_pruebas BEGIN SELECT RAISE(ABORT,'historial_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS recomendacion_update BEFORE UPDATE ON recomendaciones BEGIN SELECT RAISE(ABORT,'recomendacion_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS recomendacion_delete BEFORE DELETE ON recomendaciones BEGIN SELECT RAISE(ABORT,'recomendacion_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS confirmacion_recomendacion_update BEFORE UPDATE ON confirmaciones_recomendacion BEGIN SELECT RAISE(ABORT,'confirmacion_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS confirmacion_recomendacion_delete BEFORE DELETE ON confirmaciones_recomendacion BEGIN SELECT RAISE(ABORT,'confirmacion_inmutable'); END;

@@ -127,7 +127,7 @@ class Historicos5BTestCase(unittest.TestCase):
             inicializar_base_datos();inicializar_base_datos()
             for t,datos in antes.items():self.assertEqual([tuple(f) for f in c.execute(f'SELECT * FROM "{t}" ORDER BY rowid')],datos,t)
             self.assertEqual(c.execute('SELECT COUNT(*) FROM reaperturas_historicas_5b').fetchone()[0],0)
-            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'27')
+            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'29')
             self.assertEqual(c.execute('PRAGMA quick_check').fetchone()[0],'ok');self.assertEqual(c.execute('PRAGMA foreign_key_check').fetchall(),[])
 
     def test_recorrido_integral_fisica_formacion_publicacion_cierre_y_correccion(self):

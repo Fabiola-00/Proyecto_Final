@@ -1,11 +1,14 @@
 {% extends "_dashboard_base.html" %}
 {% block contenido %}
 {% if modo_gestion %}{% include '_crear_modelo_anual.html' %}<div id="modelo-lista-gestiones"></div>{% endif %}
-<section class="seccion-panel" id="modelo-anual" data-modo="{{ 'gestion' if modo_gestion else 'evaluacion' }}"><p>{% if modo_gestion %}Todos los Instructores Voluntarios activos comienzan con ceros oficiales al iniciar la Gestión. Las psicométricas permanecen sin nota. <a href="{{ url_for('modelo_anual.pagina') }}">Evaluaciones</a> · <a href="{{ url_for('periodos_5b.pagina',historico=1) }}">Gestiones históricas</a>{% else %}Activa las evaluaciones, habilita personas y registra resultados. Los ejercicios aritméticos son ejemplos, sin valor psicométrico. <a href="{{ url_for('espacio_jefe.evaluaciones',historico=1) }}">Evaluaciones históricas</a>{% if current_user.rol == 'ADMINISTRADOR' %} · <a href="{{ url_for('evaluations.pagina_catalogo') }}">Catálogo histórico</a>{% endif %}{% endif %}</p>
+<section class="seccion-panel" id="modelo-anual" data-modo="{{ 'gestion' if modo_gestion else 'evaluacion' }}"><p>{% if modo_gestion %}Todos los Instructores Voluntarios activos comienzan con ceros oficiales al iniciar la Gestión. Las psicométricas permanecen sin nota. <a href="{{ url_for('modelo_anual.pagina') }}">Evaluaciones</a> · <a href="{{ url_for('periodos_5b.pagina',historico=1) }}">Gestiones históricas</a>{% else %}Activa las evaluaciones, registra resultados y revisa las propuestas de orientación. GSE y Mini-IPIP se habilitan por separado en cada Gestión, después de la revisión de ambos responsables. <a href="{{ url_for('espacio_jefe.evaluaciones',historico=1) }}">Evaluaciones históricas</a>{% if current_user.rol == 'ADMINISTRADOR' %} · <a href="{{ url_for('evaluations.pagina_catalogo') }}">Catálogo histórico</a>{% endif %}{% endif %}</p>
 <form id="modelo-filtro" class="formulario-inline"><label>Gestión<select name="periodo" required><option value="">Seleccionar período</option></select></label><button>Consultar</button></form><p id="modelo-mensaje" role="status" aria-live="polite"></p><div id="modelo-ciclo" class="tarjeta-amplia"></div>
-{% if not modo_gestion %}<p><a href="{{ url_for('seguimiento.pagina_seguimiento',historico=1) }}">Calificaciones y publicaciones históricas</a></p>{% endif %}
+{% if not modo_gestion %}<div id="psicometria-activaciones"></div><p><a href="{{ url_for('seguimiento.pagina_seguimiento',historico=1) }}">Calificaciones y publicaciones históricas</a></p>{% endif %}
 <div {% if modo_gestion %}hidden{% endif %}><label>Instructor Voluntario<select id="modelo-persona"><option value="">Seleccionar persona</option></select></label><div id="modelo-entradas" class="panel-graficos resumen-evaluaciones-compacto"></div>
-<p class="evaluaciones-ayuda">Recomendaciones pendientes: modelo sin entrenar.</p>
-<div id="modelo-notas"></div><div id="modelo-operaciones"></div><div id="modelo-historial"></div></div></section>
+<div id="modelo-notas"></div><div id="modelo-operaciones"></div><div id="psicometria-resultados"></div>
+<div id="recomendacion-panel"><h2>Recomendación</h2><p>Selecciona un Instructor Voluntario para consultar las entradas y propuestas.</p></div>
+<div id="modelo-historial"></div></div></section>
+{% if not modo_gestion %}<script src="{{ url_for('static',filename='js/psicometria.js') }}" defer></script>{% endif %}
 {% if not modo_gestion %}<script src="{{ url_for('static',filename='js/modelo_anual.js') }}" defer></script>{% endif %}
+{% if not modo_gestion %}<script src="{{ url_for('static',filename='js/recomendaciones.js') }}" defer></script>{% endif %}
 {% endblock %}

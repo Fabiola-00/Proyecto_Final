@@ -1,0 +1,172 @@
+{
+  "estado": "ENTRENADO_SOLO_SINTETICO",
+  "uso_en_personas": false,
+  "registros_totales": 200,
+  "semillas": {
+    "datos": 2718,
+    "pesos": 31415,
+    "orden": 42
+  },
+  "arquitectura": [
+    9,
+    6,
+    4
+  ],
+  "parametros": 88,
+  "entrenamiento": {
+    "epocas_maximas": 300,
+    "epocas_ejecutadas": 109,
+    "epoca_elegida": 84,
+    "parada_temprana": true,
+    "paciencia": 25,
+    "l2": 0.001,
+    "tasa": 0.03,
+    "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+  },
+  "reglas_etiquetado": {
+    "naturaleza": "HIPOTESIS_DIDACTICA_NO_VALIDADA",
+    "preparacion_y_confianza": "fisica < 60 y 0.70*(1-F) + 0.20*(1-G) + 0.10*(1-C) > 0.42",
+    "comunicacion_y_colaboracion": "desempeno < 60 y 0.65*(1-D) + 0.20*(1-G) + 0.075*(1-E) + 0.075*(1-A) > 0.42",
+    "aprendizaje_y_autonomia": "academica < 60 y 0.65*(1-Ac) + 0.20*(1-G) + 0.075*(1-O) + 0.075*(1-C) > 0.42",
+    "afrontamiento_y_metas": "G < 0.50 y 0.65*(1-G) + 0.20*N + 0.15*(1-C) > 0.50",
+    "leyenda": "F=fisica,D=desempeno,Ac=academica,G=GSE,E=extraversion,A=amabilidad,C=responsabilidad,N=neuroticismo,O=apertura; todos normalizados 0-1.",
+    "limites": "Cortes y pesos inventados solo para simulación. Ningún rasgo activa por sí solo una salida. GSE no tiene corte universal. No implican causalidad ni necesidades reales."
+  },
+  "evaluaciones": {
+    "entrenamiento": {
+      "n": 140,
+      "coincidencia_por_salida": {
+        "preparacion_y_confianza": 0.9857142857142858,
+        "comunicacion_y_colaboracion": 0.9928571428571429,
+        "aprendizaje_y_autonomia": 1.0,
+        "afrontamiento_y_metas": 0.9428571428571428
+      },
+      "coincidencia_completa": 0.9214285714285714,
+      "abstenciones": 14,
+      "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+      "entropia_cruzada": 0.2534229974965486,
+      "por_salida": {
+        "preparacion_y_confianza": {
+          "vp": 70,
+          "vn": 68,
+          "fp": 2,
+          "fn": 0,
+          "f1": 0.9859154929577465
+        },
+        "comunicacion_y_colaboracion": {
+          "vp": 70,
+          "vn": 69,
+          "fp": 1,
+          "fn": 0,
+          "f1": 0.9929078014184397
+        },
+        "aprendizaje_y_autonomia": {
+          "vp": 70,
+          "vn": 70,
+          "fp": 0,
+          "fn": 0,
+          "f1": 1.0
+        },
+        "afrontamiento_y_metas": {
+          "vp": 62,
+          "vn": 70,
+          "fp": 0,
+          "fn": 8,
+          "f1": 0.9393939393939394
+        }
+      }
+    },
+    "validacion": {
+      "n": 30,
+      "coincidencia_por_salida": {
+        "preparacion_y_confianza": 1.0,
+        "comunicacion_y_colaboracion": 0.9666666666666667,
+        "aprendizaje_y_autonomia": 0.9333333333333333,
+        "afrontamiento_y_metas": 0.9666666666666667
+      },
+      "coincidencia_completa": 0.8666666666666667,
+      "abstenciones": 3,
+      "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+      "entropia_cruzada": 0.38539424403860134,
+      "por_salida": {
+        "preparacion_y_confianza": {
+          "vp": 15,
+          "vn": 15,
+          "fp": 0,
+          "fn": 0,
+          "f1": 1.0
+        },
+        "comunicacion_y_colaboracion": {
+          "vp": 15,
+          "vn": 14,
+          "fp": 1,
+          "fn": 0,
+          "f1": 0.967741935483871
+        },
+        "aprendizaje_y_autonomia": {
+          "vp": 14,
+          "vn": 14,
+          "fp": 1,
+          "fn": 1,
+          "f1": 0.9333333333333333
+        },
+        "afrontamiento_y_metas": {
+          "vp": 15,
+          "vn": 14,
+          "fp": 1,
+          "fn": 0,
+          "f1": 0.967741935483871
+        }
+      }
+    },
+    "prueba": {
+      "n": 30,
+      "coincidencia_por_salida": {
+        "preparacion_y_confianza": 0.8666666666666667,
+        "comunicacion_y_colaboracion": 0.9666666666666667,
+        "aprendizaje_y_autonomia": 0.9,
+        "afrontamiento_y_metas": 0.9333333333333333
+      },
+      "coincidencia_completa": 0.6666666666666666,
+      "abstenciones": 6,
+      "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+      "entropia_cruzada": 0.589898761886692,
+      "por_salida": {
+        "preparacion_y_confianza": {
+          "vp": 15,
+          "vn": 11,
+          "fp": 4,
+          "fn": 0,
+          "f1": 0.8823529411764706
+        },
+        "comunicacion_y_colaboracion": {
+          "vp": 14,
+          "vn": 15,
+          "fp": 0,
+          "fn": 1,
+          "f1": 0.9655172413793104
+        },
+        "aprendizaje_y_autonomia": {
+          "vp": 14,
+          "vn": 13,
+          "fp": 2,
+          "fn": 1,
+          "f1": 0.9032258064516129
+        },
+        "afrontamiento_y_metas": {
+          "vp": 13,
+          "vn": 15,
+          "fp": 0,
+          "fn": 2,
+          "f1": 0.9285714285714286
+        }
+      }
+    }
+  },
+  "umbral_metricas": 0.5,
+  "umbrales_abstencion": [
+    0.35,
+    0.65
+  ],
+  "advertencia": "Reproduce hipótesis inventadas. No estima prevalencias ni valida recomendaciones humanas; activaciones no calibradas."
+}

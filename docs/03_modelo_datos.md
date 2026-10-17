@@ -2,6 +2,8 @@
 
 ## Esquema implementado
 
+**Actualización de código v28, 2026-10-17:** se agregan `activaciones_psicometria` (PK Gestión/prueba, revisión/actor/fecha), `historial_activaciones_psicometria` (append-only) e `intentos_psicometria` (único Gestión/persona/prueba). Intentos conservan formulario revisado/versión/huella, respuestas, subescalas finales y revisión del avance; finalizaciones inmutables y FK RESTRICT. Ninguna carga automática de instrumentos o resultados. Véase [diseño y condiciones de activación](25_psicometria_y_red_experimental.md). La descripción v23 siguiente es histórica; las adiciones v24–v28 la amplían.
+
 SQLite usa `PRAGMA foreign_keys = ON`. El esquema `sicose/schema.sql` declara las tablas; `flask --app sicose init-db` agrega las columnas faltantes y marca `app_meta.schema_version` como 23 después de completar las migraciones. La base previa se preserva y amplía; no se eliminan tablas/filas. Fechas técnicas se expresan en UTC; claves numéricas son internas.
 
 | Tabla | Uso y restricciones principales |

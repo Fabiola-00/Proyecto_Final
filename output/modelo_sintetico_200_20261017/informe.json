@@ -1,0 +1,70 @@
+{
+  "estado": "ENTRENADO_SOLO_SINTETICO",
+  "semillas": [
+    2718,
+    31415,
+    42
+  ],
+  "registros_totales": 200,
+  "arquitectura": [
+    9,
+    6,
+    4
+  ],
+  "parametros": 88,
+  "entrenamiento": {
+    "epocas_maximas": 300,
+    "epocas_ejecutadas": 80,
+    "epoca_elegida": 55,
+    "parada_temprana": true,
+    "paciencia": 25,
+    "l2": 0.001,
+    "tasa": 0.03,
+    "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+  },
+  "datos_sha256": "e242160516c378d22221da0ae37d9cc78af81951e7e66a7a94a1848e0fc75015",
+  "umbral_didactico": 0.6,
+  "umbrales_abstencion": [
+    0.35,
+    0.65
+  ],
+  "advertencia": "Los objetivos provienen de reglas inventadas, no de profesionales ni recomendaciones históricas.",
+  "evaluaciones": {
+    "entrenamiento": {
+      "n": 140,
+      "coincidencia_por_salida": {
+        "apoyo_fisico": 0.9928571428571429,
+        "acompanamiento_desempeno": 1.0,
+        "apoyo_formativo": 0.9857142857142858,
+        "revision_profesional": 0.8928571428571429
+      },
+      "coincidencia_completa": 0.8714285714285714,
+      "abstenciones": 25,
+      "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional."
+    },
+    "validacion": {
+      "n": 30,
+      "coincidencia_por_salida": {
+        "apoyo_fisico": 1.0,
+        "acompanamiento_desempeno": 1.0,
+        "apoyo_formativo": 0.9666666666666667,
+        "revision_profesional": 0.8333333333333334
+      },
+      "coincidencia_completa": 0.8333333333333334,
+      "abstenciones": 7,
+      "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional."
+    },
+    "prueba": {
+      "n": 30,
+      "coincidencia_por_salida": {
+        "apoyo_fisico": 0.9666666666666667,
+        "acompanamiento_desempeno": 0.9333333333333333,
+        "apoyo_formativo": 1.0,
+        "revision_profesional": 0.9
+      },
+      "coincidencia_completa": 0.8,
+      "abstenciones": 7,
+      "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional."
+    }
+  }
+}

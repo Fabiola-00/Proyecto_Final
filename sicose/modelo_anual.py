@@ -98,15 +98,23 @@ def calcular(c,uid,pid):
     def estado_componente(a,b):
         iniciales=sum(notas[f]['origen']=='CERO_INICIAL' for f in (a,b))
         return 'CERO_INICIAL_OFICIAL' if iniciales==2 else 'PARCIAL_CON_CERO_INICIAL_OFICIAL' if iniciales else 'CALIFICADA'
+    from .pruebas_actuales import estado as estado_prueba, intento as intento_prueba
+    from .instrumentos_actuales import firma as firma_prueba
+    psico_estados=[]
+    for clave in ('GSE','MINIIPIP'):
+        a=estado_prueba(c,pid,clave);i=intento_prueba(c,pid,uid,clave)
+        completa=bool(i and i['finalizada_en'] and i['firma_formulario']==firma_prueba(clave))
+        psico_estados.append('COMPLETADA' if completa and a['activa'] and a['revisada'] else ('DESHABILITADA' if not a['activa'] else 'PENDIENTE_PRUEBA'))
+    faltantes_psico=[f'PSICOMETRICA_{i+1}' for i,estado in enumerate(psico_estados) if estado!='COMPLETADA']
     entradas=[{'clave':k,'nombre':n,'valor':numero(v),'estado':'DESHABILITADA' if v is None and not k.startswith('PSICO') else estado} for k,n,v,estado in (
         ('FISICA','Física',fisica,estado_componente('FISICA_1','FISICA_2')),
         ('DESEMPENO','Desempeño',desempeno,estado_componente('DESEMPENO_JEFE','DESEMPENO_COMANDANTE')),
         ('ACADEMICA','Académica',academia,'CALCULADA' if cursos or ops else 'CERO_INICIAL_OFICIAL'),
-        ('PSICOMETRICA_1','Psicométrica 1',None,'PENDIENTE_INSTRUMENTO'),('PSICOMETRICA_2','Psicométrica 2',None,'PENDIENTE_INSTRUMENTO'))]
-    return {'regla':'CINCO_ENTRADAS_V3','estado':'INCOMPLETO','resultado_conjunto':None,'fisica':numero(fisica),'desempeno':numero(desempeno),
+        ('PSICOMETRICA_1','GSE · Autoeficacia',None,psico_estados[0]),('PSICOMETRICA_2','Mini-IPIP · Personalidad',None,psico_estados[1]))]
+    return {'regla':'CINCO_ENTRADAS_V3','estado':'INCOMPLETO' if faltantes_psico or bloqueos else 'COMPLETO','resultado_conjunto':None,'fisica':numero(fisica),'desempeno':numero(desempeno),
         'academica':{'valor':float(Decimal(academia)/100) if academia is not None else None,'puntos_sin_tope':float(Decimal(suma_cursos+suma_ops)/100),'tope':100,'detalle':cursos,'operaciones':ops,'estado_operaciones':'CALIFICADAS' if ops else 'PENDIENTE','aporte_operaciones':numero(suma_ops)},
-        'entradas':entradas,'fuentes':notas,'faltantes':['PSICOMETRICA_1','PSICOMETRICA_2']+bloqueos,'bloqueos':bloqueos,'provisional':True,
-        'modelo':{'estado':'SIN_ENTRENAR','recomendacion_ascenso':None,'recomendacion_operaciones':None,'listo_para_inferencia':False}}
+        'entradas':entradas,'fuentes':notas,'faltantes':faltantes_psico+bloqueos,'bloqueos':bloqueos,'provisional':True,
+        'modelo':{'estado':'ENTRENADO_EXPERIMENTAL','recomendacion_ascenso':None,'recomendacion_operaciones':None,'listo_para_inferencia':not faltantes_psico and not bloqueos}}
 
 
 def evidencia(c,pid,uid):
@@ -123,7 +131,7 @@ def privada(r):
 @anual_bp.get('/gestion/modelo-anual')
 @role_required('ADMINISTRADOR','JEFE_PERSONAL')
 def pagina():
-    return render_template('modelo_anual.html',titulo_pagina='Evaluación anual',nav_activo='evaluaciones_jefe',indicadores=[],periodo_actual=db.periodo_actual(),descripcion='Cinco entradas por persona y Gestión. Recomendación pendiente de modelo validado.')
+    return render_template('modelo_anual.html',titulo_pagina='Evaluación anual',nav_activo='evaluaciones_jefe',indicadores=[],periodo_actual=db.periodo_actual(),descripcion='Evaluación institucional, GSE, Mini-IPIP y propuestas de orientación con revisión humana.')
 
 
 @anual_bp.get('/api/modelo-anual/gestiones')

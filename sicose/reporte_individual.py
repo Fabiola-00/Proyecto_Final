@@ -55,8 +55,11 @@ def datos_individual(c, uid, esperado=None):
         WHERE x.voluntario_id=? AND o.fecha_inicio<=? AND COALESCE(o.fecha_fin,o.fecha_inicio)>=?
         ORDER BY o.fecha_inicio,o.id""", (p['id'],uid,p['fecha_fin'],p['fecha_inicio']))]
     asistencia = totales(f[0] for f in c.execute(f'SELECT {PROYECCION} FROM asistencias a WHERE a.voluntario_id=? AND a.fecha BETWEEN ? AND ?', (uid,p['fecha_inicio'],p['fecha_fin'])))
+    from .pruebas_actuales import resultados_persona
+    from .recomendaciones import para_reporte
     return dict(persona=persona,periodo=p,cursos=cursos,operaciones=operaciones,
                 asistencia=asistencia,calculo=calcular(c,uid,p['id']),
+                pruebas=resultados_persona(c,p['id'],uid),recomendacion=para_reporte(c,p['id'],uid),
                 generado=datetime.now(timezone(timedelta(hours=-4))))
 
 
@@ -145,8 +148,22 @@ def generar_individual(datos):
     a=datos['asistencia'];porcentaje='No disponible' if a['porcentaje'] is None else f"{a['porcentaje']:.2f}%"
     contenido.append(tabla(['Asiste','Atraso','Permiso','Falta','Asistencia'],[[a['ASISTE'],a['ATRASO'],a['PERMISO'],a['FALTA'],porcentaje]],[1,1,1,1,1.5]))
     contenido.extend([Spacer(1,8),texto('(Asiste + Atraso) / (Asiste + Atraso + Falta) x 100. Permiso excluido. Sin registros computables: No disponible. Conteo por registros, no por días; una fecha sin registro no se convierte en falta. Indicador informativo separado de las notas.',normal),texto('6. Pruebas psicométricas',seccion)])
-    contenido.append(tabla(['Instrumento','Resultado','Subescalas'],[['Psicométrica 1','Pendiente','Pendientes de seleccionar y aprobar el instrumento.'],['Psicométrica 2','Pendiente','Pendientes de seleccionar y aprobar el instrumento.']],[1.4,1,3]))
-    contenido.extend([Spacer(1,8),texto('No existen instrumentos oficiales implementados ni resultados psicométricos. Los formularios aritméticos demostrativos no se incluyen. Las futuras subescalas conservarán las reglas de su instrumento; no se asignan valores ni categorías ficticias.',normal),texto('7. Recomendación de la red neuronal',seccion),tabla(['Ámbito','Recomendación'],[['Ascenso','Pendiente'],['Participación en operaciones','Pendiente']],[2,3]),Spacer(1,8),texto('Modelo sin entrenar ni validar. No se ha realizado inferencia y no se emite recomendación automática.',normal),texto('Alcance y trazabilidad',seccion),texto('Fuentes: perfil institucional, participaciones en cursos y operaciones, notas vigentes y registros personales de asistencia de la Gestión activa. Se presenta el estado actual consultado en una misma transacción; no es una instantánea de cierre ni una evaluación clínica. Datos ausentes se identifican expresamente. Uso reservado a personal administrativo autorizado.',normal)])
+    nombres={'autoeficacia':'Autoeficacia','extraversion':'Extraversión','amabilidad':'Amabilidad','responsabilidad':'Responsabilidad','neuroticismo':'Neuroticismo','apertura':'Apertura'}
+    filas=[]
+    for prueba in datos.get('pruebas',[]):
+        escalas='\n'.join(f"{nombres.get(k,k)}: {v['valor']} (rango {v['rango'][0]} a {v['rango'][1]})" for k,v in prueba.get('subescalas',{}).items())
+        filas.append([prueba['nombre'],prueba['estado'],escalas or 'Pendiente'])
+    contenido.append(tabla(['Instrumento','Estado','Resultados descriptivos'],filas,[1.5,1,3]))
+    contenido.extend([Spacer(1,8),texto('Subescalas separadas, sin categorías diagnósticas. Las respuestas individuales y los avances no se incluyen en este PDF. Resultados conservados por Gestión.',normal),texto('7. Recomendación de la red neuronal',seccion)])
+    rec=datos.get('recomendacion')
+    if rec:
+        contenido.append(texto(f"Versión {rec['id']} - Confirmada. Generada el {rec['generada_en']} por {rec['generada_por']}.",normal))
+        contenido.append(texto('Salida del modelo',seccion))
+        contenido.extend(texto(t,normal) for t in rec['resultado']['sugerencias'])
+        contenido.extend([texto('Observación del responsable',seccion),texto(rec['confirmacion']['observacion'],normal),texto(f"Confirmó: {rec['confirmacion']['actor_nombre']} | {rec['confirmacion']['confirmada_en']}",normal),texto(f"Modelo: 9-6-4 | SHA-256: {rec['modelo_sha256']}",pequeno),texto(rec['resultado']['aviso'],normal)])
+    else:
+        contenido.append(texto('Pendiente de una propuesta vigente confirmada por Administrador o Jefe de Personal. Las propuestas sin confirmar y las desactualizadas no se incorporan.',normal))
+    contenido.extend([texto('Alcance y trazabilidad',seccion),texto('Fuentes: perfil institucional, cursos y operaciones, notas vigentes, asistencia y pruebas finalizadas de la Gestión activa. La observación humana está separada de la salida del modelo experimental. No es una instantánea de cierre ni una evaluación clínica. Uso reservado a personal administrativo autorizado.',normal)])
     doc.build(contenido,onFirstPage=carimbo,onLaterPages=carimbo)
     salida.seek(0)
     return salida

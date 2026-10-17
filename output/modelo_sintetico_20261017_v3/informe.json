@@ -1,0 +1,54 @@
+{
+  "estado": "ENTRENADO_SOLO_SINTETICO",
+  "semillas": [
+    2718,
+    31415,
+    42
+  ],
+  "epocas": 60,
+  "datos_sha256": "1e9f7bea3ae65948bdae77740bb4f95305a3894968990eafb623e9364d29f012",
+  "umbral_didactico": 0.6,
+  "umbrales_abstencion": [
+    0.35,
+    0.65
+  ],
+  "advertencia": "Los objetivos provienen de reglas inventadas, no de profesionales ni recomendaciones históricas.",
+  "evaluaciones": {
+    "entrenamiento": {
+      "n": 1424,
+      "coincidencia_por_salida": {
+        "apoyo_fisico": 0.9838483146067416,
+        "acompanamiento_desempeno": 0.9943820224719101,
+        "apoyo_formativo": 0.9922752808988764,
+        "revision_profesional": 0.9066011235955056
+      },
+      "coincidencia_completa": 0.8799157303370787,
+      "abstenciones": 156,
+      "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional."
+    },
+    "validacion": {
+      "n": 304,
+      "coincidencia_por_salida": {
+        "apoyo_fisico": 0.9769736842105263,
+        "acompanamiento_desempeno": 0.9868421052631579,
+        "apoyo_formativo": 0.9868421052631579,
+        "revision_profesional": 0.8881578947368421
+      },
+      "coincidencia_completa": 0.8486842105263158,
+      "abstenciones": 40,
+      "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional."
+    },
+    "prueba": {
+      "n": 320,
+      "coincidencia_por_salida": {
+        "apoyo_fisico": 0.9875,
+        "acompanamiento_desempeno": 0.990625,
+        "apoyo_formativo": 0.98125,
+        "revision_profesional": 0.89375
+      },
+      "coincidencia_completa": 0.85625,
+      "abstenciones": 53,
+      "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional."
+    }
+  }
+}

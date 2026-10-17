@@ -4,9 +4,21 @@
 
 Paleta institucional vigente (2026-10-16): azules `#0500B2` y `#0054B2`, naranjas `#FA9A4B` y `#FCC495`, complementarios `#226DC6` y `#C67B22`. Interfaz con tonos derivados para modos claro/oscuro; PDF en paleta clara para impresión. Verde/rojo conservan su significado de estado.
 
-## Estado actual — revisión 2026-10-15
+## Estado actual — revisión 2026-10-17
 
-**SQLite v27. Espacio de trabajo organizado, Gestión/Evaluaciones separadas, cursos con bajas y retiradas auditadas, físicas v3 sin fechas y formularios aritméticos demostrativos independientes. PDF anual v3 administrativo y reportes en otra pestaña. Psicometría oficial y red neuronal pendientes.** Véase [organización vigente](docs/21_organizacion_espacio_trabajo.md). Véase la actualización v24 al final. El siguiente resumen v23 conserva el alcance histórico aceptado, no sustituye las decisiones nuevas.
+[Informe didáctico completo del modelo seleccionado 9→6→4](docs/26_informe_modelo_964_gse_miniipip.md) y [PDF imprimible](output/pdf/informe_modelo_964_gse_miniipip.pdf): 19 secciones con conceptos, configuración efectiva, ejemplo numérico desde los pesos, métricas, glosario y límites. Documentación sin reentrenamiento ni modificación del modelo.
+
+Perfil experimental vigente tras aprobación de nuevas salidas: **GSE + Mini-IPIP, 200 registros sintéticos**, reparto 140/30/30; red 9→6→4, 88 parámetros, L2 y parada temprana por validación. [Datos, modelo entrenado y reglas didácticas](output/modelo_gse_miniipip_200_20261017/README.md). Elegida época 84 de 109 ejecutadas; prueba: 20/30 coincidencias completas y 6 abstenciones. Las etiquetas son hipótesis inventadas; sin uso en personas ni habilitación de nuevos formularios.
+
+[Nueva comparación con los mismos datos GSE/Mini-IPIP: 9→6→4→4](output/comparacion_gse_miniipip_9644_200_20261017/README.md). Alternativa de 108 parámetros entrenada; semilla original 31415 elige época 64/89 y obtiene 20/30 coincidencias completas, seis abstenciones. Diez inicializaciones por arquitectura favorecen conservar 9→6→4 por pérdida media de validación (0,4036 vs 0,4830); prueba media 74,67% vs 69,67%. No sustituye pesos actuales ni implica validación personal. No confundir promedios entre semillas con el 66,67% individual del modelo guardado.
+
+**Modelo anterior DASS/CBI preservado:** pesos originales 9→6→4 (semilla 31415, época 55), [registro histórico de selección e integridad](output/modelo_sintetico_200_20261017/seleccion_modelo.json). No se reutilizan sus pesos para las nuevas entradas GSE/Mini-IPIP. Las otras arquitecturas permanecen como ensayos históricos.
+
+[Comparación con 9→8→4→4](output/comparacion_redes_200_20261017/README.md): diez inicializaciones por arquitectura sobre el mismo conjunto. El ensayo favoreció conservar 9→6→4; no se sustituyó el modelo vigente.
+
+[Comparación posterior con 9→6→4→4](output/comparacion_redes_9644_200_20261017/README.md): también favoreció conservar 9→6→4 bajo el mismo protocolo; resultados exploratorios sobre los mismos 200 casos.
+
+**SQLite v28. Circuito psicométrico preparado (habilitación por prueba/Gestión, avances, finalización única y consulta administrativa), bloqueado hasta revisión profesional/institucional y política de conservación. Sin reactivos oficiales cargados. Instructor solo recibe «Completada» al finalizar. Red neuronal experimental desarrollada y entrenada exclusivamente con datos sintéticos, sin inferencia sobre personas.** Véase [psicometría y red experimental](docs/25_psicometria_y_red_experimental.md). Se conservan Gestión/Evaluaciones separadas, operaciones/cursos auditados y PDF v3 administrativo. El siguiente resumen v23 conserva el alcance histórico aceptado, no sustituye las decisiones nuevas.
 
 Fases 4A/4B y 5A implementadas técnicamente, con aceptación operativa pendiente. **Fase 5B implementada técnicamente y aceptada operativamente por el solicitante el 2026-10-14; SQLite v23.** Están implementados períodos y configuración, habilitación individual por gestión, notas manuales auditadas, cursos con puntaje y estado automático, asignación/finalización personal y PDF operativos. 5B.1 física, 5B.2 acumulación/cálculos y 5B.3 publicación/republicación implementadas; regla nueva y publicación requieren acciones explícitas. 5B.4 cierre/reapertura con instantáneas y reapertura excepcional de históricos sin instantánea implementadas técnicamente; aceptación operativa confirmada; aprobación institucional pendiente. Psicometría e IA no están implementadas.
 

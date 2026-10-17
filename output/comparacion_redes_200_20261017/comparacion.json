@@ -1,0 +1,1380 @@
+{
+  "protocolo": {
+    "registros": 200,
+    "particiones": {
+      "entrenamiento": 140,
+      "validacion": 30,
+      "prueba": 30
+    },
+    "datos_sha256": "e242160516c378d22221da0ae37d9cc78af81951e7e66a7a94a1848e0fc75015",
+    "semillas_pesos": [
+      31415,
+      7,
+      19,
+      43,
+      101,
+      211,
+      307,
+      401,
+      503,
+      607
+    ],
+    "semilla_orden": 42,
+    "hiperparametros": {
+      "epocas": 300,
+      "tasa": 0.03,
+      "l2": 0.001,
+      "paciencia": 25
+    },
+    "seleccion_pesos": "Menor entropía cruzada de validación por ejecución; restaura pesos.",
+    "comparacion_principal": "Media de entropía cruzada de validación entre semillas prefijadas.",
+    "limitaciones": [
+      "Mismos 200 registros y misma prueba de 30 casos ya consultada: comparación exploratoria.",
+      "Diez semillas no representan diez conjuntos independientes de personas o datos.",
+      "Etiquetas sintéticas de reglas inventadas, sin validez clínica o institucional.",
+      "No se selecciona semilla, arquitectura ni hiperparámetros mediante prueba.",
+      "No se sustituye automáticamente el modelo base."
+    ]
+  },
+  "resumen": {
+    "9-6-4": {
+      "parametros": 88,
+      "ejecuciones": 10,
+      "segundos_entrenamiento": {
+        "media": 0.5477819400001863,
+        "desviacion": 0.18599128993544062,
+        "minimo": 0.3015267999999196,
+        "maximo": 0.9005579000004218
+      },
+      "epoca_elegida": {
+        "media": 120.2,
+        "desviacion": 49.46334220634734,
+        "minimo": 55,
+        "maximo": 215
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "coincidencia_completa": {
+            "media": 0.8935714285714286,
+            "desviacion": 0.017317234805683975,
+            "minimo": 0.8714285714285714,
+            "maximo": 0.9214285714285714
+          },
+          "perdida": {
+            "media": 0.33912356326338505,
+            "desviacion": 0.038419659639598015,
+            "minimo": 0.2839718782604707,
+            "maximo": 0.4207643916699159
+          },
+          "abstenciones": {
+            "media": 17.7,
+            "desviacion": 3.1989581637360205,
+            "minimo": 12,
+            "maximo": 25
+          }
+        },
+        "validacion": {
+          "coincidencia_completa": {
+            "media": 0.8266666666666667,
+            "desviacion": 0.03442651863295481,
+            "minimo": 0.8,
+            "maximo": 0.9
+          },
+          "perdida": {
+            "media": 0.4347284309458216,
+            "desviacion": 0.056147134328294254,
+            "minimo": 0.3702892115013704,
+            "maximo": 0.5679385879627208
+          },
+          "abstenciones": {
+            "media": 6.5,
+            "desviacion": 1.509230856356236,
+            "minimo": 5,
+            "maximo": 9
+          }
+        },
+        "prueba": {
+          "coincidencia_completa": {
+            "media": 0.8033333333333333,
+            "desviacion": 0.029186501192363764,
+            "minimo": 0.7666666666666667,
+            "maximo": 0.8333333333333334
+          },
+          "perdida": {
+            "media": 0.491147767575,
+            "desviacion": 0.04956689001204904,
+            "minimo": 0.41616837646706717,
+            "maximo": 0.5614476226077746
+          },
+          "abstenciones": {
+            "media": 6.1,
+            "desviacion": 2.0789954839350235,
+            "minimo": 2,
+            "maximo": 9
+          }
+        }
+      }
+    },
+    "9-8-4-4": {
+      "parametros": 136,
+      "ejecuciones": 10,
+      "segundos_entrenamiento": {
+        "media": 0.4892688299999463,
+        "desviacion": 0.14634993351626502,
+        "minimo": 0.3304643000001306,
+        "maximo": 0.7787312000000384
+      },
+      "epoca_elegida": {
+        "media": 63.5,
+        "desviacion": 26.626010674609976,
+        "minimo": 34,
+        "maximo": 116
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "coincidencia_completa": {
+            "media": 0.8814285714285715,
+            "desviacion": 0.04353954076442842,
+            "minimo": 0.8214285714285714,
+            "maximo": 0.9571428571428572
+          },
+          "perdida": {
+            "media": 0.3654349915495213,
+            "desviacion": 0.094265079282475,
+            "minimo": 0.17223070064209522,
+            "maximo": 0.49212661769402055
+          },
+          "abstenciones": {
+            "media": 12.4,
+            "desviacion": 5.872724145478731,
+            "minimo": 5,
+            "maximo": 24
+          }
+        },
+        "validacion": {
+          "coincidencia_completa": {
+            "media": 0.8366666666666667,
+            "desviacion": 0.05544433311055401,
+            "minimo": 0.7333333333333333,
+            "maximo": 0.9
+          },
+          "perdida": {
+            "media": 0.48832332821915225,
+            "desviacion": 0.08226352719281035,
+            "minimo": 0.36560303325633003,
+            "maximo": 0.622007814834035
+          },
+          "abstenciones": {
+            "media": 4.8,
+            "desviacion": 1.8737959096740262,
+            "minimo": 1,
+            "maximo": 7
+          }
+        },
+        "prueba": {
+          "coincidencia_completa": {
+            "media": 0.76,
+            "desviacion": 0.04388537257362559,
+            "minimo": 0.7,
+            "maximo": 0.8333333333333334
+          },
+          "perdida": {
+            "media": 0.6213333770201178,
+            "desviacion": 0.09578216752975177,
+            "minimo": 0.47436328183361715,
+            "maximo": 0.7627470301147681
+          },
+          "abstenciones": {
+            "media": 3.8,
+            "desviacion": 2.1499353995462798,
+            "minimo": 1,
+            "maximo": 8
+          }
+        }
+      }
+    }
+  },
+  "diferencias_pareadas_coincidencia": {
+    "entrenamiento": {
+      "media": -0.012142857142857132,
+      "desviacion": 0.043779751788545665,
+      "minimo": -0.08571428571428574,
+      "maximo": 0.07857142857142863,
+      "profunda_supera": 3,
+      "empates": 2,
+      "simple_supera": 5
+    },
+    "validacion": {
+      "media": 0.009999999999999986,
+      "desviacion": 0.056764621219754674,
+      "minimo": -0.06666666666666676,
+      "maximo": 0.09999999999999998,
+      "profunda_supera": 4,
+      "empates": 3,
+      "simple_supera": 3
+    },
+    "prueba": {
+      "media": -0.04333333333333337,
+      "desviacion": 0.052234041215747394,
+      "minimo": -0.13333333333333341,
+      "maximo": 0.06666666666666665,
+      "profunda_supera": 1,
+      "empates": 1,
+      "simple_supera": 8
+    }
+  },
+  "favorecida_por_criterio_principal": "9-6-4",
+  "mejores_semillas_por_validacion": {
+    "9-6-4": {
+      "semilla": 503,
+      "perdida_validacion": 0.3702892115013704
+    },
+    "9-8-4-4": {
+      "semilla": 101,
+      "perdida_validacion": 0.36560303325633003
+    }
+  },
+  "ejecuciones": [
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 31415,
+      "parametros": 88,
+      "segundos_entrenamiento": 0.3015267999999196,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 80,
+        "epoca_elegida": 55,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9928571428571429,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9857142857142858,
+            "revision_profesional": 0.8928571428571429
+          },
+          "coincidencia_completa": 0.8714285714285714,
+          "abstenciones": 25,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.4207643916699159
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9666666666666667,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.8333333333333334,
+          "abstenciones": 7,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.45174460594319477
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9666666666666667,
+            "acompanamiento_desempeno": 0.9333333333333333,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.9
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 7,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5275729286828359
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 7,
+      "parametros": 88,
+      "segundos_entrenamiento": 0.7018725999996605,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 184,
+        "epoca_elegida": 159,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9785714285714285,
+            "revision_profesional": 0.9071428571428571
+          },
+          "coincidencia_completa": 0.8857142857142857,
+          "abstenciones": 18,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.31524108801179807
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9666666666666667,
+            "revision_profesional": 0.8666666666666667
+          },
+          "coincidencia_completa": 0.8333333333333334,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.4276946518637838
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9666666666666667,
+            "acompanamiento_desempeno": 0.9333333333333333,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.9
+          },
+          "coincidencia_completa": 0.8333333333333334,
+          "abstenciones": 2,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5614476226077746
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 19,
+      "parametros": 88,
+      "segundos_entrenamiento": 0.7659957999994731,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 204,
+        "epoca_elegida": 179,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9857142857142858,
+            "revision_profesional": 0.9
+          },
+          "coincidencia_completa": 0.8857142857142857,
+          "abstenciones": 12,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.3201119041265074
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 0.9666666666666667,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 6,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.40158729072485483
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9666666666666667,
+            "acompanamiento_desempeno": 0.9666666666666667,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.7666666666666667,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.4205664066867056
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 43,
+      "parametros": 88,
+      "segundos_entrenamiento": 0.4070465000004333,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 108,
+        "epoca_elegida": 83,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9928571428571429,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9928571428571429,
+            "revision_profesional": 0.8928571428571429
+          },
+          "coincidencia_completa": 0.8785714285714286,
+          "abstenciones": 19,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.36673486889175594
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9333333333333333,
+            "revision_profesional": 0.9333333333333333
+          },
+          "coincidencia_completa": 0.8666666666666667,
+          "abstenciones": 8,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.4442248803367374
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9666666666666667,
+            "acompanamiento_desempeno": 0.9333333333333333,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.9
+          },
+          "coincidencia_completa": 0.8333333333333334,
+          "abstenciones": 6,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5089935415923046
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 101,
+      "parametros": 88,
+      "segundos_entrenamiento": 0.47151840000060474,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 125,
+        "epoca_elegida": 100,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9857142857142858,
+            "revision_profesional": 0.9357142857142857
+          },
+          "coincidencia_completa": 0.9214285714285714,
+          "abstenciones": 18,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.33712080289219615
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 0.9666666666666667,
+            "apoyo_formativo": 0.9666666666666667,
+            "revision_profesional": 0.8666666666666667
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 7,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.46556414384537137
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9666666666666667,
+            "acompanamiento_desempeno": 0.9333333333333333,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.7666666666666667,
+          "abstenciones": 7,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.52903990657767
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 211,
+      "parametros": 88,
+      "segundos_entrenamiento": 0.4580738000004203,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 122,
+        "epoca_elegida": 97,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9928571428571429,
+            "revision_profesional": 0.9142857142857143
+          },
+          "coincidencia_completa": 0.9071428571428571,
+          "abstenciones": 16,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.31598697127384173
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 0.9666666666666667,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.42983091796472206
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9666666666666667,
+            "acompanamiento_desempeno": 0.9666666666666667,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.9
+          },
+          "coincidencia_completa": 0.8333333333333334,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.41616837646706717
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 307,
+      "parametros": 88,
+      "segundos_entrenamiento": 0.5550803000005544,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 146,
+        "epoca_elegida": 121,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9928571428571429,
+            "revision_profesional": 0.9142857142857143
+          },
+          "coincidencia_completa": 0.9071428571428571,
+          "abstenciones": 17,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.32661163433820445
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9333333333333333,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 8,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5679385879627208
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9666666666666667,
+            "acompanamiento_desempeno": 0.9666666666666667,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.8666666666666667
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 9,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.46897291686520787
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 401,
+      "parametros": 88,
+      "segundos_entrenamiento": 0.5083856000001106,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 135,
+        "epoca_elegida": 110,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9928571428571429,
+            "revision_profesional": 0.9142857142857143
+          },
+          "coincidencia_completa": 0.9071428571428571,
+          "abstenciones": 17,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.33187692886699666
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 0.9666666666666667,
+            "apoyo_formativo": 0.9666666666666667,
+            "revision_profesional": 0.8666666666666667
+          },
+          "coincidencia_completa": 0.8333333333333334,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.4127587579223624
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9666666666666667,
+            "acompanamiento_desempeno": 0.9666666666666667,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.7666666666666667,
+          "abstenciones": 6,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.459155072641391
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 503,
+      "parametros": 88,
+      "segundos_entrenamiento": 0.9005579000004218,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 240,
+        "epoca_elegida": 215,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9928571428571429,
+            "revision_profesional": 0.9071428571428571
+          },
+          "coincidencia_completa": 0.9,
+          "abstenciones": 18,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.2839718782604707
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 0.9666666666666667,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 9,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.3702892115013704
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9666666666666667,
+            "acompanamiento_desempeno": 0.9666666666666667,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.8666666666666667
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 9,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5350340997544513
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 607,
+      "parametros": 88,
+      "segundos_entrenamiento": 0.4077617000002647,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 108,
+        "epoca_elegida": 83,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9928571428571429,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9928571428571429,
+            "revision_profesional": 0.8857142857142857
+          },
+          "coincidencia_completa": 0.8714285714285714,
+          "abstenciones": 17,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.37281516430216355
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.9
+          },
+          "coincidencia_completa": 0.9,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.37565126139309807
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 0.9333333333333333,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.9
+          },
+          "coincidencia_completa": 0.8333333333333334,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.4845268038745921
+        }
+      }
+    },
+    {
+      "arquitectura": "9-8-4-4",
+      "semilla": 31415,
+      "parametros": 136,
+      "segundos_entrenamiento": 0.43925990000025195,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 80,
+        "epoca_elegida": 55,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9857142857142858,
+            "acompanamiento_desempeno": 0.9928571428571429,
+            "apoyo_formativo": 0.9714285714285714,
+            "revision_profesional": 0.9214285714285714
+          },
+          "coincidencia_completa": 0.8714285714285714,
+          "abstenciones": 12,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.4237876116992817
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9666666666666667,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.8333333333333334,
+          "abstenciones": 6,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5390380186736283
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9333333333333333,
+            "acompanamiento_desempeno": 0.9666666666666667,
+            "apoyo_formativo": 0.9666666666666667,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.7333333333333333,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.6643213205953644
+        }
+      }
+    },
+    {
+      "arquitectura": "9-8-4-4",
+      "semilla": 7,
+      "parametros": 136,
+      "segundos_entrenamiento": 0.48507599999993545,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 88,
+        "epoca_elegida": 63,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9714285714285714,
+            "acompanamiento_desempeno": 0.9928571428571429,
+            "apoyo_formativo": 0.95,
+            "revision_profesional": 0.9071428571428571
+          },
+          "coincidencia_completa": 0.8357142857142857,
+          "abstenciones": 12,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.4602422444245515
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9666666666666667,
+            "revision_profesional": 0.9333333333333333
+          },
+          "coincidencia_completa": 0.9,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.41598322731606185
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9666666666666667,
+            "acompanamiento_desempeno": 0.9333333333333333,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.8666666666666667
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 3,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.6527226307357057
+        }
+      }
+    },
+    {
+      "arquitectura": "9-8-4-4",
+      "semilla": 19,
+      "parametros": 136,
+      "segundos_entrenamiento": 0.4445034000000305,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 80,
+        "epoca_elegida": 55,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9714285714285714,
+            "revision_profesional": 0.9071428571428571
+          },
+          "coincidencia_completa": 0.8785714285714286,
+          "abstenciones": 14,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.3761183545152938
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9666666666666667,
+            "revision_profesional": 0.9
+          },
+          "coincidencia_completa": 0.9,
+          "abstenciones": 6,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.3910811248374849
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9,
+            "acompanamiento_desempeno": 0.9333333333333333,
+            "apoyo_formativo": 0.9666666666666667,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.7,
+          "abstenciones": 2,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.7627470301147681
+        }
+      }
+    },
+    {
+      "arquitectura": "9-8-4-4",
+      "semilla": 43,
+      "parametros": 136,
+      "segundos_entrenamiento": 0.7787312000000384,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 141,
+        "epoca_elegida": 116,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.9571428571428572
+          },
+          "coincidencia_completa": 0.9571428571428572,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.17223070064209522
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 0.9666666666666667,
+            "apoyo_formativo": 0.9666666666666667,
+            "revision_profesional": 0.9666666666666667
+          },
+          "coincidencia_completa": 0.9,
+          "abstenciones": 3,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.4670124460793812
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9666666666666667,
+            "acompanamiento_desempeno": 0.9333333333333333,
+            "apoyo_formativo": 0.9666666666666667,
+            "revision_profesional": 0.8666666666666667
+          },
+          "coincidencia_completa": 0.7666666666666667,
+          "abstenciones": 1,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.7374841420797543
+        }
+      }
+    },
+    {
+      "arquitectura": "9-8-4-4",
+      "semilla": 101,
+      "parametros": 136,
+      "segundos_entrenamiento": 0.7231235999997807,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 131,
+        "epoca_elegida": 106,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9928571428571429,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9928571428571429,
+            "revision_profesional": 0.9357142857142857
+          },
+          "coincidencia_completa": 0.9214285714285714,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.27983275653207607
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.8666666666666667
+          },
+          "coincidencia_completa": 0.8666666666666667,
+          "abstenciones": 1,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.36560303325633003
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9333333333333333,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.9
+          },
+          "coincidencia_completa": 0.8333333333333334,
+          "abstenciones": 1,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5204171907764595
+        }
+      }
+    },
+    {
+      "arquitectura": "9-8-4-4",
+      "semilla": 211,
+      "parametros": 136,
+      "segundos_entrenamiento": 0.37601379999978235,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 68,
+        "epoca_elegida": 43,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9785714285714285,
+            "revision_profesional": 0.8928571428571429
+          },
+          "coincidencia_completa": 0.8714285714285714,
+          "abstenciones": 18,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.3897986047311326
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9666666666666667,
+            "revision_profesional": 0.8
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.46274143435180864
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9333333333333333,
+            "acompanamiento_desempeno": 0.9,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.7,
+          "abstenciones": 8,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.672609246313979
+        }
+      }
+    },
+    {
+      "arquitectura": "9-8-4-4",
+      "semilla": 307,
+      "parametros": 136,
+      "segundos_entrenamiento": 0.3304643000001306,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 59,
+        "epoca_elegida": 34,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9571428571428572,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9857142857142858,
+            "revision_profesional": 0.8785714285714286
+          },
+          "coincidencia_completa": 0.8214285714285714,
+          "abstenciones": 24,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.49212661769402055
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9333333333333333,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9333333333333333,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.7333333333333333,
+          "abstenciones": 6,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.622007814834035
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9333333333333333,
+            "acompanamiento_desempeno": 0.9666666666666667,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.8666666666666667
+          },
+          "coincidencia_completa": 0.7666666666666667,
+          "abstenciones": 4,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.6335046126618621
+        }
+      }
+    },
+    {
+      "arquitectura": "9-8-4-4",
+      "semilla": 401,
+      "parametros": 136,
+      "segundos_entrenamiento": 0.46489219999966735,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 84,
+        "epoca_elegida": 59,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9714285714285714,
+            "revision_profesional": 0.9428571428571428
+          },
+          "coincidencia_completa": 0.9142857142857143,
+          "abstenciones": 7,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.3206043563123931
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9333333333333333,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 3,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5582547882221703
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 0.9333333333333333,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.7666666666666667,
+          "abstenciones": 4,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.47436328183361715
+        }
+      }
+    },
+    {
+      "arquitectura": "9-8-4-4",
+      "semilla": 503,
+      "parametros": 136,
+      "segundos_entrenamiento": 0.4636852999992698,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 84,
+        "epoca_elegida": 59,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9928571428571429,
+            "revision_profesional": 0.9142857142857143
+          },
+          "coincidencia_completa": 0.9071428571428571,
+          "abstenciones": 13,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.32443029888722114
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9666666666666667,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 0.9666666666666667,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 6,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5071691092723645
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 0.9,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.7333333333333333,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5676547567904342
+        }
+      }
+    },
+    {
+      "arquitectura": "9-8-4-4",
+      "semilla": 607,
+      "parametros": 136,
+      "segundos_entrenamiento": 0.3869386000005761,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 70,
+        "epoca_elegida": 45,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 0.9928571428571429,
+            "acompanamiento_desempeno": 0.9928571428571429,
+            "apoyo_formativo": 0.9642857142857143,
+            "revision_profesional": 0.8857142857142857
+          },
+          "coincidencia_completa": 0.8357142857142857,
+          "abstenciones": 14,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.41517837005714736
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 1.0,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.8333333333333334
+          },
+          "coincidencia_completa": 0.8333333333333334,
+          "abstenciones": 7,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5543422853482575
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "apoyo_fisico": 1.0,
+            "acompanamiento_desempeno": 0.9333333333333333,
+            "apoyo_formativo": 1.0,
+            "revision_profesional": 0.8666666666666667
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5275095582992332
+        }
+      }
+    }
+  ],
+  "modelo_base_sustituido": false
+}

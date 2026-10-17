@@ -1,0 +1,36 @@
+{
+  "formato": "SELECCION_TECNICA_MODELO_V1",
+  "fecha_decision": "2026-10-17",
+  "confirmada_por_solicitante": true,
+  "estado": "SELECCIONADO_EXPERIMENTAL",
+  "modelo": "output/modelo_sintetico_200_20261017/modelo.json",
+  "arquitectura": [
+    9,
+    6,
+    4
+  ],
+  "parametros": 88,
+  "registros_sinteticos_totales": 200,
+  "semilla_pesos": 31415,
+  "epoca_elegida": 55,
+  "salidas": [
+    "apoyo_fisico",
+    "acompanamiento_desempeno",
+    "apoyo_formativo",
+    "revision_profesional"
+  ],
+  "huellas_sha256": {
+    "modelo.json": "1ca0fe049b4e0de8817aadf12df6c64e231f12ac140ec4b970f1f77b87532322",
+    "informe.json": "6678611c60d2a0128ad991f875c34aef7f82e41a19e5498cf0275d4373cdd9df",
+    "datos_sinteticos.csv": "e242160516c378d22221da0ae37d9cc78af81951e7e66a7a94a1848e0fc75015"
+  },
+  "decision": "Conservar el modelo original de 200 casos como base para las recomendaciones del prototipo.",
+  "alternativas": {
+    "9-8-4-4": "SOLO_COMPARACION",
+    "9-6-4-4": "SOLO_COMPARACION"
+  },
+  "uso_en_personas": false,
+  "inferencia_en_panel_habilitada": false,
+  "validacion_profesional_institucional": "PENDIENTE",
+  "alcance": "La selección técnica no constituye aprobación profesional ni habilita recomendaciones personales."
+}

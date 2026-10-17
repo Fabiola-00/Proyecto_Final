@@ -413,6 +413,10 @@ a.modulo-estado:hover { text-decoration: underline; }
 .formulario-inline label { display: grid; min-width: min(100%, 12rem); flex: 1 1 12rem; gap: .35rem; color: var(--muted); font-size: .74rem; }
 .formulario-inline input, .formulario-inline select, .formulario-inline textarea, #solicitudes-lista select { min-height: 2.55rem; padding: .55rem .65rem; border: 1px solid var(--border-strong); border-radius: .5rem; background: var(--surface); font: inherit; }
 .formulario-inline textarea { min-height: 5rem; resize: vertical; }
+.formulario-psicometria { display: grid; gap: 1rem; min-width: 0; }
+.formulario-psicometria label { display: grid; gap: .4rem; text-align: left; }
+.formulario-psicometria select { width: 100%; min-width: 0; min-height: 2.75rem; padding: .6rem; background: var(--surface); color: var(--text); border: 1px solid var(--border-strong); border-radius: .5rem; }
+.formulario-psicometria input[type=checkbox] { width: auto; justify-self: start; }
 .formulario-inline button, #solicitudes-lista button, .boton-secundario { min-height: 2.55rem; font-size: .76rem; }
 .asistencia-cabecera { align-items: start; margin-top: 0; }
 .asistencia-cabecera label { flex: 1 1 15rem; }

@@ -1,6 +1,20 @@
 # SICOSE — Bases de desarrollo, reconstrucción limpia y continuidad
 
-**Corte funcional vigente: 2026-10-16, SQLite v27. Bases históricas conservadas: v23/v24.**
+**Corte funcional vigente: 2026-10-17, SQLite v28. Bases históricas conservadas: v23/v24.**
+
+Comparación nueva GSE/Mini-IPIP: [9→6→4 frente a 9→6→4→4](output/comparacion_gse_miniipip_9644_200_20261017/README.md). RedGseMiniIpipDosCapas reutiliza normalización/semántica actuales y backprop de dos capas, con 108 parámetros. Diez inicializaciones por arquitectura, mismo CSV y protocolo; 25 pruebas aprobadas, control idéntico a pesos actuales. La media de pérdida de validación favoreció conservar 9→6→4 (0,4036 vs 0,4830), prueba media 74,67% vs 69,67%. La alternativa con semilla original obtiene 20/30 como la actual; no cambiar pesos por un resultado aislado. No se habilita inferencia personal ni se modifica SQLite.
+
+Nueva entrega solicitada y salidas aprobadas: experimento GSE/Mini-IPIP en [datos, modelo y reglas](output/modelo_gse_miniipip_200_20261017/README.md). Implementación sicose/red_gse_miniipip.py y scripts/entrenar_red_gse_miniipip.py. Nueve entradas, cuatro salidas combinables de acompañamiento, 9→6→4/88 parámetros, 200 casos agregados únicos y sintéticos (140/30/30), normalización por mínimos/máximos, reglas inventadas explícitas. Mejor época 84/109; prueba 20/30 coincidencias completas a 0,5, seis abstenciones con intervalo 0,35–0,65. No se habilitan cuestionarios ni se integra inferencia en Flask. Revisar objetivos con etiquetas humanas antes de uso real.
+
+Decisión histórica tras las comparaciones: conservar exactamente el modelo anterior DASS/CBI 9→6→4 de 200 casos, semilla 31415/época 55/88 parámetros. Sus pesos no se reutilizan ni sobrescriben. Registro output/modelo_sintetico_200_20261017/seleccion_modelo.json con huellas de pesos, CSV e informe intacto. No habilita inferencia personal ni sustituye validación profesional/institucional pendiente.
+
+Ajuste posterior solicitado: modelo experimental de solo 200 registros totales (140 entrenamiento/30 validación/30 prueba), red 9→6→4 y 88 parámetros, L2=0,001 y parada temprana por validación, paciencia 25/máximo 300, restaurando mejores pesos. Artefactos actuales en output/modelo_sintetico_200_20261017; la ejecución anterior de 2.048 queda como histórica. Sin cambios en SQLite, interfaz, habilitación de instrumentos o inferencia personal.
+
+Comparación posterior solicitada: `RedDosCapas` 9→8→4→4 reutiliza selección de pesos y controles de datos de la base, con backprop propio verificado numéricamente en sus 136 parámetros. Diez inicializaciones por arquitectura sobre el mismo conjunto favorecieron conservar 9→6→4 por pérdida media de validación; ver output/comparacion_redes_200_20261017/README.md. Modelo original, datos y gráfico conservados; comparación exploratoria, sin adopción automática ni prueba independiente nueva.
+
+Segunda alternativa solicitada: 9→6→4→4, 108 parámetros. `RedDosCapas` admite dos tamaños ocultos y exporta la topología efectiva; el comparador permite elegir --alternativa sin alterar el perfil vigente ni el ensayo anterior. Gradientes numéricos y restauración verificados para ambas alternativas. Diez inicializaciones por arquitectura favorecieron nuevamente a la actual por pérdida de validación; informe output/comparacion_redes_9644_200_20261017/README.md. Sin cambios en base, interfaz o modelo vigente.
+
+Actualización v28: [psicometría y red experimental](docs/25_psicometria_y_red_experimental.md). Circuito por Gestión y prueba con expediente profesional obligatorio, avances, finalización única y resultados administrativos. Instructor solo estado final. No hay reactivos oficiales cargados; faltan responsable profesional y retención. La red de nueve dimensiones y cuatro salidas se ha entrenado solo con datos sintéticos y no se usa para personas. No modificar instantáneas históricas ni interpretar el ensayo como validación.
 
 SICOSE significa **Sistema de Control y Evaluación de Personal**. Este archivo es una especificación autónoma para reconstruir el prototipo en un repositorio nuevo y continuar desde el alcance alcanzado. Está dirigido a una persona desarrolladora o a un nuevo chat de Codex. No requiere copiar la conversación anterior ni disponer de sus archivos temporales.
 

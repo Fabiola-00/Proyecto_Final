@@ -1,0 +1,1385 @@
+{
+  "protocolo": {
+    "registros": 200,
+    "arquitecturas": [
+      "9-6-4",
+      "9-6-4-4"
+    ],
+    "particiones": {
+      "entrenamiento": 140,
+      "validacion": 30,
+      "prueba": 30
+    },
+    "datos_sha256": "b092c954c6580180b517af7dfaaaf1dbc29a99d7428dcbb00fea420693be499d",
+    "semillas_pesos": [
+      31415,
+      7,
+      19,
+      43,
+      101,
+      211,
+      307,
+      401,
+      503,
+      607
+    ],
+    "semilla_orden": 42,
+    "hiperparametros": {
+      "epocas": 300,
+      "tasa": 0.03,
+      "l2": 0.001,
+      "paciencia": 25
+    },
+    "seleccion_pesos": "Menor entropía cruzada de validación por ejecución; restaura pesos.",
+    "comparacion_principal": "Media de entropía cruzada de validación entre semillas prefijadas.",
+    "limitaciones": [
+      "Mismos 200 registros y misma prueba de 30 casos ya consultada: comparación exploratoria.",
+      "Varias inicializaciones no representan conjuntos independientes de personas o datos.",
+      "Etiquetas sintéticas de reglas inventadas, sin validez clínica o institucional.",
+      "No se selecciona semilla, arquitectura ni hiperparámetros mediante prueba.",
+      "No se sustituye automáticamente el modelo base."
+    ],
+    "perfil": "gse-miniipip"
+  },
+  "resumen": {
+    "9-6-4": {
+      "parametros": 88,
+      "ejecuciones": 10,
+      "segundos_entrenamiento": {
+        "media": 0.9383349100002306,
+        "desviacion": 0.6864799803214572,
+        "minimo": 0.3843367000008584,
+        "maximo": 2.535284800000227
+      },
+      "epoca_elegida": {
+        "media": 93.4,
+        "desviacion": 30.026654825338102,
+        "minimo": 74,
+        "maximo": 170
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "coincidencia_completa": {
+            "media": 0.9492857142857143,
+            "desviacion": 0.01918108005821224,
+            "minimo": 0.9142857142857143,
+            "maximo": 0.9714285714285714
+          },
+          "perdida": {
+            "media": 0.23780868078288386,
+            "desviacion": 0.0296366934128188,
+            "minimo": 0.1901793373307643,
+            "maximo": 0.29886550683246255
+          },
+          "abstenciones": {
+            "media": 17.5,
+            "desviacion": 4.453463071962463,
+            "minimo": 11,
+            "maximo": 24
+          }
+        },
+        "validacion": {
+          "coincidencia_completa": {
+            "media": 0.8133333333333334,
+            "desviacion": 0.044996570514036875,
+            "minimo": 0.7333333333333333,
+            "maximo": 0.8666666666666667
+          },
+          "perdida": {
+            "media": 0.4036255337700387,
+            "desviacion": 0.04135021261075496,
+            "minimo": 0.352350153867393,
+            "maximo": 0.48714236017538837
+          },
+          "abstenciones": {
+            "media": 5.7,
+            "desviacion": 1.888562063228706,
+            "minimo": 3,
+            "maximo": 9
+          }
+        },
+        "prueba": {
+          "coincidencia_completa": {
+            "media": 0.7466666666666667,
+            "desviacion": 0.0449965705140369,
+            "minimo": 0.6666666666666666,
+            "maximo": 0.8
+          },
+          "perdida": {
+            "media": 0.5648266636936895,
+            "desviacion": 0.06253043594559267,
+            "minimo": 0.47608554592870456,
+            "maximo": 0.6799928403966435
+          },
+          "abstenciones": {
+            "media": 5.2,
+            "desviacion": 2.250925735484551,
+            "minimo": 3,
+            "maximo": 11
+          }
+        }
+      }
+    },
+    "9-6-4-4": {
+      "parametros": 108,
+      "ejecuciones": 10,
+      "segundos_entrenamiento": {
+        "media": 1.3841321899997638,
+        "desviacion": 0.524423913556932,
+        "minimo": 0.6549548999992112,
+        "maximo": 2.355370599998423
+      },
+      "epoca_elegida": {
+        "media": 68.1,
+        "desviacion": 41.0729702954253,
+        "minimo": 18,
+        "maximo": 150
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "coincidencia_completa": {
+            "media": 0.8578571428571429,
+            "desviacion": 0.04102568190735795,
+            "minimo": 0.8142857142857143,
+            "maximo": 0.9214285714285714
+          },
+          "perdida": {
+            "media": 0.40159680297185407,
+            "desviacion": 0.09248277586420307,
+            "minimo": 0.25509575919527694,
+            "maximo": 0.5371287063299038
+          },
+          "abstenciones": {
+            "media": 16.1,
+            "desviacion": 7.202622979011034,
+            "minimo": 6,
+            "maximo": 25
+          }
+        },
+        "validacion": {
+          "coincidencia_completa": {
+            "media": 0.8266666666666667,
+            "desviacion": 0.07503085784948504,
+            "minimo": 0.6666666666666666,
+            "maximo": 0.9
+          },
+          "perdida": {
+            "media": 0.48296609113820804,
+            "desviacion": 0.08781153239148208,
+            "minimo": 0.39024848888594066,
+            "maximo": 0.6497520116472576
+          },
+          "abstenciones": {
+            "media": 4.2,
+            "desviacion": 1.5491933384829668,
+            "minimo": 2,
+            "maximo": 7
+          }
+        },
+        "prueba": {
+          "coincidencia_completa": {
+            "media": 0.6966666666666667,
+            "desviacion": 0.05973191135873608,
+            "minimo": 0.6,
+            "maximo": 0.7666666666666667
+          },
+          "perdida": {
+            "media": 0.7942608039235914,
+            "desviacion": 0.19097246192295136,
+            "minimo": 0.5860705171871317,
+            "maximo": 1.2180730783418388
+          },
+          "abstenciones": {
+            "media": 4.6,
+            "desviacion": 2.4129281427805145,
+            "minimo": 2,
+            "maximo": 8
+          }
+        }
+      }
+    }
+  },
+  "diferencias_pareadas_coincidencia": {
+    "entrenamiento": {
+      "media": -0.09142857142857143,
+      "desviacion": 0.04638887191602877,
+      "minimo": -0.15000000000000002,
+      "maximo": -0.0357142857142857,
+      "profunda_supera": 0,
+      "empates": 0,
+      "simple_supera": 10
+    },
+    "validacion": {
+      "media": 0.01333333333333333,
+      "desviacion": 0.09454243282747846,
+      "minimo": -0.13333333333333341,
+      "maximo": 0.16666666666666674,
+      "profunda_supera": 4,
+      "empates": 2,
+      "simple_supera": 4
+    },
+    "prueba": {
+      "media": -0.050000000000000024,
+      "desviacion": 0.07243558228002947,
+      "minimo": -0.13333333333333341,
+      "maximo": 0.06666666666666676,
+      "profunda_supera": 1,
+      "empates": 4,
+      "simple_supera": 5
+    }
+  },
+  "favorecida_por_criterio_principal": "9-6-4",
+  "mejores_semillas_por_validacion": {
+    "9-6-4": {
+      "semilla": 607,
+      "perdida_validacion": 0.352350153867393
+    },
+    "9-6-4-4": {
+      "semilla": 607,
+      "perdida_validacion": 0.39024848888594066
+    }
+  },
+  "ejecuciones": [
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 31415,
+      "parametros": 88,
+      "segundos_entrenamiento": 0.4244483999991644,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 109,
+        "epoca_elegida": 84,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9857142857142858,
+            "comunicacion_y_colaboracion": 0.9928571428571429,
+            "aprendizaje_y_autonomia": 1.0,
+            "afrontamiento_y_metas": 0.9428571428571428
+          },
+          "coincidencia_completa": 0.9214285714285714,
+          "abstenciones": 14,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.2534229974965486
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 1.0,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9333333333333333,
+            "afrontamiento_y_metas": 0.9666666666666667
+          },
+          "coincidencia_completa": 0.8666666666666667,
+          "abstenciones": 3,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.38539424403860134
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8666666666666667,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9,
+            "afrontamiento_y_metas": 0.9333333333333333
+          },
+          "coincidencia_completa": 0.6666666666666666,
+          "abstenciones": 6,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.589898761886692
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 7,
+      "parametros": 88,
+      "segundos_entrenamiento": 0.42529579999973066,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 109,
+        "epoca_elegida": 84,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 1.0,
+            "comunicacion_y_colaboracion": 0.9928571428571429,
+            "aprendizaje_y_autonomia": 1.0,
+            "afrontamiento_y_metas": 0.9714285714285714
+          },
+          "coincidencia_completa": 0.9642857142857143,
+          "abstenciones": 11,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.21828457743559962
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9666666666666667,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9666666666666667,
+            "afrontamiento_y_metas": 0.9666666666666667
+          },
+          "coincidencia_completa": 0.8666666666666667,
+          "abstenciones": 6,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.3770441990732172
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9,
+            "comunicacion_y_colaboracion": 1.0,
+            "aprendizaje_y_autonomia": 0.9333333333333333,
+            "afrontamiento_y_metas": 0.9333333333333333
+          },
+          "coincidencia_completa": 0.7666666666666667,
+          "abstenciones": 4,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.47608554592870456
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 19,
+      "parametros": 88,
+      "segundos_entrenamiento": 0.3848316000003251,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 99,
+        "epoca_elegida": 74,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9571428571428572,
+            "comunicacion_y_colaboracion": 0.9714285714285714,
+            "aprendizaje_y_autonomia": 0.9928571428571429,
+            "afrontamiento_y_metas": 0.9928571428571429
+          },
+          "coincidencia_completa": 0.9142857142857143,
+          "abstenciones": 24,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.29886550683246255
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8666666666666667,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9666666666666667,
+            "afrontamiento_y_metas": 0.9333333333333333
+          },
+          "coincidencia_completa": 0.7333333333333333,
+          "abstenciones": 4,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.48714236017538837
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9333333333333333,
+            "comunicacion_y_colaboracion": 0.9333333333333333,
+            "aprendizaje_y_autonomia": 0.9,
+            "afrontamiento_y_metas": 0.9666666666666667
+          },
+          "coincidencia_completa": 0.7666666666666667,
+          "abstenciones": 11,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5190228606238718
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 43,
+      "parametros": 88,
+      "segundos_entrenamiento": 0.3843367000008584,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 99,
+        "epoca_elegida": 74,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9714285714285714,
+            "comunicacion_y_colaboracion": 1.0,
+            "aprendizaje_y_autonomia": 0.9928571428571429,
+            "afrontamiento_y_metas": 0.9785714285714285
+          },
+          "coincidencia_completa": 0.9428571428571428,
+          "abstenciones": 21,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.25942546999696364
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9666666666666667,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9333333333333333,
+            "afrontamiento_y_metas": 0.9333333333333333
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 6,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.35515576418839834
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8666666666666667,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9333333333333333,
+            "afrontamiento_y_metas": 1.0
+          },
+          "coincidencia_completa": 0.7666666666666667,
+          "abstenciones": 4,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.6799928403966435
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 101,
+      "parametros": 88,
+      "segundos_entrenamiento": 0.5334786999992502,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 138,
+        "epoca_elegida": 113,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9785714285714285,
+            "comunicacion_y_colaboracion": 0.9928571428571429,
+            "aprendizaje_y_autonomia": 0.9928571428571429,
+            "afrontamiento_y_metas": 1.0
+          },
+          "coincidencia_completa": 0.9642857142857143,
+          "abstenciones": 12,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.21653569669632203
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9666666666666667,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9666666666666667,
+            "afrontamiento_y_metas": 0.9666666666666667
+          },
+          "coincidencia_completa": 0.8666666666666667,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.40413407727405665
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8666666666666667,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9666666666666667,
+            "afrontamiento_y_metas": 1.0
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 6,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.4946466105578003
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 211,
+      "parametros": 88,
+      "segundos_entrenamiento": 0.8266453000014735,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 128,
+        "epoca_elegida": 103,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9857142857142858,
+            "comunicacion_y_colaboracion": 1.0,
+            "aprendizaje_y_autonomia": 1.0,
+            "afrontamiento_y_metas": 0.9642857142857143
+          },
+          "coincidencia_completa": 0.95,
+          "abstenciones": 17,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.22958909644599396
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9333333333333333,
+            "comunicacion_y_colaboracion": 0.9333333333333333,
+            "aprendizaje_y_autonomia": 0.9666666666666667,
+            "afrontamiento_y_metas": 1.0
+          },
+          "coincidencia_completa": 0.8333333333333334,
+          "abstenciones": 4,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.3948292262945099
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8666666666666667,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9333333333333333,
+            "afrontamiento_y_metas": 0.9333333333333333
+          },
+          "coincidencia_completa": 0.7,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.6021519480112617
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 307,
+      "parametros": 88,
+      "segundos_entrenamiento": 1.2667446000014024,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 99,
+        "epoca_elegida": 74,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9928571428571429,
+            "comunicacion_y_colaboracion": 1.0,
+            "aprendizaje_y_autonomia": 0.9928571428571429,
+            "afrontamiento_y_metas": 0.9714285714285714
+          },
+          "coincidencia_completa": 0.9571428571428572,
+          "abstenciones": 23,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.24003549956885353
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9666666666666667,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9333333333333333,
+            "afrontamiento_y_metas": 0.9333333333333333
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.4305377976974503
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8666666666666667,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9,
+            "afrontamiento_y_metas": 0.9666666666666667
+          },
+          "coincidencia_completa": 0.7,
+          "abstenciones": 4,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.6135615413187206
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 401,
+      "parametros": 88,
+      "segundos_entrenamiento": 1.3397555999999895,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 109,
+        "epoca_elegida": 84,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 1.0,
+            "comunicacion_y_colaboracion": 0.9857142857142858,
+            "aprendizaje_y_autonomia": 1.0,
+            "afrontamiento_y_metas": 0.9785714285714285
+          },
+          "coincidencia_completa": 0.9642857142857143,
+          "abstenciones": 17,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.24778408276987365
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9333333333333333,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9333333333333333,
+            "afrontamiento_y_metas": 0.9666666666666667
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 7,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.40619791943812583
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9,
+            "afrontamiento_y_metas": 0.9666666666666667
+          },
+          "coincidencia_completa": 0.7333333333333333,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5774594532531634
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 503,
+      "parametros": 88,
+      "segundos_entrenamiento": 1.2625275999998848,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 99,
+        "epoca_elegida": 74,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9928571428571429,
+            "comunicacion_y_colaboracion": 1.0,
+            "aprendizaje_y_autonomia": 0.9928571428571429,
+            "afrontamiento_y_metas": 0.9857142857142858
+          },
+          "coincidencia_completa": 0.9714285714285714,
+          "abstenciones": 20,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.22396454325545687
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9,
+            "comunicacion_y_colaboracion": 0.9333333333333333,
+            "aprendizaje_y_autonomia": 0.9333333333333333,
+            "afrontamiento_y_metas": 1.0
+          },
+          "coincidencia_completa": 0.7666666666666667,
+          "abstenciones": 8,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.44346959565324606
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8666666666666667,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9666666666666667,
+            "afrontamiento_y_metas": 1.0
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 3,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5170026990750075
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4",
+      "semilla": 607,
+      "parametros": 88,
+      "segundos_entrenamiento": 2.535284800000227,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 195,
+        "epoca_elegida": 170,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9785714285714285,
+            "comunicacion_y_colaboracion": 0.9785714285714285,
+            "aprendizaje_y_autonomia": 1.0,
+            "afrontamiento_y_metas": 0.9857142857142858
+          },
+          "coincidencia_completa": 0.9428571428571428,
+          "abstenciones": 16,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.1901793373307643
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9666666666666667,
+            "comunicacion_y_colaboracion": 0.9333333333333333,
+            "aprendizaje_y_autonomia": 0.9333333333333333,
+            "afrontamiento_y_metas": 0.9666666666666667
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 9,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.352350153867393
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8666666666666667,
+            "comunicacion_y_colaboracion": 1.0,
+            "aprendizaje_y_autonomia": 0.9333333333333333,
+            "afrontamiento_y_metas": 0.9666666666666667
+          },
+          "coincidencia_completa": 0.7666666666666667,
+          "abstenciones": 4,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5784443758850291
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4-4",
+      "semilla": 31415,
+      "parametros": 108,
+      "segundos_entrenamiento": 1.4311620000007679,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 89,
+        "epoca_elegida": 64,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9714285714285714,
+            "comunicacion_y_colaboracion": 0.9714285714285714,
+            "aprendizaje_y_autonomia": 0.9571428571428572,
+            "afrontamiento_y_metas": 0.9642857142857143
+          },
+          "coincidencia_completa": 0.8714285714285714,
+          "abstenciones": 19,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.3478799963977456
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9666666666666667,
+            "comunicacion_y_colaboracion": 1.0,
+            "aprendizaje_y_autonomia": 0.9333333333333333,
+            "afrontamiento_y_metas": 0.9666666666666667
+          },
+          "coincidencia_completa": 0.8666666666666667,
+          "abstenciones": 3,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.4671753928974709
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8666666666666667,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9,
+            "afrontamiento_y_metas": 0.9
+          },
+          "coincidencia_completa": 0.6666666666666666,
+          "abstenciones": 6,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.8516659721479266
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4-4",
+      "semilla": 7,
+      "parametros": 108,
+      "segundos_entrenamiento": 1.149364400000195,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 67,
+        "epoca_elegida": 42,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9785714285714285,
+            "comunicacion_y_colaboracion": 0.9857142857142858,
+            "aprendizaje_y_autonomia": 0.9714285714285714,
+            "afrontamiento_y_metas": 0.8928571428571429
+          },
+          "coincidencia_completa": 0.8285714285714286,
+          "abstenciones": 11,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.4453407455406118
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8666666666666667,
+            "comunicacion_y_colaboracion": 0.9333333333333333,
+            "aprendizaje_y_autonomia": 1.0,
+            "afrontamiento_y_metas": 1.0
+          },
+          "coincidencia_completa": 0.8,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.4914416195417407
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8666666666666667,
+            "comunicacion_y_colaboracion": 0.9333333333333333,
+            "aprendizaje_y_autonomia": 0.8666666666666667,
+            "afrontamiento_y_metas": 0.9333333333333333
+          },
+          "coincidencia_completa": 0.6333333333333333,
+          "abstenciones": 7,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.8306562256979704
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4-4",
+      "semilla": 19,
+      "parametros": 108,
+      "segundos_entrenamiento": 1.318708599999809,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 85,
+        "epoca_elegida": 60,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9857142857142858,
+            "comunicacion_y_colaboracion": 0.9857142857142858,
+            "aprendizaje_y_autonomia": 0.9785714285714285,
+            "afrontamiento_y_metas": 0.9214285714285714
+          },
+          "coincidencia_completa": 0.8714285714285714,
+          "abstenciones": 6,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.34932956000818083
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9333333333333333,
+            "comunicacion_y_colaboracion": 1.0,
+            "aprendizaje_y_autonomia": 0.9666666666666667,
+            "afrontamiento_y_metas": 1.0
+          },
+          "coincidencia_completa": 0.9,
+          "abstenciones": 4,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.3951931345618049
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8666666666666667,
+            "comunicacion_y_colaboracion": 1.0,
+            "aprendizaje_y_autonomia": 0.8666666666666667,
+            "afrontamiento_y_metas": 0.9333333333333333
+          },
+          "coincidencia_completa": 0.6666666666666666,
+          "abstenciones": 2,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.6934481848241287
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4-4",
+      "semilla": 43,
+      "parametros": 108,
+      "segundos_entrenamiento": 0.6549548999992112,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 43,
+        "epoca_elegida": 18,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.95,
+            "comunicacion_y_colaboracion": 0.9785714285714285,
+            "aprendizaje_y_autonomia": 0.95,
+            "afrontamiento_y_metas": 0.9357142857142857
+          },
+          "coincidencia_completa": 0.8142857142857143,
+          "abstenciones": 25,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5371287063299038
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8666666666666667,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.8666666666666667,
+            "afrontamiento_y_metas": 0.9666666666666667
+          },
+          "coincidencia_completa": 0.6666666666666666,
+          "abstenciones": 7,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.6497520116472576
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8666666666666667,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9,
+            "afrontamiento_y_metas": 1.0
+          },
+          "coincidencia_completa": 0.7666666666666667,
+          "abstenciones": 8,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.6005679527274629
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4-4",
+      "semilla": 101,
+      "parametros": 108,
+      "segundos_entrenamiento": 0.92268839999997,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 59,
+        "epoca_elegida": 34,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9714285714285714,
+            "comunicacion_y_colaboracion": 0.9357142857142857,
+            "aprendizaje_y_autonomia": 0.9714285714285714,
+            "afrontamiento_y_metas": 0.9142857142857143
+          },
+          "coincidencia_completa": 0.8142857142857143,
+          "abstenciones": 22,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5010499076501423
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9333333333333333,
+            "comunicacion_y_colaboracion": 0.9333333333333333,
+            "aprendizaje_y_autonomia": 1.0,
+            "afrontamiento_y_metas": 1.0
+          },
+          "coincidencia_completa": 0.8666666666666667,
+          "abstenciones": 3,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.398077578830231
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9333333333333333,
+            "comunicacion_y_colaboracion": 0.9333333333333333,
+            "aprendizaje_y_autonomia": 0.9,
+            "afrontamiento_y_metas": 0.9333333333333333
+          },
+          "coincidencia_completa": 0.7333333333333333,
+          "abstenciones": 6,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.6090165095498407
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4-4",
+      "semilla": 211,
+      "parametros": 108,
+      "segundos_entrenamiento": 1.483656599999449,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 99,
+        "epoca_elegida": 74,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9857142857142858,
+            "comunicacion_y_colaboracion": 0.9714285714285714,
+            "aprendizaje_y_autonomia": 0.9857142857142858,
+            "afrontamiento_y_metas": 0.9714285714285714
+          },
+          "coincidencia_completa": 0.9142857142857143,
+          "abstenciones": 11,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.25509575919527694
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9,
+            "comunicacion_y_colaboracion": 0.9333333333333333,
+            "aprendizaje_y_autonomia": 0.9666666666666667,
+            "afrontamiento_y_metas": 0.9666666666666667
+          },
+          "coincidencia_completa": 0.7666666666666667,
+          "abstenciones": 3,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5657441799527387
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9,
+            "comunicacion_y_colaboracion": 0.9333333333333333,
+            "aprendizaje_y_autonomia": 0.9,
+            "afrontamiento_y_metas": 1.0
+          },
+          "coincidencia_completa": 0.7666666666666667,
+          "abstenciones": 2,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5860705171871317
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4-4",
+      "semilla": 307,
+      "parametros": 108,
+      "segundos_entrenamiento": 1.3877116000003298,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 92,
+        "epoca_elegida": 67,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9785714285714285,
+            "comunicacion_y_colaboracion": 0.9928571428571429,
+            "aprendizaje_y_autonomia": 0.9642857142857143,
+            "afrontamiento_y_metas": 0.9857142857142858
+          },
+          "coincidencia_completa": 0.9214285714285714,
+          "abstenciones": 17,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.2779419833519037
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9666666666666667,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9333333333333333,
+            "afrontamiento_y_metas": 1.0
+          },
+          "coincidencia_completa": 0.8666666666666667,
+          "abstenciones": 5,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.4625748693325785
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8333333333333334,
+            "comunicacion_y_colaboracion": 1.0,
+            "aprendizaje_y_autonomia": 0.9,
+            "afrontamiento_y_metas": 0.9666666666666667
+          },
+          "coincidencia_completa": 0.7,
+          "abstenciones": 3,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.8243185782083753
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4-4",
+      "semilla": 401,
+      "parametros": 108,
+      "segundos_entrenamiento": 0.9998703999990539,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 70,
+        "epoca_elegida": 45,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9642857142857143,
+            "comunicacion_y_colaboracion": 0.9857142857142858,
+            "aprendizaje_y_autonomia": 0.95,
+            "afrontamiento_y_metas": 0.9428571428571428
+          },
+          "coincidencia_completa": 0.8428571428571429,
+          "abstenciones": 19,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.41375917473986834
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8666666666666667,
+            "comunicacion_y_colaboracion": 0.9333333333333333,
+            "aprendizaje_y_autonomia": 0.9666666666666667,
+            "afrontamiento_y_metas": 1.0
+          },
+          "coincidencia_completa": 0.7666666666666667,
+          "abstenciones": 4,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.5737821775797917
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8333333333333334,
+            "comunicacion_y_colaboracion": 0.9333333333333333,
+            "aprendizaje_y_autonomia": 0.8666666666666667,
+            "afrontamiento_y_metas": 0.9666666666666667
+          },
+          "coincidencia_completa": 0.6,
+          "abstenciones": 3,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.9273142442699892
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4-4",
+      "semilla": 503,
+      "parametros": 108,
+      "segundos_entrenamiento": 2.137834400000429,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 152,
+        "epoca_elegida": 127,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9571428571428572,
+            "comunicacion_y_colaboracion": 1.0,
+            "aprendizaje_y_autonomia": 0.9857142857142858,
+            "afrontamiento_y_metas": 0.9357142857142857
+          },
+          "coincidencia_completa": 0.8857142857142857,
+          "abstenciones": 6,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.4261627138742903
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9666666666666667,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 0.9666666666666667,
+            "afrontamiento_y_metas": 1.0
+          },
+          "coincidencia_completa": 0.9,
+          "abstenciones": 2,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.435671458152526
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.8,
+            "comunicacion_y_colaboracion": 1.0,
+            "aprendizaje_y_autonomia": 0.9333333333333333,
+            "afrontamiento_y_metas": 0.9
+          },
+          "coincidencia_completa": 0.6666666666666666,
+          "abstenciones": 2,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 1.2180730783418388
+        }
+      }
+    },
+    {
+      "arquitectura": "9-6-4-4",
+      "semilla": 607,
+      "parametros": 108,
+      "segundos_entrenamiento": 2.355370599998423,
+      "entrenamiento": {
+        "epocas_maximas": 300,
+        "epocas_ejecutadas": 175,
+        "epoca_elegida": 150,
+        "parada_temprana": true,
+        "paciencia": 25,
+        "l2": 0.001,
+        "tasa": 0.03,
+        "criterio": "ENTROPIA_CRUZADA_VALIDACION"
+      },
+      "evaluaciones": {
+        "entrenamiento": {
+          "n": 140,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9857142857142858,
+            "comunicacion_y_colaboracion": 0.9571428571428572,
+            "aprendizaje_y_autonomia": 0.9571428571428572,
+            "afrontamiento_y_metas": 0.8928571428571429
+          },
+          "coincidencia_completa": 0.8142857142857143,
+          "abstenciones": 25,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.4622794826306169
+        },
+        "validacion": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9,
+            "comunicacion_y_colaboracion": 0.9666666666666667,
+            "aprendizaje_y_autonomia": 1.0,
+            "afrontamiento_y_metas": 1.0
+          },
+          "coincidencia_completa": 0.8666666666666667,
+          "abstenciones": 6,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.39024848888594066
+        },
+        "prueba": {
+          "n": 30,
+          "coincidencia_por_salida": {
+            "preparacion_y_confianza": 0.9333333333333333,
+            "comunicacion_y_colaboracion": 0.9333333333333333,
+            "aprendizaje_y_autonomia": 0.9333333333333333,
+            "afrontamiento_y_metas": 0.9333333333333333
+          },
+          "coincidencia_completa": 0.7666666666666667,
+          "abstenciones": 7,
+          "alcance": "Reproducción de reglas sintéticas; sin validez clínica o institucional.",
+          "perdida": 0.8014767762812506
+        }
+      }
+    }
+  ],
+  "modelo_base_sustituido": false
+}

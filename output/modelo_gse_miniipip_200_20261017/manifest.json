@@ -1,0 +1,10 @@
+{
+  "experimento": "GSE_MINIIPIP_200_V1",
+  "uso_en_personas": false,
+  "sha256": {
+    "datos_sinteticos.csv": "b092c954c6580180b517af7dfaaaf1dbc29a99d7428dcbb00fea420693be499d",
+    "modelo.json": "abb2bed7e4bcc7e232388bf671afbf5d2ba5bce309f14b79026d92a2d0bad252",
+    "informe.json": "73c34f8047b8fe997fa101b2e241ed06aa12f50d49abef02165138b74a22a91e",
+    "predicciones.csv": "7768e59d1facbd11e1342c852049f7a6324cbb935caf31f5a198e8527e75b806"
+  }
+}

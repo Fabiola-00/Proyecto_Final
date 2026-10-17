@@ -142,7 +142,7 @@ class ModeloAnualTestCase(unittest.TestCase):
             inicializar_base_datos();inicializar_base_datos()
             for t,filas in antes.items():self.assertEqual([tuple(f) for f in c.execute('SELECT * FROM '+t)],filas)
             for t in tablas:self.assertEqual(c.execute('SELECT COUNT(*) FROM '+t).fetchone()[0],0)
-            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'27')
+            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'29')
             self.assertEqual(c.execute('PRAGMA quick_check').fetchone()[0],'ok');self.assertEqual(c.execute('PRAGMA foreign_key_check').fetchall(),[])
 
     def test_bloqueo_formacion_en_fecha_anterior_y_nueva_del_periodo_cerrado(self):

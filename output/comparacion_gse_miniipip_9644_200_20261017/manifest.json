@@ -1,0 +1,30 @@
+{
+  "perfil": "gse-miniipip",
+  "modelo_base_sustituido": false,
+  "sha256": {
+    "comparacion.json": "608059a6a36e4fc55d0c175223edd2596ad557eddb40ff76e8f37b7d6512295a",
+    "datos_sinteticos.csv": "b092c954c6580180b517af7dfaaaf1dbc29a99d7428dcbb00fea420693be499d",
+    "ejecuciones.csv": "0eb6105c645f9cfce234adb803442d12ff5dea5412cf0b5a325904864cd99af6",
+    "README.md": "3b63f96fcdcb9903b7ded45c2277120daac21633e08e35d8e7c3f65325cb3b11",
+    "9-6-4/modelo_semilla_101.json": "aefb75af501e119fb380f5f5c81ee6f84dad0c1db88533bb0a0d7889605872aa",
+    "9-6-4/modelo_semilla_19.json": "0aa6dcc66c6c0c9e0e97e96c3ec38f851a2434d89b04d3add405d0fb12773a08",
+    "9-6-4/modelo_semilla_211.json": "f40061ee37b99cd63fa300639d324f70926c1246842d0b7477545e0ded1f7e88",
+    "9-6-4/modelo_semilla_307.json": "865a4b6238d5ecd93be8b92c7b4935038f0a49ce7517c7ba9bcbf6c1f82f395e",
+    "9-6-4/modelo_semilla_31415.json": "abb2bed7e4bcc7e232388bf671afbf5d2ba5bce309f14b79026d92a2d0bad252",
+    "9-6-4/modelo_semilla_401.json": "9c4514fadabcc5b91282f33e722089ab85f06afda3a3f49aa388657cbbe99132",
+    "9-6-4/modelo_semilla_43.json": "6294669d59e01786de65fa8e07a4c219fdb065d48f6788df274e493ac64d0a89",
+    "9-6-4/modelo_semilla_503.json": "a634674a3fc83245f6ba64610a09cc8f020c08a9d9c73feccce7478c990e045d",
+    "9-6-4/modelo_semilla_607.json": "44ca925fbca505151e9bcc375d429c784fc18bd9dbb96907aa045f0347953858",
+    "9-6-4/modelo_semilla_7.json": "74959055a0f0278f5a22ed7fb732b8b06fe169abcc36e83741c21ac60da45331",
+    "9-6-4-4/modelo_semilla_101.json": "8886a89c555512dcde25586033b85ec041a4f7fa2c52d5b13bc1069a42aef96a",
+    "9-6-4-4/modelo_semilla_19.json": "bb50566b479031f2e0dfd25b28bf9f1e7ae42719cd0b61b437dbf227dc08e81a",
+    "9-6-4-4/modelo_semilla_211.json": "a0ed03266a2a278090e6f09aa26b7771153fac5666b456cd81ebb4886ebbf35f",
+    "9-6-4-4/modelo_semilla_307.json": "12b72e4f7827a5fa9a3d5b60a264ca0cd96a7ab36cc5ca2cc0bc4134d4fdaf8a",
+    "9-6-4-4/modelo_semilla_31415.json": "473f318b8663b2e351a1b17c02cfb0ae789f41fb0ea801edda0720695a6af53e",
+    "9-6-4-4/modelo_semilla_401.json": "b530fdb4295ff80efa7ae7a8c50564d7e2052f68f72ba4bad6c5d0f8e4edfb67",
+    "9-6-4-4/modelo_semilla_43.json": "7666fb82b7dd9b022ec29b686da14354ad2779bd2a2d8ee042ef8543c228c34e",
+    "9-6-4-4/modelo_semilla_503.json": "6c8d953bd112836b74eb47cd30c3fe49e2df61d232877a28cdf21447d21f3441",
+    "9-6-4-4/modelo_semilla_607.json": "e3de2decd9c1213a2880512c3dfc1faf6b377843b5345f1ed6ee25c66b5fd3ed",
+    "9-6-4-4/modelo_semilla_7.json": "6214edbce1784dad3f5d46d9e2c73b2309e061bfe216a104aaa4a67805603aea"
+  }
+}
