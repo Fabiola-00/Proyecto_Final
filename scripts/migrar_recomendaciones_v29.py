@@ -3,7 +3,6 @@
 No crea cuentas, respuestas, revisiones, activaciones ni recomendaciones.
 Ejecutar después de las pruebas, con el entorno local existente.
 """
-from datetime import datetime
 import hashlib
 import json
 from pathlib import Path
@@ -35,6 +34,8 @@ def main():
     with app.app_context():
         path=Path(app.config['DATABASE'])
         if not path.is_absolute():path=ROOT/path
+        path=path.resolve()
+        if not path.is_relative_to(ROOT):raise RuntimeError('La base configurada no está dentro del proyecto autorizado.')
         if not path.is_file():raise RuntimeError('La base local existente no se encontró. No se creará otra.')
         c=obtener_conexion()
         version=c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0]
@@ -42,7 +43,7 @@ def main():
         if c.execute('PRAGMA quick_check').fetchone()[0]!='ok' or c.execute('PRAGMA foreign_key_check').fetchall():
             raise RuntimeError('La integridad previa requiere revisión.')
         antes=huellas(c)
-        destino=path.parent/'backups'/f'sicose-{datetime.now():%Y%m%dT%H%M%S}-pre-v29-{uuid.uuid4().hex[:8]}.sqlite3'
+        destino=path.parent/'backups'/f'sicose-20261018-pre-v29-{uuid.uuid4().hex[:8]}.sqlite3'
         destino.parent.mkdir(exist_ok=True)
         with sqlite3.connect(destino) as respaldo:c.backup(respaldo)
         inicializar_base_datos();inicializar_base_datos()

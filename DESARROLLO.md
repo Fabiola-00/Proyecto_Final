@@ -1,6 +1,12 @@
 # SICOSE — Bases de desarrollo, reconstrucción limpia y continuidad
 
-**Corte funcional vigente: 2026-10-17, SQLite v28. Bases históricas conservadas: v23/v24.**
+**Corte funcional vigente: 2026-10-18, SQLite v29. Bases históricas conservadas: v23/v24/v28.**
+
+Entrega vigente: [recomendaciones del sistema](docs/27_recomendaciones_sistema.md). GSE/Mini-IPIP integrados por Gestión, revisión administrativa de ambos roles y conservación por Gestión confirmadas por el solicitante, sin despliegue en DEMO. Generación manual con nueve entradas, modelo fijado por SHA-256, Propuesta/Confirmada/Desactualizada, revisiones inmutables y publicación solo de confirmada vigente en PDF. No se borran ni adoptan históricos DASS/CBI. No se modifican los pesos originales ni se acredita validación clínica; el modelo propone orientación y la observación humana se conserva aparte.
+
+Migración v29 local aplicada tras respaldo, 58 tablas previas preservadas/64 finales/seis nuevas vacías, dos inicializaciones e integridad/FK correctas. Suite general 226 pruebas aprobadas (358,830 s); después del ajuste de estados y últimas pruebas, 30 específicas aprobadas (49,245 s). Interfaz: 12 escenarios con fixtures, ambos temas y tamaños, sin errores/desbordes. No hay revisiones, respuestas ni recomendaciones reales creadas por esta entrega.
+
+### Antecedentes anteriores a la integración
 
 Comparación nueva GSE/Mini-IPIP: [9→6→4 frente a 9→6→4→4](output/comparacion_gse_miniipip_9644_200_20261017/README.md). RedGseMiniIpipDosCapas reutiliza normalización/semántica actuales y backprop de dos capas, con 108 parámetros. Diez inicializaciones por arquitectura, mismo CSV y protocolo; 25 pruebas aprobadas, control idéntico a pesos actuales. La media de pérdida de validación favoreció conservar 9→6→4 (0,4036 vs 0,4830), prueba media 74,67% vs 69,67%. La alternativa con semilla original obtiene 20/30 como la actual; no cambiar pesos por un resultado aislado. No se habilita inferencia personal ni se modifica SQLite.
 

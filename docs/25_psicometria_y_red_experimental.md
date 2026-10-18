@@ -1,5 +1,7 @@
 # Psicometría y red experimental — 2026-10-17
 
+**Continuidad posterior (2026-10-18, v29):** [circuito GSE/Mini-IPIP y recomendaciones integradas](27_recomendaciones_sistema.md). Sustituye el alcance previo de «solo offline» para la integración orientativa expresamente autorizada: revisión de Administrador/Jefe, respuestas conservadas por Gestión, generación por botón, propuesta y confirmación humana con historial. No cambia pesos ni valida científicamente las reglas. El contenido siguiente documenta el estado previo y los experimentos del 17 de octubre; no restablecer sus pendientes ya sustituidos por decisiones posteriores.
+
 [Informe didáctico del modelo seleccionado 9→6→4](26_informe_modelo_964_gse_miniipip.md), con configuración y cálculos verificados desde los artefactos actuales; [PDF](../output/pdf/informe_modelo_964_gse_miniipip.pdf). No modifica pesos, datos ni habilitaciones.
 
 ## Nueva versión experimental: GSE + Mini-IPIP

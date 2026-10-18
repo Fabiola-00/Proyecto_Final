@@ -2,7 +2,17 @@
 
 SICOSE significa **Sistema de Control y Evaluación de Personal**. Es un prototipo académico para seguimiento de personal voluntario de rescate y emergencias, no un producto comercial ni clínico.
 
-## Continuidad vigente — 2026-10-17, SQLite v28
+## Continuidad vigente — 2026-10-18, SQLite v29
+
+Leer docs/27_recomendaciones_sistema.md. Decisiones posteriores confirmadas: integrar GSE/Mini-IPIP en el sistema actual, sin implementación en DEMO; revisión por Administrador y Jefe, conservación por Gestión sin borrado automático. Cada rol registra revisión del formulario/versión/huella antes de habilitar; una finalización por prueba/Gestión, avances propios y solo «Completada» al finalizar para el Instructor. Administrador/Jefe consultan únicamente respuestas finalizadas y subescalas. Estas decisiones sustituyen las condiciones previas para los instrumentos actuales; DASS/CBI e históricos permanecen separados.
+
+Modelo seleccionado GSE/Mini-IPIP 9→6→4, semilla 31415/época 84/88 parámetros, pesos originales intactos. Integración por botón solo con nueve entradas completas desde servidor. Propuesta append-only, fuentes/entradas/huella/resultados conservados; cambios relevantes derivan estado Desactualizada y permiten nueva versión, sin sobrescribir. Confirmación humana con observación separada del modelo; solo última Confirmada vigente llega al PDF individual. Cierre, retiro o inactivo bloquean generación/confirmación. Abstención se conserva y no se convierte en clasificación concluyente. No acredita validez clínica/institucional ni decide ascensos, sanciones o aptitud operativa.
+
+Migración local v28→v29 aplicada tras respaldo instance/backups/sicose-20261018-pre-v29-f19bed98.sqlite3: 58 tablas previas preservadas íntegramente (excepto valor schema_version), 64 finales, seis nuevas vacías, dos inicializaciones, quick_check=ok/FK=0. Sin seed, respuestas, revisiones ni propuestas reales creadas por el agente. Entorno y modelos previos conservados. Evidencia .tmp/recomendaciones-migracion.json.
+
+Verificación: suite general de 226 pruebas aprobadas en 358,830 s; tras ajustes finales de estados/avance, 30 pruebas específicas aprobadas en 49,245 s, incluidas concurrencia, calificación académica, cierre/reapertura y PDF. Doce escenarios de interfaz automatizados, tres roles/360 y 1447 px/ambos temas, sin errores/desbordes; capturas inspeccionadas. PDF de prueba con resultados y confirmación inspeccionado. No confundir validación técnica con revisión/aceptación humana efectiva.
+
+### Continuidad anterior — 2026-10-17, SQLite v28
 
 Comparación posterior con datos GSE/Mini-IPIP: RedGseMiniIpipDosCapas 9→6→4→4, 108 parámetros, entrenada sobre el mismo CSV/140-30-30, sin regenerar etiquetas. Diez semillas por arquitectura; control 31415 reproduce exactamente la actual. Alternativa 31415: época 64/89, prueba 20/30 y seis abstenciones. Media de pérdida de validación favorece actual 0,4036 vs 0,4830; prueba media 74,67% vs 69,67%. Conservar modelo vigente y anteriores. Artefactos output/comparacion_gse_miniipip_9644_200_20261017; comparador exige --perfil gse-miniipip --alternativa 9-6-4-4 y destino nuevo. Comparación exploratoria, misma prueba ya consultada, no datos independientes ni aprobación personal. Ver docs/25_psicometria_y_red_experimental.md.
 

@@ -1,0 +1,68 @@
+{
+  "registros": 200,
+  "entradas": 15,
+  "salidas": 4,
+  "particiones": {
+    "entrenamiento": 140,
+    "validacion": 30,
+    "prueba": 30
+  },
+  "cobertura": {
+    "entrenamiento": {
+      "n": 140,
+      "positivos": {
+        "preparacion_progresiva_y_confianza": 64,
+        "organizacion_de_tareas_y_manejo_de_carga": 68,
+        "comunicacion_y_aprendizaje_acompanado": 61,
+        "afrontamiento_y_seguimiento_del_bienestar": 65
+      },
+      "patrones": {
+        "0010": 8,
+        "1100": 13,
+        "1000": 10,
+        "0001": 13,
+        "1011": 8,
+        "0000": 14,
+        "1110": 6,
+        "1010": 7,
+        "0111": 8,
+        "0011": 8,
+        "0110": 8,
+        "1001": 4,
+        "0100": 9,
+        "0101": 8,
+        "1111": 8,
+        "1101": 8
+      }
+    },
+    "validacion": {
+      "n": 30,
+      "positivos": {
+        "preparacion_progresiva_y_confianza": 22,
+        "organizacion_de_tareas_y_manejo_de_carga": 13,
+        "comunicacion_y_aprendizaje_acompanado": 19,
+        "afrontamiento_y_seguimiento_del_bienestar": 13
+      },
+      "patrones": {
+        "0010": 4,
+        "1010": 2,
+        "1110": 5,
+        "1101": 2,
+        "0111": 1,
+        "1100": 1,
+        "0101": 1,
+        "1011": 5,
+        "1001": 2,
+        "0100": 1,
+        "1000": 3,
+        "1111": 2,
+        "0000": 1
+      }
+    }
+  },
+  "prueba": "Reservada; etiquetas aplicadas sin explorar distribución ni resultados.",
+  "entrenamiento_realizado": false,
+  "modelo_operativo_modificado": false,
+  "sha256_entrada": "554ba9cf305f39803ce0e083af6bfb1c5e29087bef85d78a8bd4033540f80f63",
+  "verificacion": "200 IDs/entradas/particiones conservados; cuatro etiquetas binarias por fila. Sin remuestreo ni balance artificial por etiquetas."
+}

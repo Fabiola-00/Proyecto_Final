@@ -1,5 +1,7 @@
 # 06. Revisión documental de instrumentos psicométricos candidatos
 
+**Continuidad vigente, 2026-10-18:** [GSE/Mini-IPIP y recomendaciones v29](27_recomendaciones_sistema.md). Las decisiones posteriores autorizan revisión por Administrador y Jefe y conservación por Gestión. Los formularios actuales requieren constancia de ambos roles antes de habilitar; el Instructor solo ve Completada al finalizar. El modelo seleccionado propone orientación con confirmación humana, sin validez clínica acreditada. Los candidatos y condiciones DASS/CBI siguientes se conservan como antecedentes, sin mezclarlos con las versiones actuales.
+
 **Actualización 2026-10-17:** el solicitante seleccionó DASS-21 y CBI para un circuito condicionado a revisión. Ver [versiones, puntuación, condiciones y pendientes actuales](25_psicometria_y_red_experimental.md). La revisión de candidatos que sigue se conserva como antecedente fechado; no es la selección vigente.
 
 **Fecha de consulta:** 2026-09-28. **Estado de los tres instrumentos: pendientes de selección y autorización para implementación.** Esta revisión no es una recomendación clínica, evaluación de aptitud operativa ni validación para rescatistas. No se copian reactivos ni claves al prototipo.

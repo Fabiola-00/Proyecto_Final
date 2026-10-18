@@ -1,0 +1,162 @@
+{
+  "titulo": "Datos NASA-TLX, GSE y Mini-IPIP",
+  "origen": "Datos",
+  "procedencia": "Generación computacional de puntuaciones agregadas para experimentación; no son observaciones ni respuestas de personas reales.",
+  "semilla": 20261018,
+  "registros": 200,
+  "entradas": 15,
+  "metodo": "Cobertura marginal equilibrada de niveles discretos, con permutaciones independientes. No representa prevalencias ni correlaciones empíricas.",
+  "particiones": {
+    "entrenamiento": 140,
+    "validacion": 30,
+    "prueba": 30
+  },
+  "etiquetas": "Pendientes de definir nuevas salidas y reglas explícitas; no se reutilizan las anteriores.",
+  "entrenamiento_realizado": false,
+  "uso_en_personas": false,
+  "contexto_tlx": "Una aplicación por Gestión después de práctica o simulacro común. No se inventa una práctica, fecha ni Gestión real.",
+  "tlx": "Seis valoraciones sin ponderar por separado; sin comparaciones por pares ni índice global ponderado.",
+  "normalizacion": "Futuro modelo: (valor-minimo)/(maximo-minimo); CSV conserva escala original.",
+  "variables": [
+    {
+      "clave": "fisica",
+      "descripcion": "Físico promedio",
+      "minimo": 0,
+      "maximo": 100,
+      "paso": 0.5,
+      "observado_min": 0.0,
+      "observado_max": 99.5
+    },
+    {
+      "clave": "desempeno",
+      "descripcion": "Desempeño promedio",
+      "minimo": 0,
+      "maximo": 100,
+      "paso": 0.5,
+      "observado_min": 0.0,
+      "observado_max": 100.0
+    },
+    {
+      "clave": "academica",
+      "descripcion": "Académica acumulada con tope",
+      "minimo": 0,
+      "maximo": 100,
+      "paso": 1,
+      "observado_min": 0,
+      "observado_max": 100
+    },
+    {
+      "clave": "gse_autoeficacia",
+      "descripcion": "GSE: autoeficacia general",
+      "minimo": 10,
+      "maximo": 40,
+      "paso": 1,
+      "observado_min": 10,
+      "observado_max": 40
+    },
+    {
+      "clave": "mini_extraversion",
+      "descripcion": "Mini-IPIP: extraversión",
+      "minimo": 4,
+      "maximo": 20,
+      "paso": 1,
+      "observado_min": 4,
+      "observado_max": 20
+    },
+    {
+      "clave": "mini_amabilidad",
+      "descripcion": "Mini-IPIP: amabilidad",
+      "minimo": 4,
+      "maximo": 20,
+      "paso": 1,
+      "observado_min": 4,
+      "observado_max": 20
+    },
+    {
+      "clave": "mini_responsabilidad",
+      "descripcion": "Mini-IPIP: responsabilidad",
+      "minimo": 4,
+      "maximo": 20,
+      "paso": 1,
+      "observado_min": 4,
+      "observado_max": 20
+    },
+    {
+      "clave": "mini_neuroticismo",
+      "descripcion": "Mini-IPIP: neuroticismo",
+      "minimo": 4,
+      "maximo": 20,
+      "paso": 1,
+      "observado_min": 4,
+      "observado_max": 20
+    },
+    {
+      "clave": "mini_apertura",
+      "descripcion": "Mini-IPIP: apertura",
+      "minimo": 4,
+      "maximo": 20,
+      "paso": 1,
+      "observado_min": 4,
+      "observado_max": 20
+    },
+    {
+      "clave": "tlx_demanda_mental",
+      "descripcion": "NASA-TLX: demanda mental",
+      "minimo": 0,
+      "maximo": 100,
+      "paso": 5,
+      "observado_min": 0,
+      "observado_max": 100
+    },
+    {
+      "clave": "tlx_demanda_fisica",
+      "descripcion": "NASA-TLX: demanda física",
+      "minimo": 0,
+      "maximo": 100,
+      "paso": 5,
+      "observado_min": 0,
+      "observado_max": 100
+    },
+    {
+      "clave": "tlx_demanda_temporal",
+      "descripcion": "NASA-TLX: demanda temporal",
+      "minimo": 0,
+      "maximo": 100,
+      "paso": 5,
+      "observado_min": 0,
+      "observado_max": 100
+    },
+    {
+      "clave": "tlx_rendimiento",
+      "descripcion": "NASA-TLX: rendimiento percibido (0 bueno; 100 malo)",
+      "minimo": 0,
+      "maximo": 100,
+      "paso": 5,
+      "observado_min": 0,
+      "observado_max": 100
+    },
+    {
+      "clave": "tlx_esfuerzo",
+      "descripcion": "NASA-TLX: esfuerzo",
+      "minimo": 0,
+      "maximo": 100,
+      "paso": 5,
+      "observado_min": 0,
+      "observado_max": 100
+    },
+    {
+      "clave": "tlx_frustracion",
+      "descripcion": "NASA-TLX: frustración",
+      "minimo": 0,
+      "maximo": 100,
+      "paso": 5,
+      "observado_min": 0,
+      "observado_max": 100
+    }
+  ],
+  "fuentes": [
+    "https://www.nasa.gov/wp-content/uploads/2026/03/nasa-tlx-v1-0-searchable-text-and-forms.pdf",
+    "https://userpage.fu-berlin.de/~health/spanscal.htm",
+    "https://ipip.ori.org/Spanishmini-IPIPposneg.htm"
+  ]
+}

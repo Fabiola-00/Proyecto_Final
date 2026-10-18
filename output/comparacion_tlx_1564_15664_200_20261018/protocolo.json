@@ -1,0 +1,48 @@
+{
+  "arquitecturas": [
+    [
+      15,
+      6,
+      4
+    ],
+    [
+      15,
+      6,
+      6,
+      4
+    ]
+  ],
+  "parametros": [
+    124,
+    166
+  ],
+  "semillas": [
+    31415,
+    7,
+    19,
+    43,
+    101,
+    211,
+    307,
+    401,
+    503,
+    607
+  ],
+  "particiones": {
+    "entrenamiento": 140,
+    "validacion": 30,
+    "prueba": 30
+  },
+  "hiperparametros": {
+    "epocas": 300,
+    "paciencia": 25,
+    "tasa": 0.03,
+    "l2": 0.001
+  },
+  "seleccion_arquitectura": "Menor media de BCE de validación entre diez semillas prefijadas.",
+  "seleccion_ejemplar": "Menor BCE de validación dentro de cada arquitectura; no mediante prueba.",
+  "advertencia": "Una sola partición de 200 datos generados y reglas didácticas. Semillas no son muestras independientes. Sin validación personal ni adopción automática.",
+  "sha256_datos": "6a35711e3f096f3910f6ac010a1fbe456affa937317ab98344ebe6f2262fee0b",
+  "umbral_metricas": 0.5,
+  "abstencion": "Global si cualquier salida cae estrictamente entre 0.35 y 0.65; no son probabilidades calibradas."
+}

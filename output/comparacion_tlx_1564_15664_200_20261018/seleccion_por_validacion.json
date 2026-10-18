@@ -1,0 +1,13 @@
+{
+  "arquitectura_recomendada": "15-6-4",
+  "criterio": "Menor media de BCE de validación entre diez semillas prefijadas.",
+  "medias_bce_validacion": {
+    "15-6-4": 0.7621040374805979,
+    "15-6-6-4": 0.9351065106540715
+  },
+  "semillas_ejemplares": {
+    "15-6-4": 401,
+    "15-6-6-4": 401
+  },
+  "modelo_operativo_reemplazado": false
+}

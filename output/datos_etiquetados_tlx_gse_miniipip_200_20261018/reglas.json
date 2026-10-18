@@ -1,0 +1,40 @@
+{
+  "version": "TLX_GSE_MINIIPIP_ETIQUETAS_V1",
+  "naturaleza": "HIPOTESIS_DIDACTICAS_NO_VALIDADAS",
+  "procedencia": "Datos generados por computadora; etiquetas calculadas mediante reglas propuestas para experimentar, sin evaluaciones humanas.",
+  "proposito": "Líneas de apoyo combinables, sin diagnóstico, ascensos, sanciones ni aptitud automática.",
+  "normalizacion": "(valor-minimo)/(maximo-minimo), según rangos teóricos del diccionario original.",
+  "leyenda": "F=fisica,D=desempeno,AC=academica,G=GSE,E=extraversion,A=amabilidad,C=responsabilidad,N=neuroticismo,O=apertura,M=demanda mental,PF=demanda fisica,T=demanda temporal,R=rendimiento TLX (alto=malo),EF=esfuerzo,FR=frustracion.",
+  "interpretacion": "1: línea de apoyo propuesta por regla; 0: esa regla no propone la línea, no acredita bienestar ni capacidad. Cuatro ceros: seguimiento general. Varios unos: apoyos combinables.",
+  "limites": "Pesos, condiciones y umbral 0.50 inventados para ensayo, no baremos ni cortes de los instrumentos. Rasgos de personalidad no activan por sí solos una salida. No implican causalidad. Carga alta puede responder a la tarea o a su organización.",
+  "salidas": [
+    {
+      "clave": "preparacion_progresiva_y_confianza",
+      "titulo": "Preparación progresiva y confianza",
+      "condicion": "F < 0.60 o PF >= 0.60",
+      "indice": "0.45*(1-F) + 0.20*(1-G) + 0.25*PF + 0.10*EF",
+      "etiqueta": "1 si se cumple la condición y el índice >= 0.50; 0 en otro caso"
+    },
+    {
+      "clave": "organizacion_de_tareas_y_manejo_de_carga",
+      "titulo": "Organización de tareas y manejo de la carga",
+      "condicion": "M >= 0.60 o T >= 0.60 o R >= 0.60",
+      "indice": "0.30*M + 0.30*T + 0.20*R + 0.10*EF + 0.10*(1-C)",
+      "etiqueta": "1 si se cumple la condición y el índice >= 0.50; 0 en otro caso"
+    },
+    {
+      "clave": "comunicacion_y_aprendizaje_acompanado",
+      "titulo": "Comunicación y aprendizaje acompañado",
+      "condicion": "D < 0.60 o AC < 0.60",
+      "indice": "0.30*(1-D) + 0.25*(1-AC) + 0.15*(1-G) + 0.10*(1-E) + 0.10*(1-A) + 0.10*(1-O)",
+      "etiqueta": "1 si se cumple la condición y el índice >= 0.50; 0 en otro caso"
+    },
+    {
+      "clave": "afrontamiento_y_seguimiento_del_bienestar",
+      "titulo": "Afrontamiento y seguimiento del bienestar",
+      "condicion": "FR >= 0.60 o EF >= 0.60",
+      "indice": "0.35*FR + 0.20*EF + 0.20*(1-G) + 0.15*N + 0.10*(1-C)",
+      "etiqueta": "1 si se cumple la condición y el índice >= 0.50; 0 en otro caso"
+    }
+  ]
+}

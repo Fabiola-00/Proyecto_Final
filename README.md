@@ -4,7 +4,15 @@
 
 Paleta institucional vigente (2026-10-16): azules `#0500B2` y `#0054B2`, naranjas `#FA9A4B` y `#FCC495`, complementarios `#226DC6` y `#C67B22`. Interfaz con tonos derivados para modos claro/oscuro; PDF en paleta clara para impresión. Verde/rojo conservan su significado de estado.
 
-## Estado actual — revisión 2026-10-17
+## Estado actual — revisión 2026-10-18
+
+**SQLite v29. Recomendaciones integradas en Evaluaciones.** GSE y Mini-IPIP tienen formularios, revisión de ambos responsables, habilitación por Gestión, avances y finalización propia. El Instructor solo recibe «Completada»; Administrador/Jefe consultan resultados y respuestas finalizadas. [Funcionamiento y decisiones](docs/27_recomendaciones_sistema.md).
+
+El botón **Generar recomendación** usa exclusivamente el modelo seleccionado 9→6→4 y las nueve entradas del servidor. Guarda una **Propuesta** con evidencia e historial. Para incorporarla al reporte individual, Administrador/Jefe confirma con una observación separada de la salida del modelo. Correcciones muestran **Desactualizada** y permiten otra versión; Gestión cerrada requiere reapertura. Modelo experimental con revisión humana, sin decisiones automáticas de aptitud, ascenso o sanción.
+
+Migración aplicada con respaldo y 58 tablas previas preservadas; seis tablas nuevas vacías, 64 finales, integridad correcta. Sin cargar cuentas, respuestas o propuestas de demostración. Los responsables deben registrar su revisión en Evaluaciones antes de habilitar las pruebas: la migración no las aprueba ni activa automáticamente. Suite general 226 pruebas aprobadas y verificación final específica de 30 pruebas; 12 escenarios de interfaz sin errores/desbordes.
+
+### Antecedentes del entrenamiento — 2026-10-17
 
 [Informe didáctico completo del modelo seleccionado 9→6→4](docs/26_informe_modelo_964_gse_miniipip.md) y [PDF imprimible](output/pdf/informe_modelo_964_gse_miniipip.pdf): 19 secciones con conceptos, configuración efectiva, ejemplo numérico desde los pesos, métricas, glosario y límites. Documentación sin reentrenamiento ni modificación del modelo.
 

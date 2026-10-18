@@ -1,4 +1,4 @@
-# Recomendaciones y pruebas actuales - entrega v29
+# Recomendaciones y pruebas actuales - entrega v29 (2026-10-18)
 
 ## Decisiones confirmadas
 
@@ -81,3 +81,12 @@ SQLite v29 agrega seis tablas: `revisiones_pruebas`, `activaciones_pruebas`, `hi
 Migración local mediante `scripts/migrar_recomendaciones_v29.py`: exige base existente v28, revisa integridad previa, respalda con SQLite Backup API, inicializa dos veces y compara todas las filas de las tablas previas mediante huellas, exceptuando exclusivamente el valor de versión del esquema. No ejecuta seed ni crea aprobaciones, respuestas o propuestas. La evidencia de ejecución se registra separadamente al completar la migración; no confundir el script preparado con una migración aplicada.
 
 Las pruebas automatizadas usan bases temporales de pruebas, no una entrega DEMO ni modificaciones de expedientes reales. La revisión visual usa fixtures de interfaz sin acceso a la base local. La aceptación humana del flujo y la revisión efectiva de cada formulario quedan en manos de los responsables; no se simulan como realizadas.
+
+
+## Evidencia de cierre técnico - 2026-10-18
+
+- Migración local aplicada: respaldo `instance/backups/sicose-20261018-pre-v29-f19bed98.sqlite3`, 58 tablas previas preservadas, 64 finales, seis nuevas vacías, inicialización repetida dos veces, `quick_check=ok` y cero infracciones FK. Log `.tmp/recomendaciones-migracion.json`.
+- Suite general: 226 pruebas aprobadas en 358,830 s. Tras los ajustes finales de estados y dos pruebas adicionales, 30 pruebas específicas aprobadas en 49,245 s, incluidas concurrencia, cambio de Académica, cierres, permisos, privacidad y PDF. No sumar ambos conteos como pruebas distintas. Logs `.tmp/recomendaciones-suite.log` y `.tmp/recomendaciones-cierre-tests.log`.
+- Interfaz: doce escenarios automatizados con fixtures, tres roles, 360/1447 px y claro/oscuro, sin errores JavaScript ni desbordes. Capturas inspeccionadas; evidencia `.tmp/recomendaciones-ui/`. No es una instancia DEMO implementada o desplegada.
+- PDF de prueba de tres páginas renderizado; sección de subescalas, salida del modelo y observación humana inspeccionada, con carimbo y privacidad conservados. Archivo interno `.tmp/recomendaciones-reporte-qa.pdf`; no contiene expedientes reales.
+- Pesos originales preservados; aceptación humana del nuevo flujo y revisiones reales de formularios no se dan por realizadas.

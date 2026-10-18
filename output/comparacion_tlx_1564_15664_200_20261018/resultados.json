@@ -1,0 +1,2777 @@
+{
+  "resumen": {
+    "15-6-4": {
+      "parametros": 124,
+      "validacion_bce": {
+        "media": 0.7621040374805979,
+        "desviacion": 0.15278907166365227,
+        "minimo": 0.512497619471702,
+        "maximo": 1.0485947028683147
+      },
+      "prueba_bce": {
+        "media": 0.9322004170176433,
+        "desviacion": 0.0782230978236574,
+        "minimo": 0.860304245471538,
+        "maximo": 1.0854949312589923
+      },
+      "prueba_coincidencia": {
+        "media": 0.6499999999999999,
+        "desviacion": 0.06526300069150405,
+        "minimo": 0.5333333333333333,
+        "maximo": 0.7333333333333333
+      },
+      "prueba_f1_macro": {
+        "media": 0.8914462507470671,
+        "desviacion": 0.01893140292316667,
+        "minimo": 0.8581326400291918,
+        "maximo": 0.9197771186091542
+      },
+      "prueba_abstenciones": {
+        "media": 8.3,
+        "desviacion": 3.093002855909879,
+        "minimo": 3,
+        "maximo": 13
+      },
+      "segundos": {
+        "media": 0.7373992600005295,
+        "desviacion": 0.7707175557155103,
+        "minimo": 0.293641000000207,
+        "maximo": 2.7343279000015173
+      }
+    },
+    "15-6-6-4": {
+      "parametros": 166,
+      "validacion_bce": {
+        "media": 0.9351065106540715,
+        "desviacion": 0.08717322297331694,
+        "minimo": 0.8157224205224556,
+        "maximo": 1.0755167107296597
+      },
+      "prueba_bce": {
+        "media": 1.2223353148978535,
+        "desviacion": 0.23771520302335553,
+        "minimo": 0.9012917035235507,
+        "maximo": 1.7818284757639227
+      },
+      "prueba_coincidencia": {
+        "media": 0.6266666666666666,
+        "desviacion": 0.07336699564097411,
+        "minimo": 0.4666666666666667,
+        "maximo": 0.7333333333333333
+      },
+      "prueba_f1_macro": {
+        "media": 0.8825639613453075,
+        "desviacion": 0.01917239638773409,
+        "minimo": 0.8427197802197802,
+        "maximo": 0.9128434886499402
+      },
+      "prueba_abstenciones": {
+        "media": 6.7,
+        "desviacion": 2.8693785622209793,
+        "minimo": 1,
+        "maximo": 11
+      },
+      "segundos": {
+        "media": 0.9751448199989682,
+        "desviacion": 0.6020011048845427,
+        "minimo": 0.3072072999966622,
+        "maximo": 2.0849245999997947
+      }
+    }
+  },
+  "seleccion": {
+    "arquitectura_recomendada": "15-6-4",
+    "criterio": "Menor media de BCE de validación entre diez semillas prefijadas.",
+    "medias_bce_validacion": {
+      "15-6-4": 0.7621040374805979,
+      "15-6-6-4": 0.9351065106540715
+    },
+    "semillas_ejemplares": {
+      "15-6-4": 401,
+      "15-6-6-4": 401
+    },
+    "modelo_operativo_reemplazado": false
+  },
+  "ejecuciones": [
+    {
+      "arquitectura": "15-6-4",
+      "semilla": 31415,
+      "parametros": 124,
+      "epoca_elegida": 45,
+      "epocas_ejecutadas": 70,
+      "segundos_entrenamiento": 0.3544876000014483,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.501975047458304,
+        "aciertos_completos": 120,
+        "coincidencia_completa": 0.8571428571428571,
+        "abstenciones": 40,
+        "f1_macro": 0.9573633601143369,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 62,
+            "vn": 75,
+            "fp": 1,
+            "fn": 2,
+            "f1": 0.9763779527559056,
+            "exactitud": 0.9785714285714285
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 66,
+            "vn": 71,
+            "fp": 1,
+            "fn": 2,
+            "f1": 0.9777777777777777,
+            "exactitud": 0.9785714285714285
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 61,
+            "vn": 70,
+            "fp": 9,
+            "fn": 0,
+            "f1": 0.9312977099236641,
+            "exactitud": 0.9357142857142857
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 59,
+            "vn": 74,
+            "fp": 1,
+            "fn": 6,
+            "f1": 0.944,
+            "exactitud": 0.95
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 0.7751775596640221,
+        "aciertos_completos": 20,
+        "coincidencia_completa": 0.6666666666666666,
+        "abstenciones": 12,
+        "f1_macro": 0.9173182957393483,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 19,
+            "vn": 7,
+            "fp": 1,
+            "fn": 3,
+            "f1": 0.9047619047619048,
+            "exactitud": 0.8666666666666667
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 12,
+            "vn": 17,
+            "fp": 0,
+            "fn": 1,
+            "f1": 0.96,
+            "exactitud": 0.9666666666666667
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 18,
+            "vn": 10,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9473684210526315,
+            "exactitud": 0.9333333333333333
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 12,
+            "vn": 14,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.8571428571428571,
+            "exactitud": 0.8666666666666667
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 0.8677656075678873,
+        "aciertos_completos": 20,
+        "coincidencia_completa": 0.6666666666666666,
+        "abstenciones": 10,
+        "f1_macro": 0.8915115854771027,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 12,
+            "vn": 14,
+            "fp": 1,
+            "fn": 3,
+            "f1": 0.8571428571428571,
+            "exactitud": 0.8666666666666667
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 14,
+            "vn": 15,
+            "fp": 1,
+            "fn": 0,
+            "f1": 0.9655172413793104,
+            "exactitud": 0.9666666666666667
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 13,
+            "vn": 15,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9285714285714286,
+            "exactitud": 0.9333333333333333
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 11,
+            "vn": 14,
+            "fp": 3,
+            "fn": 2,
+            "f1": 0.8148148148148148,
+            "exactitud": 0.8333333333333334
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-4",
+      "semilla": 7,
+      "parametros": 124,
+      "epoca_elegida": 45,
+      "epocas_ejecutadas": 70,
+      "segundos_entrenamiento": 0.3472354000004998,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.47059600870494883,
+        "aciertos_completos": 121,
+        "coincidencia_completa": 0.8642857142857143,
+        "abstenciones": 33,
+        "f1_macro": 0.9581357212804754,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 64,
+            "vn": 70,
+            "fp": 6,
+            "fn": 0,
+            "f1": 0.9552238805970149,
+            "exactitud": 0.9571428571428572
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 66,
+            "vn": 70,
+            "fp": 2,
+            "fn": 2,
+            "f1": 0.9705882352941176,
+            "exactitud": 0.9714285714285714
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 60,
+            "vn": 72,
+            "fp": 7,
+            "fn": 1,
+            "f1": 0.9375,
+            "exactitud": 0.9428571428571428
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 63,
+            "vn": 73,
+            "fp": 2,
+            "fn": 2,
+            "f1": 0.9692307692307692,
+            "exactitud": 0.9714285714285714
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 0.6949639896322477,
+        "aciertos_completos": 24,
+        "coincidencia_completa": 0.8,
+        "abstenciones": 13,
+        "f1_macro": 0.9455722639933166,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 22,
+            "vn": 7,
+            "fp": 1,
+            "fn": 0,
+            "f1": 0.9777777777777777,
+            "exactitud": 0.9666666666666667
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 13,
+            "vn": 17,
+            "fp": 0,
+            "fn": 0,
+            "f1": 1.0,
+            "exactitud": 1.0
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 18,
+            "vn": 10,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9473684210526315,
+            "exactitud": 0.9333333333333333
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 12,
+            "vn": 14,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.8571428571428571,
+            "exactitud": 0.8666666666666667
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 0.9310033387630149,
+        "aciertos_completos": 17,
+        "coincidencia_completa": 0.5666666666666667,
+        "abstenciones": 9,
+        "f1_macro": 0.8797619047619047,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 14,
+            "vn": 14,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9333333333333333,
+            "exactitud": 0.9333333333333333
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 14,
+            "vn": 14,
+            "fp": 2,
+            "fn": 0,
+            "f1": 0.9333333333333333,
+            "exactitud": 0.9333333333333333
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 13,
+            "vn": 13,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.8666666666666667,
+            "exactitud": 0.8666666666666667
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 11,
+            "vn": 13,
+            "fp": 4,
+            "fn": 2,
+            "f1": 0.7857142857142857,
+            "exactitud": 0.8
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-4",
+      "semilla": 19,
+      "parametros": 124,
+      "epoca_elegida": 51,
+      "epocas_ejecutadas": 76,
+      "segundos_entrenamiento": 0.37661540000044624,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.34819599120993644,
+        "aciertos_completos": 133,
+        "coincidencia_completa": 0.95,
+        "abstenciones": 25,
+        "f1_macro": 0.9843046518410005,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 64,
+            "vn": 75,
+            "fp": 1,
+            "fn": 0,
+            "f1": 0.9922480620155039,
+            "exactitud": 0.9928571428571429
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 67,
+            "vn": 72,
+            "fp": 0,
+            "fn": 1,
+            "f1": 0.9925925925925926,
+            "exactitud": 0.9928571428571429
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 61,
+            "vn": 76,
+            "fp": 3,
+            "fn": 0,
+            "f1": 0.976,
+            "exactitud": 0.9785714285714285
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 62,
+            "vn": 75,
+            "fp": 0,
+            "fn": 3,
+            "f1": 0.9763779527559056,
+            "exactitud": 0.9785714285714285
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 0.5910955538480883,
+        "aciertos_completos": 22,
+        "coincidencia_completa": 0.7333333333333333,
+        "abstenciones": 9,
+        "f1_macro": 0.9351714671482113,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 20,
+            "vn": 7,
+            "fp": 1,
+            "fn": 2,
+            "f1": 0.9302325581395349,
+            "exactitud": 0.9
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 13,
+            "vn": 16,
+            "fp": 1,
+            "fn": 0,
+            "f1": 0.9629629629629629,
+            "exactitud": 0.9666666666666667
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 17,
+            "vn": 10,
+            "fp": 1,
+            "fn": 2,
+            "f1": 0.918918918918919,
+            "exactitud": 0.9
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 13,
+            "vn": 15,
+            "fp": 2,
+            "fn": 0,
+            "f1": 0.9285714285714286,
+            "exactitud": 0.9333333333333333
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 0.860304245471538,
+        "aciertos_completos": 20,
+        "coincidencia_completa": 0.6666666666666666,
+        "abstenciones": 11,
+        "f1_macro": 0.8922520749550783,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 14,
+            "vn": 13,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.9032258064516129,
+            "exactitud": 0.9
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 14,
+            "vn": 16,
+            "fp": 0,
+            "fn": 0,
+            "f1": 1.0,
+            "exactitud": 1.0
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 13,
+            "vn": 14,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.896551724137931,
+            "exactitud": 0.9
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 10,
+            "vn": 14,
+            "fp": 3,
+            "fn": 3,
+            "f1": 0.7692307692307693,
+            "exactitud": 0.8
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-4",
+      "semilla": 43,
+      "parametros": 124,
+      "epoca_elegida": 45,
+      "epocas_ejecutadas": 70,
+      "segundos_entrenamiento": 0.34659299999839277,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.42734885653163557,
+        "aciertos_completos": 123,
+        "coincidencia_completa": 0.8785714285714286,
+        "abstenciones": 25,
+        "f1_macro": 0.9635100315627325,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 64,
+            "vn": 72,
+            "fp": 4,
+            "fn": 0,
+            "f1": 0.9696969696969697,
+            "exactitud": 0.9714285714285714
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 66,
+            "vn": 70,
+            "fp": 2,
+            "fn": 2,
+            "f1": 0.9705882352941176,
+            "exactitud": 0.9714285714285714
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 61,
+            "vn": 73,
+            "fp": 6,
+            "fn": 0,
+            "f1": 0.953125,
+            "exactitud": 0.9571428571428572
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 61,
+            "vn": 74,
+            "fp": 1,
+            "fn": 4,
+            "f1": 0.9606299212598425,
+            "exactitud": 0.9642857142857143
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 0.6803460636982985,
+        "aciertos_completos": 23,
+        "coincidencia_completa": 0.7666666666666667,
+        "abstenciones": 6,
+        "f1_macro": 0.9317378917378917,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 22,
+            "vn": 7,
+            "fp": 1,
+            "fn": 0,
+            "f1": 0.9777777777777777,
+            "exactitud": 0.9666666666666667
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 12,
+            "vn": 17,
+            "fp": 0,
+            "fn": 1,
+            "f1": 0.96,
+            "exactitud": 0.9666666666666667
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 19,
+            "vn": 10,
+            "fp": 1,
+            "fn": 0,
+            "f1": 0.9743589743589743,
+            "exactitud": 0.9666666666666667
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 11,
+            "vn": 14,
+            "fp": 3,
+            "fn": 2,
+            "f1": 0.8148148148148148,
+            "exactitud": 0.8333333333333334
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 0.8607222268286585,
+        "aciertos_completos": 22,
+        "coincidencia_completa": 0.7333333333333333,
+        "abstenciones": 8,
+        "f1_macro": 0.9129491198456716,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 15,
+            "vn": 12,
+            "fp": 3,
+            "fn": 0,
+            "f1": 0.9090909090909091,
+            "exactitud": 0.9
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 14,
+            "vn": 16,
+            "fp": 0,
+            "fn": 0,
+            "f1": 1.0,
+            "exactitud": 1.0
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 13,
+            "vn": 14,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.896551724137931,
+            "exactitud": 0.9
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 11,
+            "vn": 15,
+            "fp": 2,
+            "fn": 2,
+            "f1": 0.8461538461538461,
+            "exactitud": 0.8666666666666667
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-4",
+      "semilla": 101,
+      "parametros": 124,
+      "epoca_elegida": 34,
+      "epocas_ejecutadas": 59,
+      "segundos_entrenamiento": 0.293641000000207,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.5247154641837678,
+        "aciertos_completos": 123,
+        "coincidencia_completa": 0.8785714285714286,
+        "abstenciones": 38,
+        "f1_macro": 0.9645856318006063,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 64,
+            "vn": 74,
+            "fp": 2,
+            "fn": 0,
+            "f1": 0.9846153846153847,
+            "exactitud": 0.9857142857142858
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 61,
+            "vn": 72,
+            "fp": 0,
+            "fn": 7,
+            "f1": 0.9457364341085271,
+            "exactitud": 0.95
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 60,
+            "vn": 77,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.975609756097561,
+            "exactitud": 0.9785714285714285
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 60,
+            "vn": 74,
+            "fp": 1,
+            "fn": 5,
+            "f1": 0.9523809523809523,
+            "exactitud": 0.9571428571428572
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 0.8770303315329002,
+        "aciertos_completos": 18,
+        "coincidencia_completa": 0.6,
+        "abstenciones": 11,
+        "f1_macro": 0.8945852945371559,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 18,
+            "vn": 7,
+            "fp": 1,
+            "fn": 4,
+            "f1": 0.8780487804878049,
+            "exactitud": 0.8333333333333334
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 11,
+            "vn": 17,
+            "fp": 0,
+            "fn": 2,
+            "f1": 0.9166666666666666,
+            "exactitud": 0.9333333333333333
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 17,
+            "vn": 9,
+            "fp": 2,
+            "fn": 2,
+            "f1": 0.8947368421052632,
+            "exactitud": 0.8666666666666667
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 12,
+            "vn": 15,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.8888888888888888,
+            "exactitud": 0.9
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 0.954323641835232,
+        "aciertos_completos": 16,
+        "coincidencia_completa": 0.5333333333333333,
+        "abstenciones": 13,
+        "f1_macro": 0.8581326400291918,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 13,
+            "vn": 13,
+            "fp": 2,
+            "fn": 2,
+            "f1": 0.8666666666666667,
+            "exactitud": 0.8666666666666667
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 13,
+            "vn": 15,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9285714285714286,
+            "exactitud": 0.9333333333333333
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 13,
+            "vn": 14,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.896551724137931,
+            "exactitud": 0.9
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 10,
+            "vn": 13,
+            "fp": 4,
+            "fn": 3,
+            "f1": 0.7407407407407407,
+            "exactitud": 0.7666666666666667
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-4",
+      "semilla": 211,
+      "parametros": 124,
+      "epoca_elegida": 45,
+      "epocas_ejecutadas": 70,
+      "segundos_entrenamiento": 0.34725990000151796,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.4505686236072188,
+        "aciertos_completos": 122,
+        "coincidencia_completa": 0.8714285714285714,
+        "abstenciones": 32,
+        "f1_macro": 0.9616812053070753,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 63,
+            "vn": 73,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.9692307692307692,
+            "exactitud": 0.9714285714285714
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 66,
+            "vn": 69,
+            "fp": 3,
+            "fn": 2,
+            "f1": 0.9635036496350365,
+            "exactitud": 0.9642857142857143
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 61,
+            "vn": 72,
+            "fp": 7,
+            "fn": 0,
+            "f1": 0.9457364341085271,
+            "exactitud": 0.95
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 61,
+            "vn": 75,
+            "fp": 0,
+            "fn": 4,
+            "f1": 0.9682539682539683,
+            "exactitud": 0.9714285714285714
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 0.8262021695820745,
+        "aciertos_completos": 18,
+        "coincidencia_completa": 0.6,
+        "abstenciones": 11,
+        "f1_macro": 0.8906269226036667,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 20,
+            "vn": 7,
+            "fp": 1,
+            "fn": 2,
+            "f1": 0.9302325581395349,
+            "exactitud": 0.9
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 13,
+            "vn": 15,
+            "fp": 2,
+            "fn": 0,
+            "f1": 0.9285714285714286,
+            "exactitud": 0.9333333333333333
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 16,
+            "vn": 10,
+            "fp": 1,
+            "fn": 3,
+            "f1": 0.8888888888888888,
+            "exactitud": 0.8666666666666667
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 11,
+            "vn": 14,
+            "fp": 3,
+            "fn": 2,
+            "f1": 0.8148148148148148,
+            "exactitud": 0.8333333333333334
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 0.8864864043054151,
+        "aciertos_completos": 21,
+        "coincidencia_completa": 0.7,
+        "abstenciones": 5,
+        "f1_macro": 0.9105592045247217,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 14,
+            "vn": 14,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9333333333333333,
+            "exactitud": 0.9333333333333333
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 14,
+            "vn": 15,
+            "fp": 1,
+            "fn": 0,
+            "f1": 0.9655172413793104,
+            "exactitud": 0.9666666666666667
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 13,
+            "vn": 15,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9285714285714286,
+            "exactitud": 0.9333333333333333
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 11,
+            "vn": 14,
+            "fp": 3,
+            "fn": 2,
+            "f1": 0.8148148148148148,
+            "exactitud": 0.8333333333333334
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-4",
+      "semilla": 307,
+      "parametros": 124,
+      "epoca_elegida": 47,
+      "epocas_ejecutadas": 72,
+      "segundos_entrenamiento": 0.3585874000018521,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.4855882399088748,
+        "aciertos_completos": 122,
+        "coincidencia_completa": 0.8714285714285714,
+        "abstenciones": 34,
+        "f1_macro": 0.9657479007676549,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 64,
+            "vn": 70,
+            "fp": 6,
+            "fn": 0,
+            "f1": 0.9552238805970149,
+            "exactitud": 0.9571428571428572
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 66,
+            "vn": 70,
+            "fp": 2,
+            "fn": 2,
+            "f1": 0.9705882352941176,
+            "exactitud": 0.9714285714285714
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 59,
+            "vn": 79,
+            "fp": 0,
+            "fn": 2,
+            "f1": 0.9833333333333333,
+            "exactitud": 0.9857142857142858
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 62,
+            "vn": 72,
+            "fp": 3,
+            "fn": 3,
+            "f1": 0.9538461538461539,
+            "exactitud": 0.9571428571428572
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 0.8503623902020835,
+        "aciertos_completos": 19,
+        "coincidencia_completa": 0.6333333333333333,
+        "abstenciones": 10,
+        "f1_macro": 0.8995405179615705,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 19,
+            "vn": 7,
+            "fp": 1,
+            "fn": 3,
+            "f1": 0.9047619047619048,
+            "exactitud": 0.8666666666666667
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 12,
+            "vn": 15,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.8888888888888888,
+            "exactitud": 0.9
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 18,
+            "vn": 10,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9473684210526315,
+            "exactitud": 0.9333333333333333
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 12,
+            "vn": 14,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.8571428571428571,
+            "exactitud": 0.8666666666666667
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 1.0148240564980464,
+        "aciertos_completos": 19,
+        "coincidencia_completa": 0.6333333333333333,
+        "abstenciones": 7,
+        "f1_macro": 0.8860552362707534,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 14,
+            "vn": 12,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.875,
+            "exactitud": 0.8666666666666667
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 14,
+            "vn": 15,
+            "fp": 1,
+            "fn": 0,
+            "f1": 0.9655172413793104,
+            "exactitud": 0.9666666666666667
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 13,
+            "vn": 16,
+            "fp": 0,
+            "fn": 1,
+            "f1": 0.9629629629629629,
+            "exactitud": 0.9666666666666667
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 10,
+            "vn": 13,
+            "fp": 4,
+            "fn": 3,
+            "f1": 0.7407407407407407,
+            "exactitud": 0.7666666666666667
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-4",
+      "semilla": 401,
+      "parametros": 124,
+      "epoca_elegida": 196,
+      "epocas_ejecutadas": 221,
+      "segundos_entrenamiento": 2.7343279000015173,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.17855370193952255,
+        "aciertos_completos": 134,
+        "coincidencia_completa": 0.9571428571428572,
+        "abstenciones": 9,
+        "f1_macro": 0.988271655587508,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 64,
+            "vn": 75,
+            "fp": 1,
+            "fn": 0,
+            "f1": 0.9922480620155039,
+            "exactitud": 0.9928571428571429
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 67,
+            "vn": 72,
+            "fp": 0,
+            "fn": 1,
+            "f1": 0.9925925925925926,
+            "exactitud": 0.9928571428571429
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 61,
+            "vn": 77,
+            "fp": 2,
+            "fn": 0,
+            "f1": 0.9838709677419355,
+            "exactitud": 0.9857142857142858
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 63,
+            "vn": 75,
+            "fp": 0,
+            "fn": 2,
+            "f1": 0.984375,
+            "exactitud": 0.9857142857142858
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 0.512497619471702,
+        "aciertos_completos": 24,
+        "coincidencia_completa": 0.8,
+        "abstenciones": 4,
+        "f1_macro": 0.9437645687645688,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 21,
+            "vn": 7,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9545454545454546,
+            "exactitud": 0.9333333333333333
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 13,
+            "vn": 17,
+            "fp": 0,
+            "fn": 0,
+            "f1": 1.0,
+            "exactitud": 1.0
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 19,
+            "vn": 10,
+            "fp": 1,
+            "fn": 0,
+            "f1": 0.9743589743589743,
+            "exactitud": 0.9666666666666667
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 11,
+            "vn": 15,
+            "fp": 2,
+            "fn": 2,
+            "f1": 0.8461538461538461,
+            "exactitud": 0.8666666666666667
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 0.8683803396887021,
+        "aciertos_completos": 22,
+        "coincidencia_completa": 0.7333333333333333,
+        "abstenciones": 3,
+        "f1_macro": 0.9197771186091542,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 15,
+            "vn": 14,
+            "fp": 1,
+            "fn": 0,
+            "f1": 0.967741935483871,
+            "exactitud": 0.9666666666666667
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 14,
+            "vn": 16,
+            "fp": 0,
+            "fn": 0,
+            "f1": 1.0,
+            "exactitud": 1.0
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 13,
+            "vn": 14,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.896551724137931,
+            "exactitud": 0.9
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 11,
+            "vn": 14,
+            "fp": 3,
+            "fn": 2,
+            "f1": 0.8148148148148148,
+            "exactitud": 0.8333333333333334
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-4",
+      "semilla": 503,
+      "parametros": 124,
+      "epoca_elegida": 45,
+      "epocas_ejecutadas": 70,
+      "segundos_entrenamiento": 1.0375396000017645,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.452566584840992,
+        "aciertos_completos": 125,
+        "coincidencia_completa": 0.8928571428571429,
+        "abstenciones": 27,
+        "f1_macro": 0.9660153488689673,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 63,
+            "vn": 75,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.984375,
+            "exactitud": 0.9857142857142858
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 66,
+            "vn": 71,
+            "fp": 1,
+            "fn": 2,
+            "f1": 0.9777777777777777,
+            "exactitud": 0.9785714285714285
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 61,
+            "vn": 68,
+            "fp": 11,
+            "fn": 0,
+            "f1": 0.9172932330827067,
+            "exactitud": 0.9214285714285714
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 64,
+            "vn": 74,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9846153846153847,
+            "exactitud": 0.9857142857142858
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 1.0485947028683147,
+        "aciertos_completos": 18,
+        "coincidencia_completa": 0.6,
+        "abstenciones": 8,
+        "f1_macro": 0.8867893623991185,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 18,
+            "vn": 7,
+            "fp": 1,
+            "fn": 4,
+            "f1": 0.8780487804878049,
+            "exactitud": 0.8333333333333334
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 12,
+            "vn": 16,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9230769230769231,
+            "exactitud": 0.9333333333333333
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 16,
+            "vn": 10,
+            "fp": 1,
+            "fn": 3,
+            "f1": 0.8888888888888888,
+            "exactitud": 0.8666666666666667
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 12,
+            "vn": 14,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.8571428571428571,
+            "exactitud": 0.8666666666666667
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 1.0854949312589923,
+        "aciertos_completos": 19,
+        "coincidencia_completa": 0.6333333333333333,
+        "abstenciones": 11,
+        "f1_macro": 0.8736544426199598,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 11,
+            "vn": 13,
+            "fp": 2,
+            "fn": 4,
+            "f1": 0.7857142857142857,
+            "exactitud": 0.8
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 14,
+            "vn": 15,
+            "fp": 1,
+            "fn": 0,
+            "f1": 0.9655172413793104,
+            "exactitud": 0.9666666666666667
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 13,
+            "vn": 15,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9285714285714286,
+            "exactitud": 0.9333333333333333
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 11,
+            "vn": 14,
+            "fp": 3,
+            "fn": 2,
+            "f1": 0.8148148148148148,
+            "exactitud": 0.8333333333333334
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-4",
+      "semilla": 607,
+      "parametros": 124,
+      "epoca_elegida": 49,
+      "epocas_ejecutadas": 74,
+      "segundos_entrenamiento": 1.1777053999976488,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.44110231785475534,
+        "aciertos_completos": 118,
+        "coincidencia_completa": 0.8428571428571429,
+        "abstenciones": 29,
+        "f1_macro": 0.9556949613073769,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 64,
+            "vn": 69,
+            "fp": 7,
+            "fn": 0,
+            "f1": 0.9481481481481482,
+            "exactitud": 0.95
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 68,
+            "vn": 69,
+            "fp": 3,
+            "fn": 0,
+            "f1": 0.9784172661870504,
+            "exactitud": 0.9785714285714285
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 61,
+            "vn": 73,
+            "fp": 6,
+            "fn": 0,
+            "f1": 0.953125,
+            "exactitud": 0.9571428571428572
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 58,
+            "vn": 75,
+            "fp": 0,
+            "fn": 7,
+            "f1": 0.943089430894309,
+            "exactitud": 0.95
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 0.7647699943062464,
+        "aciertos_completos": 22,
+        "coincidencia_completa": 0.7333333333333333,
+        "abstenciones": 8,
+        "f1_macro": 0.9277576711787238,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 21,
+            "vn": 7,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9545454545454546,
+            "exactitud": 0.9333333333333333
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 13,
+            "vn": 16,
+            "fp": 1,
+            "fn": 0,
+            "f1": 0.9629629629629629,
+            "exactitud": 0.9666666666666667
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 18,
+            "vn": 10,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9473684210526315,
+            "exactitud": 0.9333333333333333
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 11,
+            "vn": 15,
+            "fp": 2,
+            "fn": 2,
+            "f1": 0.8461538461538461,
+            "exactitud": 0.8666666666666667
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 0.9926993779589469,
+        "aciertos_completos": 19,
+        "coincidencia_completa": 0.6333333333333333,
+        "abstenciones": 6,
+        "f1_macro": 0.8898091803771317,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 15,
+            "vn": 11,
+            "fp": 4,
+            "fn": 0,
+            "f1": 0.8823529411764706,
+            "exactitud": 0.8666666666666667
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 14,
+            "vn": 15,
+            "fp": 1,
+            "fn": 0,
+            "f1": 0.9655172413793104,
+            "exactitud": 0.9666666666666667
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 13,
+            "vn": 14,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.896551724137931,
+            "exactitud": 0.9
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 11,
+            "vn": 14,
+            "fp": 3,
+            "fn": 2,
+            "f1": 0.8148148148148148,
+            "exactitud": 0.8333333333333334
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-6-4",
+      "semilla": 31415,
+      "parametros": 166,
+      "epoca_elegida": 40,
+      "epocas_ejecutadas": 65,
+      "segundos_entrenamiento": 1.3554527999986021,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.8161912373894009,
+        "aciertos_completos": 99,
+        "coincidencia_completa": 0.7071428571428572,
+        "abstenciones": 18,
+        "f1_macro": 0.9288822621115616,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 64,
+            "vn": 47,
+            "fp": 29,
+            "fn": 0,
+            "f1": 0.8152866242038217,
+            "exactitud": 0.7928571428571428
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 63,
+            "vn": 71,
+            "fp": 1,
+            "fn": 5,
+            "f1": 0.9545454545454546,
+            "exactitud": 0.9571428571428572
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 61,
+            "vn": 76,
+            "fp": 3,
+            "fn": 0,
+            "f1": 0.976,
+            "exactitud": 0.9785714285714285
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 64,
+            "vn": 72,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.9696969696969697,
+            "exactitud": 0.9714285714285714
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 0.9317932050539129,
+        "aciertos_completos": 20,
+        "coincidencia_completa": 0.6666666666666666,
+        "abstenciones": 3,
+        "f1_macro": 0.9159396035095924,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 22,
+            "vn": 5,
+            "fp": 3,
+            "fn": 0,
+            "f1": 0.9361702127659575,
+            "exactitud": 0.9
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 12,
+            "vn": 16,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9230769230769231,
+            "exactitud": 0.9333333333333333
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 18,
+            "vn": 10,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9473684210526315,
+            "exactitud": 0.9333333333333333
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 12,
+            "vn": 14,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.8571428571428571,
+            "exactitud": 0.8666666666666667
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 1.7818284757639227,
+        "aciertos_completos": 14,
+        "coincidencia_completa": 0.4666666666666667,
+        "abstenciones": 6,
+        "f1_macro": 0.8427197802197802,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 15,
+            "vn": 5,
+            "fp": 10,
+            "fn": 0,
+            "f1": 0.75,
+            "exactitud": 0.6666666666666666
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 12,
+            "vn": 16,
+            "fp": 0,
+            "fn": 2,
+            "f1": 0.9230769230769231,
+            "exactitud": 0.9333333333333333
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 13,
+            "vn": 15,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9285714285714286,
+            "exactitud": 0.9333333333333333
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 10,
+            "vn": 14,
+            "fp": 3,
+            "fn": 3,
+            "f1": 0.7692307692307693,
+            "exactitud": 0.8
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-6-4",
+      "semilla": 7,
+      "parametros": 166,
+      "epoca_elegida": 42,
+      "epocas_ejecutadas": 67,
+      "segundos_entrenamiento": 1.446970800003328,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.3967380360461539,
+        "aciertos_completos": 126,
+        "coincidencia_completa": 0.9,
+        "abstenciones": 17,
+        "f1_macro": 0.9699513618890432,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 64,
+            "vn": 68,
+            "fp": 8,
+            "fn": 0,
+            "f1": 0.9411764705882353,
+            "exactitud": 0.9428571428571428
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 65,
+            "vn": 71,
+            "fp": 1,
+            "fn": 3,
+            "f1": 0.9701492537313433,
+            "exactitud": 0.9714285714285714
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 60,
+            "vn": 79,
+            "fp": 0,
+            "fn": 1,
+            "f1": 0.9917355371900827,
+            "exactitud": 0.9928571428571429
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 63,
+            "vn": 74,
+            "fp": 1,
+            "fn": 2,
+            "f1": 0.9767441860465116,
+            "exactitud": 0.9785714285714285
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 0.8276933589550356,
+        "aciertos_completos": 19,
+        "coincidencia_completa": 0.6333333333333333,
+        "abstenciones": 9,
+        "f1_macro": 0.8976708046475488,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 20,
+            "vn": 7,
+            "fp": 1,
+            "fn": 2,
+            "f1": 0.9302325581395349,
+            "exactitud": 0.9
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 12,
+            "vn": 16,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9230769230769231,
+            "exactitud": 0.9333333333333333
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 14,
+            "vn": 11,
+            "fp": 0,
+            "fn": 5,
+            "f1": 0.8484848484848485,
+            "exactitud": 0.8333333333333334
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 12,
+            "vn": 15,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.8888888888888888,
+            "exactitud": 0.9
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 1.172745898211941,
+        "aciertos_completos": 21,
+        "coincidencia_completa": 0.7,
+        "abstenciones": 7,
+        "f1_macro": 0.8984754821468817,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 15,
+            "vn": 11,
+            "fp": 4,
+            "fn": 0,
+            "f1": 0.8823529411764706,
+            "exactitud": 0.8666666666666667
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 14,
+            "vn": 15,
+            "fp": 1,
+            "fn": 0,
+            "f1": 0.9655172413793104,
+            "exactitud": 0.9666666666666667
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 12,
+            "vn": 15,
+            "fp": 1,
+            "fn": 2,
+            "f1": 0.8888888888888888,
+            "exactitud": 0.9
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 12,
+            "vn": 14,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.8571428571428571,
+            "exactitud": 0.8666666666666667
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-6-4",
+      "semilla": 19,
+      "parametros": 166,
+      "epoca_elegida": 72,
+      "epocas_ejecutadas": 97,
+      "segundos_entrenamiento": 2.0849245999997947,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.3339471990577462,
+        "aciertos_completos": 121,
+        "coincidencia_completa": 0.8642857142857143,
+        "abstenciones": 18,
+        "f1_macro": 0.9639622220651414,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 62,
+            "vn": 73,
+            "fp": 3,
+            "fn": 2,
+            "f1": 0.9612403100775194,
+            "exactitud": 0.9642857142857143
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 67,
+            "vn": 66,
+            "fp": 6,
+            "fn": 1,
+            "f1": 0.950354609929078,
+            "exactitud": 0.95
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 61,
+            "vn": 76,
+            "fp": 3,
+            "fn": 0,
+            "f1": 0.976,
+            "exactitud": 0.9785714285714285
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 61,
+            "vn": 75,
+            "fp": 0,
+            "fn": 4,
+            "f1": 0.9682539682539683,
+            "exactitud": 0.9714285714285714
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 0.9871204240789402,
+        "aciertos_completos": 18,
+        "coincidencia_completa": 0.6,
+        "abstenciones": 5,
+        "f1_macro": 0.8967622621281158,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 19,
+            "vn": 8,
+            "fp": 0,
+            "fn": 3,
+            "f1": 0.926829268292683,
+            "exactitud": 0.9
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 11,
+            "vn": 16,
+            "fp": 1,
+            "fn": 2,
+            "f1": 0.88,
+            "exactitud": 0.9
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 18,
+            "vn": 9,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.9230769230769231,
+            "exactitud": 0.9
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 12,
+            "vn": 14,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.8571428571428571,
+            "exactitud": 0.8666666666666667
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 1.3745044206825334,
+        "aciertos_completos": 19,
+        "coincidencia_completa": 0.6333333333333333,
+        "abstenciones": 1,
+        "f1_macro": 0.8751795977011494,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 15,
+            "vn": 13,
+            "fp": 2,
+            "fn": 0,
+            "f1": 0.9375,
+            "exactitud": 0.9333333333333333
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 13,
+            "vn": 14,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.896551724137931,
+            "exactitud": 0.9
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 13,
+            "vn": 13,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.8666666666666667,
+            "exactitud": 0.8666666666666667
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 10,
+            "vn": 15,
+            "fp": 2,
+            "fn": 3,
+            "f1": 0.8,
+            "exactitud": 0.8333333333333334
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-6-4",
+      "semilla": 43,
+      "parametros": 166,
+      "epoca_elegida": 34,
+      "epocas_ejecutadas": 59,
+      "segundos_entrenamiento": 1.3558548000000883,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.629166795247246,
+        "aciertos_completos": 110,
+        "coincidencia_completa": 0.7857142857142857,
+        "abstenciones": 48,
+        "f1_macro": 0.936840600136859,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 64,
+            "vn": 72,
+            "fp": 4,
+            "fn": 0,
+            "f1": 0.9696969696969697,
+            "exactitud": 0.9714285714285714
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 64,
+            "vn": 66,
+            "fp": 6,
+            "fn": 4,
+            "f1": 0.927536231884058,
+            "exactitud": 0.9285714285714286
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 60,
+            "vn": 65,
+            "fp": 14,
+            "fn": 1,
+            "f1": 0.8888888888888888,
+            "exactitud": 0.8928571428571429
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 62,
+            "vn": 73,
+            "fp": 2,
+            "fn": 3,
+            "f1": 0.9612403100775194,
+            "exactitud": 0.9642857142857143
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 0.9913158727835838,
+        "aciertos_completos": 17,
+        "coincidencia_completa": 0.5666666666666667,
+        "abstenciones": 10,
+        "f1_macro": 0.8977574750830565,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 21,
+            "vn": 8,
+            "fp": 0,
+            "fn": 1,
+            "f1": 0.9767441860465116,
+            "exactitud": 0.9666666666666667
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 12,
+            "vn": 14,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.8571428571428571,
+            "exactitud": 0.8666666666666667
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 18,
+            "vn": 8,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.9,
+            "exactitud": 0.8666666666666667
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 12,
+            "vn": 14,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.8571428571428571,
+            "exactitud": 0.8666666666666667
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 1.1945743376365618,
+        "aciertos_completos": 17,
+        "coincidencia_completa": 0.5666666666666667,
+        "abstenciones": 4,
+        "f1_macro": 0.8648869113830182,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 14,
+            "vn": 13,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.9032258064516129,
+            "exactitud": 0.9
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 14,
+            "vn": 14,
+            "fp": 2,
+            "fn": 0,
+            "f1": 0.9333333333333333,
+            "exactitud": 0.9333333333333333
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 14,
+            "vn": 14,
+            "fp": 2,
+            "fn": 0,
+            "f1": 0.9333333333333333,
+            "exactitud": 0.9333333333333333
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 10,
+            "vn": 11,
+            "fp": 6,
+            "fn": 3,
+            "f1": 0.6896551724137931,
+            "exactitud": 0.7
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-6-4",
+      "semilla": 101,
+      "parametros": 166,
+      "epoca_elegida": 32,
+      "epocas_ejecutadas": 57,
+      "segundos_entrenamiento": 1.2446791999973357,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.6518936242477262,
+        "aciertos_completos": 110,
+        "coincidencia_completa": 0.7857142857142857,
+        "abstenciones": 23,
+        "f1_macro": 0.9348498076942696,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 64,
+            "vn": 71,
+            "fp": 5,
+            "fn": 0,
+            "f1": 0.9624060150375939,
+            "exactitud": 0.9642857142857143
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 57,
+            "vn": 72,
+            "fp": 0,
+            "fn": 11,
+            "f1": 0.912,
+            "exactitud": 0.9214285714285714
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 61,
+            "vn": 67,
+            "fp": 12,
+            "fn": 0,
+            "f1": 0.9104477611940298,
+            "exactitud": 0.9142857142857143
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 63,
+            "vn": 71,
+            "fp": 4,
+            "fn": 2,
+            "f1": 0.9545454545454546,
+            "exactitud": 0.9571428571428572
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 1.0286526491957548,
+        "aciertos_completos": 20,
+        "coincidencia_completa": 0.6666666666666666,
+        "abstenciones": 8,
+        "f1_macro": 0.9233627372360331,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 20,
+            "vn": 7,
+            "fp": 1,
+            "fn": 2,
+            "f1": 0.9302325581395349,
+            "exactitud": 0.9
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 11,
+            "vn": 17,
+            "fp": 0,
+            "fn": 2,
+            "f1": 0.9166666666666666,
+            "exactitud": 0.9333333333333333
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 19,
+            "vn": 9,
+            "fp": 2,
+            "fn": 0,
+            "f1": 0.95,
+            "exactitud": 0.9333333333333333
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 13,
+            "vn": 14,
+            "fp": 3,
+            "fn": 0,
+            "f1": 0.896551724137931,
+            "exactitud": 0.9
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 0.9012917035235507,
+        "aciertos_completos": 22,
+        "coincidencia_completa": 0.7333333333333333,
+        "abstenciones": 6,
+        "f1_macro": 0.9128434886499402,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 14,
+            "vn": 13,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.9032258064516129,
+            "exactitud": 0.9
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 14,
+            "vn": 16,
+            "fp": 0,
+            "fn": 0,
+            "f1": 1.0,
+            "exactitud": 1.0
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 14,
+            "vn": 14,
+            "fp": 2,
+            "fn": 0,
+            "f1": 0.9333333333333333,
+            "exactitud": 0.9333333333333333
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 11,
+            "vn": 14,
+            "fp": 3,
+            "fn": 2,
+            "f1": 0.8148148148148148,
+            "exactitud": 0.8333333333333334
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-6-4",
+      "semilla": 211,
+      "parametros": 166,
+      "epoca_elegida": 49,
+      "epocas_ejecutadas": 74,
+      "segundos_entrenamiento": 0.6822932999966724,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.3832997378332829,
+        "aciertos_completos": 123,
+        "coincidencia_completa": 0.8785714285714286,
+        "abstenciones": 13,
+        "f1_macro": 0.9668579769376733,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 63,
+            "vn": 73,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.9692307692307692,
+            "exactitud": 0.9714285714285714
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 66,
+            "vn": 70,
+            "fp": 2,
+            "fn": 2,
+            "f1": 0.9705882352941176,
+            "exactitud": 0.9714285714285714
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 61,
+            "vn": 76,
+            "fp": 3,
+            "fn": 0,
+            "f1": 0.976,
+            "exactitud": 0.9785714285714285
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 59,
+            "vn": 75,
+            "fp": 0,
+            "fn": 6,
+            "f1": 0.9516129032258065,
+            "exactitud": 0.9571428571428572
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 0.8546994387277744,
+        "aciertos_completos": 18,
+        "coincidencia_completa": 0.6,
+        "abstenciones": 4,
+        "f1_macro": 0.8989844843503381,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 19,
+            "vn": 8,
+            "fp": 0,
+            "fn": 3,
+            "f1": 0.926829268292683,
+            "exactitud": 0.9
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 12,
+            "vn": 15,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.8888888888888888,
+            "exactitud": 0.9
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 18,
+            "vn": 9,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.9230769230769231,
+            "exactitud": 0.9
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 12,
+            "vn": 14,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.8571428571428571,
+            "exactitud": 0.8666666666666667
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 1.2196388636432398,
+        "aciertos_completos": 19,
+        "coincidencia_completa": 0.6333333333333333,
+        "abstenciones": 8,
+        "f1_macro": 0.8799249680715198,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 14,
+            "vn": 12,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.875,
+            "exactitud": 0.8666666666666667
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 14,
+            "vn": 14,
+            "fp": 2,
+            "fn": 0,
+            "f1": 0.9333333333333333,
+            "exactitud": 0.9333333333333333
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 13,
+            "vn": 14,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.896551724137931,
+            "exactitud": 0.9
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 11,
+            "vn": 14,
+            "fp": 3,
+            "fn": 2,
+            "f1": 0.8148148148148148,
+            "exactitud": 0.8333333333333334
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-6-4",
+      "semilla": 307,
+      "parametros": 166,
+      "epoca_elegida": 26,
+      "epocas_ejecutadas": 51,
+      "segundos_entrenamiento": 0.3746078000003763,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.6123268371040054,
+        "aciertos_completos": 115,
+        "coincidencia_completa": 0.8214285714285714,
+        "abstenciones": 34,
+        "f1_macro": 0.9468414138016474,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 64,
+            "vn": 65,
+            "fp": 11,
+            "fn": 0,
+            "f1": 0.920863309352518,
+            "exactitud": 0.9214285714285714
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 66,
+            "vn": 69,
+            "fp": 3,
+            "fn": 2,
+            "f1": 0.9635036496350365,
+            "exactitud": 0.9642857142857143
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 56,
+            "vn": 78,
+            "fp": 1,
+            "fn": 5,
+            "f1": 0.9491525423728814,
+            "exactitud": 0.9571428571428572
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 62,
+            "vn": 72,
+            "fp": 3,
+            "fn": 3,
+            "f1": 0.9538461538461539,
+            "exactitud": 0.9571428571428572
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 0.9447120128865383,
+        "aciertos_completos": 19,
+        "coincidencia_completa": 0.6333333333333333,
+        "abstenciones": 9,
+        "f1_macro": 0.9025410025410026,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 21,
+            "vn": 6,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.9333333333333333,
+            "exactitud": 0.9
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 12,
+            "vn": 16,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9230769230769231,
+            "exactitud": 0.9333333333333333
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 16,
+            "vn": 9,
+            "fp": 2,
+            "fn": 3,
+            "f1": 0.8648648648648649,
+            "exactitud": 0.8333333333333334
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 12,
+            "vn": 15,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.8888888888888888,
+            "exactitud": 0.9
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 1.2181729437163413,
+        "aciertos_completos": 19,
+        "coincidencia_completa": 0.6333333333333333,
+        "abstenciones": 8,
+        "f1_macro": 0.8905389742103738,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 15,
+            "vn": 11,
+            "fp": 4,
+            "fn": 0,
+            "f1": 0.8823529411764706,
+            "exactitud": 0.8666666666666667
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 14,
+            "vn": 15,
+            "fp": 1,
+            "fn": 0,
+            "f1": 0.9655172413793104,
+            "exactitud": 0.9666666666666667
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 13,
+            "vn": 15,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9285714285714286,
+            "exactitud": 0.9333333333333333
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 11,
+            "vn": 13,
+            "fp": 4,
+            "fn": 2,
+            "f1": 0.7857142857142857,
+            "exactitud": 0.8
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-6-4",
+      "semilla": 401,
+      "parametros": 166,
+      "epoca_elegida": 41,
+      "epocas_ejecutadas": 66,
+      "segundos_entrenamiento": 0.46589639999729116,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.34365642023038323,
+        "aciertos_completos": 128,
+        "coincidencia_completa": 0.9142857142857143,
+        "abstenciones": 15,
+        "f1_macro": 0.9752151616499443,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 64,
+            "vn": 74,
+            "fp": 2,
+            "fn": 0,
+            "f1": 0.9846153846153847,
+            "exactitud": 0.9857142857142858
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 67,
+            "vn": 69,
+            "fp": 3,
+            "fn": 1,
+            "f1": 0.9710144927536232,
+            "exactitud": 0.9714285714285714
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 61,
+            "vn": 76,
+            "fp": 3,
+            "fn": 0,
+            "f1": 0.976,
+            "exactitud": 0.9785714285714285
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 63,
+            "vn": 73,
+            "fp": 2,
+            "fn": 2,
+            "f1": 0.9692307692307692,
+            "exactitud": 0.9714285714285714
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 0.8157224205224556,
+        "aciertos_completos": 20,
+        "coincidencia_completa": 0.6666666666666666,
+        "abstenciones": 8,
+        "f1_macro": 0.91004719004719,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 20,
+            "vn": 8,
+            "fp": 0,
+            "fn": 2,
+            "f1": 0.9523809523809523,
+            "exactitud": 0.9333333333333333
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 11,
+            "vn": 16,
+            "fp": 1,
+            "fn": 2,
+            "f1": 0.88,
+            "exactitud": 0.9
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 17,
+            "vn": 10,
+            "fp": 1,
+            "fn": 2,
+            "f1": 0.918918918918919,
+            "exactitud": 0.9
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 12,
+            "vn": 15,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.8888888888888888,
+            "exactitud": 0.9
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 0.983586686074437,
+        "aciertos_completos": 20,
+        "coincidencia_completa": 0.6666666666666666,
+        "abstenciones": 6,
+        "f1_macro": 0.8911172161172162,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 14,
+            "vn": 14,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9333333333333333,
+            "exactitud": 0.9333333333333333
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 14,
+            "vn": 14,
+            "fp": 2,
+            "fn": 0,
+            "f1": 0.9333333333333333,
+            "exactitud": 0.9333333333333333
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 13,
+            "vn": 15,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9285714285714286,
+            "exactitud": 0.9333333333333333
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 10,
+            "vn": 14,
+            "fp": 3,
+            "fn": 3,
+            "f1": 0.7692307692307693,
+            "exactitud": 0.8
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-6-4",
+      "semilla": 503,
+      "parametros": 166,
+      "epoca_elegida": 18,
+      "epocas_ejecutadas": 43,
+      "segundos_entrenamiento": 0.3072072999966622,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.7745682579546472,
+        "aciertos_completos": 98,
+        "coincidencia_completa": 0.7,
+        "abstenciones": 39,
+        "f1_macro": 0.9205432294041648,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 64,
+            "vn": 60,
+            "fp": 16,
+            "fn": 0,
+            "f1": 0.8888888888888888,
+            "exactitud": 0.8857142857142857
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 59,
+            "vn": 71,
+            "fp": 1,
+            "fn": 9,
+            "f1": 0.921875,
+            "exactitud": 0.9285714285714286
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 60,
+            "vn": 71,
+            "fp": 8,
+            "fn": 1,
+            "f1": 0.9302325581395349,
+            "exactitud": 0.9357142857142857
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 64,
+            "vn": 68,
+            "fp": 7,
+            "fn": 1,
+            "f1": 0.9411764705882353,
+            "exactitud": 0.9428571428571428
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 0.8938390136070589,
+        "aciertos_completos": 22,
+        "coincidencia_completa": 0.7333333333333333,
+        "abstenciones": 12,
+        "f1_macro": 0.9383121052086569,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 22,
+            "vn": 7,
+            "fp": 1,
+            "fn": 0,
+            "f1": 0.9777777777777777,
+            "exactitud": 0.9666666666666667
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 12,
+            "vn": 17,
+            "fp": 0,
+            "fn": 1,
+            "f1": 0.96,
+            "exactitud": 0.9666666666666667
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 17,
+            "vn": 10,
+            "fp": 1,
+            "fn": 2,
+            "f1": 0.918918918918919,
+            "exactitud": 0.9
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 13,
+            "vn": 14,
+            "fp": 3,
+            "fn": 0,
+            "f1": 0.896551724137931,
+            "exactitud": 0.9
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 1.2467086333554485,
+        "aciertos_completos": 18,
+        "coincidencia_completa": 0.6,
+        "abstenciones": 11,
+        "f1_macro": 0.8812169312169312,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 15,
+            "vn": 9,
+            "fp": 6,
+            "fn": 0,
+            "f1": 0.8333333333333334,
+            "exactitud": 0.8
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 13,
+            "vn": 16,
+            "fp": 0,
+            "fn": 1,
+            "f1": 0.9629629629629629,
+            "exactitud": 0.9666666666666667
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 13,
+            "vn": 15,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9285714285714286,
+            "exactitud": 0.9333333333333333
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 12,
+            "vn": 12,
+            "fp": 5,
+            "fn": 1,
+            "f1": 0.8,
+            "exactitud": 0.8
+          }
+        }
+      }
+    },
+    {
+      "arquitectura": "15-6-6-4",
+      "semilla": 607,
+      "parametros": 166,
+      "epoca_elegida": 36,
+      "epocas_ejecutadas": 61,
+      "segundos_entrenamiento": 0.4335611999995308,
+      "entrenamiento": {
+        "n": 140,
+        "bce": 0.6208351959152235,
+        "aciertos_completos": 104,
+        "coincidencia_completa": 0.7428571428571429,
+        "abstenciones": 33,
+        "f1_macro": 0.9272166181994426,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 63,
+            "vn": 59,
+            "fp": 17,
+            "fn": 1,
+            "f1": 0.875,
+            "exactitud": 0.8714285714285714
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 62,
+            "vn": 71,
+            "fp": 1,
+            "fn": 6,
+            "f1": 0.9465648854961832,
+            "exactitud": 0.95
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 58,
+            "vn": 78,
+            "fp": 1,
+            "fn": 3,
+            "f1": 0.9666666666666667,
+            "exactitud": 0.9714285714285714
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 58,
+            "vn": 72,
+            "fp": 3,
+            "fn": 7,
+            "f1": 0.9206349206349206,
+            "exactitud": 0.9285714285714286
+          }
+        }
+      },
+      "validacion": {
+        "n": 30,
+        "bce": 1.0755167107296597,
+        "aciertos_completos": 19,
+        "coincidencia_completa": 0.6333333333333333,
+        "abstenciones": 12,
+        "f1_macro": 0.9085470085470085,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 21,
+            "vn": 6,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.9333333333333333,
+            "exactitud": 0.9
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 12,
+            "vn": 16,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9230769230769231,
+            "exactitud": 0.9333333333333333
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 16,
+            "vn": 10,
+            "fp": 1,
+            "fn": 3,
+            "f1": 0.8888888888888888,
+            "exactitud": 0.8666666666666667
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 12,
+            "vn": 15,
+            "fp": 2,
+            "fn": 1,
+            "f1": 0.8888888888888888,
+            "exactitud": 0.9
+          }
+        }
+      },
+      "prueba": {
+        "n": 30,
+        "bce": 1.1303011863705588,
+        "aciertos_completos": 19,
+        "coincidencia_completa": 0.6333333333333333,
+        "abstenciones": 10,
+        "f1_macro": 0.8887362637362637,
+        "por_salida": {
+          "preparacion_progresiva_y_confianza": {
+            "vp": 15,
+            "vn": 10,
+            "fp": 5,
+            "fn": 0,
+            "f1": 0.8571428571428571,
+            "exactitud": 0.8333333333333334
+          },
+          "organizacion_de_tareas_y_manejo_de_carga": {
+            "vp": 14,
+            "vn": 16,
+            "fp": 0,
+            "fn": 0,
+            "f1": 1.0,
+            "exactitud": 1.0
+          },
+          "comunicacion_y_aprendizaje_acompanado": {
+            "vp": 13,
+            "vn": 15,
+            "fp": 1,
+            "fn": 1,
+            "f1": 0.9285714285714286,
+            "exactitud": 0.9333333333333333
+          },
+          "afrontamiento_y_seguimiento_del_bienestar": {
+            "vp": 10,
+            "vn": 14,
+            "fp": 3,
+            "fn": 3,
+            "f1": 0.7692307692307693,
+            "exactitud": 0.8
+          }
+        }
+      }
+    }
+  ]
+}

@@ -2,6 +2,8 @@
 
 ## Esquema implementado
 
+**v29, 2026-10-18:** seis tablas aditivas: `revisiones_pruebas` (una constancia por rol/versión/Gestión), `activaciones_pruebas` (Gestión/prueba y revisión), `historial_activaciones_pruebas`, `intentos_pruebas` (único persona/prueba/Gestión, finalización inmutable), `recomendaciones` (evidencia, entradas, modelo y resultados append-only con cadena previa) y `confirmaciones_recomendacion` (observación/actor/fecha inmutables). DASS/CBI anteriores intactos. SQLite local v29/64 tablas, 58 previas preservadas tras respaldo y dos inicializaciones; nuevas vacías, quick_check=ok/FK=0. [Reglas y APIs](27_recomendaciones_sistema.md). El inicializador vigente marca schema_version 29; referencias inferiores a versiones anteriores son históricas.
+
 **Actualización de código v28, 2026-10-17:** se agregan `activaciones_psicometria` (PK Gestión/prueba, revisión/actor/fecha), `historial_activaciones_psicometria` (append-only) e `intentos_psicometria` (único Gestión/persona/prueba). Intentos conservan formulario revisado/versión/huella, respuestas, subescalas finales y revisión del avance; finalizaciones inmutables y FK RESTRICT. Ninguna carga automática de instrumentos o resultados. Véase [diseño y condiciones de activación](25_psicometria_y_red_experimental.md). La descripción v23 siguiente es histórica; las adiciones v24–v28 la amplían.
 
 SQLite usa `PRAGMA foreign_keys = ON`. El esquema `sicose/schema.sql` declara las tablas; `flask --app sicose init-db` agrega las columnas faltantes y marca `app_meta.schema_version` como 23 después de completar las migraciones. La base previa se preserva y amplía; no se eliminan tablas/filas. Fechas técnicas se expresan en UTC; claves numéricas son internas.
