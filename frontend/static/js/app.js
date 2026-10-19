@@ -37,7 +37,7 @@ function aplicarTema(tema) {
   }
 }
 
-aplicarTema(appShell ? leerPreferencia("sicose-tema", "light") : "light");
+aplicarTema(appShell || loginForm ? leerPreferencia("sicose-tema", "light") : "light");
 if (themeButton) {
   themeButton.addEventListener("click", () => {
     const nuevoTema = document.documentElement.dataset.theme === "dark" ? "light" : "dark";

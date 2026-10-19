@@ -1,5 +1,9 @@
 # Recomendaciones y pruebas actuales - entrega v29 (2026-10-18)
 
+Organización posterior: las funciones psicométricas y de recomendación se encuentran ahora en el módulo lateral **Pruebas y Recomendación**, manteniendo la Gestión y el Instructor en enlaces cruzados. Evaluaciones conserva únicamente el trabajo institucional. [Ubicación, roles y verificación](31_modulos_evaluacion_pruebas.md).
+
+Actualización posterior v30: [reinicio individual autenticado](30_reinicio_pruebas.md), conserva intentos anteriores y permite un nuevo ciclo explícito. Sustituye la restricción de un único intento por Gestión solo cuando Administrador/Jefe confirma un reinicio con su propia contraseña. Las recomendaciones anteriores quedan desactualizadas; el modelo operativo 9→6→4 permanece intacto.
+
 ## Decisiones confirmadas
 
 El solicitante autorizó integrar el flujo en el sistema existente, sin implementación ni aplicación en DEMO. GSE y Mini-IPIP sustituyen a DASS-21/CBI en la interfaz vigente; los registros, algoritmos y APIs anteriores se conservan como históricos. Se mantiene exactamente el modelo GSE/Mini-IPIP 9→6→4 de semilla 31415, época 84 y 88 parámetros; no hay nuevo entrenamiento ni selección de otra semilla.

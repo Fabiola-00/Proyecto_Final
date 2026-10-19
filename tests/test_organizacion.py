@@ -95,7 +95,7 @@ class OrganizacionTestCase(unittest.TestCase):
         self._login('instructor.demo','Clave instructor 123!')
         self.assertEqual(self.cliente.get(self.url+'/ejemplos').json['resultados'][0]['puntaje'],100)
         self.assertIsNone(self.datos()['calculo']['entradas'][3]['valor'])
-        self.assertEqual(self.datos()['calculo']['entradas'][3]['estado'],'PENDIENTE_INSTRUMENTO')
+        self.assertEqual(self.datos()['calculo']['entradas'][3]['estado'],'DESHABILITADA')
 
     def test_demo_csrf_inactivo_desactivado_cerrado_y_concurrencia(self):
         self.preparar_anual();self.activar_demo()

@@ -1,0 +1,27 @@
+{% extends '_dashboard_base.html' %}
+{% block contenido %}
+{% if propia %}
+<section class="seccion-panel"><h2>Mis pruebas psicométricas</h2>
+<p>Puedes guardar avances y continuar después. Al finalizar solo se mostrará «Completada». Un nuevo intento requiere el reinicio autorizado por un responsable.</p>
+<div id="psicometria-propia"></div><p id="psicometria-mensaje" role="status" aria-live="polite"></p>
+<a href="{{ url_for('demostraciones.pagina') }}">Ir a Mis evaluaciones</a></section>
+<script src="{{ url_for('static',filename='js/psicometria.js') }}" defer></script>
+{% else %}
+<section class="seccion-panel" id="pruebas-recomendacion">
+<h2>Gestión</h2>
+<p>Las notas institucionales se registran en <a data-contexto-evaluacion href="{{ url_for('modelo_anual.pagina') }}">Evaluaciones</a>. Aquí se administran las pruebas y se revisan las propuestas de orientación.</p>
+<form id="modelo-filtro" class="formulario-inline"><label>Gestión<select name="periodo" required><option value="">Seleccionar período</option></select></label><button>Consultar</button></form>
+<p id="modelo-mensaje" role="status" aria-live="polite"></p>
+<div id="modelo-ciclo" class="tarjeta-amplia"></div>
+<div id="psicometria-activaciones"></div>
+<label class="pruebas-selector-instructor">Instructor Voluntario<select id="modelo-persona"><option value="">Seleccionar persona</option></select></label>
+<div id="psicometria-reinicio"></div>
+<div id="psicometria-resultados"></div>
+<div id="recomendacion-panel"><h2>Recomendación</h2><p>Selecciona un Instructor Voluntario para consultar las entradas y propuestas.</p></div>
+</section>
+<script src="{{ url_for('static',filename='js/contexto_evaluacion.js') }}" defer></script>
+<script src="{{ url_for('static',filename='js/psicometria.js') }}" defer></script>
+<script src="{{ url_for('static',filename='js/recomendaciones.js') }}" defer></script>
+<script src="{{ url_for('static',filename='js/pruebas_recomendacion.js') }}" defer></script>
+{% endif %}
+{% endblock %}

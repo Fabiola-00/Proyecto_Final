@@ -43,7 +43,7 @@ class ModeloAnualTestCase(unittest.TestCase):
     def test_ceros_oficiales_cinco_entradas_e_inscripcion_idempotente(self):
         d=self.preparar_anual();c=d['calculo']
         self.assertIn('Ceros iniciales oficiales',self.cliente.get('/panel/jefe-personal').data.decode())
-        self.assertEqual(len(c['entradas']),5);self.assertEqual([e['valor'] for e in c['entradas']],['0','0','0.00',None,None])
+        self.assertEqual(len(c['entradas']),6);self.assertEqual([e['valor'] for e in c['entradas']],['0','0','0.00',None,None,None])
         self.assertEqual({n['origen'] for n in d['historial']['notas']},{'CERO_INICIAL'});self.assertEqual(len(d['historial']['notas']),5)
         self.assertEqual(c['academica']['estado_operaciones'],'PENDIENTE');self.assertEqual(c['academica']['valor'],0)
         self.assertIsNone(c['resultado_conjunto']);self.assertFalse(c['modelo']['listo_para_inferencia'])
@@ -142,7 +142,7 @@ class ModeloAnualTestCase(unittest.TestCase):
             inicializar_base_datos();inicializar_base_datos()
             for t,filas in antes.items():self.assertEqual([tuple(f) for f in c.execute('SELECT * FROM '+t)],filas)
             for t in tablas:self.assertEqual(c.execute('SELECT COUNT(*) FROM '+t).fetchone()[0],0)
-            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'29')
+            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'31')
             self.assertEqual(c.execute('PRAGMA quick_check').fetchone()[0],'ok');self.assertEqual(c.execute('PRAGMA foreign_key_check').fetchall(),[])
 
     def test_bloqueo_formacion_en_fecha_anterior_y_nueva_del_periodo_cerrado(self):

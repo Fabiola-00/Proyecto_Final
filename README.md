@@ -4,7 +4,19 @@
 
 Paleta institucional vigente (2026-10-16): azules `#0500B2` y `#0054B2`, naranjas `#FA9A4B` y `#FCC495`, complementarios `#226DC6` y `#C67B22`. Interfaz con tonos derivados para modos claro/oscuro; PDF en paleta clara para impresión. Verde/rojo conservan su significado de estado.
 
+Login con emblema SBRAB y estilo institucional responsivo. Su selector claro/oscuro comparte la preferencia de tema con los paneles (actualizado el 2026-10-18).
+
+**Recomendación vigente:** las nuevas propuestas seleccionan una única **Línea de orientación prioritaria**, la de mayor activación de las cuatro salidas (argmax). Sin reentrenar: modelo 15→6→4 intacto, confirmación humana obligatoria y versiones anteriores conservadas. Las propuestas antiguas abiertas quedan desactualizadas para regenerarlas; cerradas se conservan hasta reapertura. [Selección y límites](docs/32_tres_pruebas_modelo_15.md).
+
 ## Estado actual — revisión 2026-10-18
+
+**SQLite v31: [NASA-TLX, GSE y Mini-IPIP integrados](docs/32_tres_pruebas_modelo_15.md)** con el modelo entrenado **15→6→4, semilla 401/época 196**. Se conserva la organización en dos módulos y toda la evidencia anterior. NASA-TLX requiere simulacro común realizado, revisión de ambos roles y habilitación; una finalización por Gestión con confirmación de participación. Sin reentrenar ni autoaprobar formularios. Esta decisión posterior sustituye la conservación exclusiva de GSE/Mini-IPIP descrita en entregas anteriores.
+
+**[Organización de módulos](docs/31_modulos_evaluacion_pruebas.md):** «Evaluaciones» concentra Físico/Desempeño/Académica y sus respaldos; «Pruebas y Recomendación» reúne GSE/Mini-IPIP y el modelo vigente. Enlaces administrativos conservan Gestión e Instructor. El Instructor responde sus pruebas en el nuevo módulo, sin resultados ni recomendaciones administrativas. Sin cambios de esquema, puntuación o pesos.
+
+**SQLite v30: [reinicio individual de GSE/Mini-IPIP](docs/30_reinicio_pruebas.md)** desde su tabla, para el Instructor seleccionado y con contraseña del Administrador/Jefe actuante. Conserva intentos anteriores, permite responder otra vez y deja recomendaciones anteriores desactualizadas. Solo Gestión/cuenta activas. Se mantiene el modelo operativo **9→6→4 GSE/Mini-IPIP** por decisión expresa; NASA-TLX y las redes de quince entradas permanecen como antecedentes experimentales.
+
+**Nuevo experimento NASA-TLX + GSE + Mini-IPIP:** [comparación 15→6→4 y 15→6→6→4](docs/29_comparacion_redes_tlx.md), 200 Datos generados, partición 140/30/30 y diez semillas por red. Menor pérdida media de validación favorece 15→6→4 (0,7621 frente a 0,9351). Ambas entrenadas; sin adopción automática ni cambios del modelo operativo de nueve entradas.
 
 **SQLite v29. Recomendaciones integradas en Evaluaciones.** GSE y Mini-IPIP tienen formularios, revisión de ambos responsables, habilitación por Gestión, avances y finalización propia. El Instructor solo recibe «Completada»; Administrador/Jefe consultan resultados y respuestas finalizadas. [Funcionamiento y decisiones](docs/27_recomendaciones_sistema.md).
 

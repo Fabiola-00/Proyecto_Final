@@ -716,3 +716,144 @@ CREATE TRIGGER IF NOT EXISTS recomendacion_update BEFORE UPDATE ON recomendacion
 CREATE TRIGGER IF NOT EXISTS recomendacion_delete BEFORE DELETE ON recomendaciones BEGIN SELECT RAISE(ABORT,'recomendacion_inmutable'); END;
 CREATE TRIGGER IF NOT EXISTS confirmacion_recomendacion_update BEFORE UPDATE ON confirmaciones_recomendacion BEGIN SELECT RAISE(ABORT,'confirmacion_inmutable'); END;
 CREATE TRIGGER IF NOT EXISTS confirmacion_recomendacion_delete BEFORE DELETE ON confirmaciones_recomendacion BEGIN SELECT RAISE(ABORT,'confirmacion_inmutable'); END;
+
+-- v30: ciclos adicionales sin alterar ni borrar los intentos originales.
+CREATE TABLE IF NOT EXISTS reinicios_pruebas (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ voluntario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ clave TEXT NOT NULL CHECK(clave IN ('GSE','MINIIPIP')),
+ intento_original_id INTEGER UNIQUE REFERENCES intentos_pruebas(id) ON DELETE RESTRICT,
+ reintento_anterior_id INTEGER UNIQUE REFERENCES reintentos_pruebas(id) ON DELETE RESTRICT,
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ actor_nombre TEXT NOT NULL, reiniciada_en TEXT NOT NULL,
+ CHECK((intento_original_id IS NOT NULL AND reintento_anterior_id IS NULL)
+    OR (intento_original_id IS NULL AND reintento_anterior_id IS NOT NULL))
+);
+CREATE INDEX IF NOT EXISTS idx_reinicios_persona ON reinicios_pruebas(periodo_id,voluntario_id,clave,id);
+CREATE TABLE IF NOT EXISTS reintentos_pruebas (
+ id INTEGER PRIMARY KEY, reinicio_id INTEGER NOT NULL UNIQUE REFERENCES reinicios_pruebas(id) ON DELETE RESTRICT,
+ periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ voluntario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ clave TEXT NOT NULL CHECK(clave IN ('GSE','MINIIPIP')), version TEXT NOT NULL,
+ firma_formulario TEXT NOT NULL, formulario_json TEXT NOT NULL,
+ respuestas_json TEXT NOT NULL, resultados_json TEXT, revision INTEGER NOT NULL CHECK(revision>0),
+ iniciada_en TEXT NOT NULL, guardada_en TEXT NOT NULL, finalizada_en TEXT,
+ CHECK((finalizada_en IS NULL AND resultados_json IS NULL) OR (finalizada_en IS NOT NULL AND resultados_json IS NOT NULL))
+);
+CREATE TRIGGER IF NOT EXISTS reinicio_prueba_insert BEFORE INSERT ON reinicios_pruebas
+WHEN NOT ((NEW.intento_original_id IS NOT NULL AND NOT EXISTS(
+ SELECT 1 FROM reinicios_pruebas WHERE periodo_id=NEW.periodo_id AND voluntario_id=NEW.voluntario_id AND clave=NEW.clave)
+ AND EXISTS(SELECT 1 FROM intentos_pruebas i WHERE i.id=NEW.intento_original_id AND i.periodo_id=NEW.periodo_id AND i.voluntario_id=NEW.voluntario_id AND i.clave=NEW.clave AND i.finalizada_en IS NOT NULL))
+ OR (NEW.reintento_anterior_id IS NOT NULL AND EXISTS(
+ SELECT 1 FROM reintentos_pruebas i WHERE i.id=NEW.reintento_anterior_id AND i.periodo_id=NEW.periodo_id AND i.voluntario_id=NEW.voluntario_id AND i.clave=NEW.clave AND i.finalizada_en IS NOT NULL
+ AND i.reinicio_id=(SELECT max(r.id) FROM reinicios_pruebas r WHERE r.periodo_id=NEW.periodo_id AND r.voluntario_id=NEW.voluntario_id AND r.clave=NEW.clave))))
+BEGIN SELECT RAISE(ABORT,'reinicio_anterior_invalido'); END;
+CREATE TRIGGER IF NOT EXISTS reintento_prueba_insert BEFORE INSERT ON reintentos_pruebas
+WHEN NOT EXISTS(SELECT 1 FROM reinicios_pruebas r WHERE r.id=NEW.reinicio_id AND r.periodo_id=NEW.periodo_id AND r.voluntario_id=NEW.voluntario_id AND r.clave=NEW.clave)
+BEGIN SELECT RAISE(ABORT,'reinicio_incompatible'); END;
+CREATE TRIGGER IF NOT EXISTS reintento_prueba_update BEFORE UPDATE ON reintentos_pruebas
+WHEN OLD.finalizada_en IS NOT NULL OR NEW.reinicio_id!=OLD.reinicio_id OR NEW.periodo_id!=OLD.periodo_id
+ OR NEW.voluntario_id!=OLD.voluntario_id OR NEW.clave!=OLD.clave OR NEW.version!=OLD.version
+ OR NEW.firma_formulario!=OLD.firma_formulario OR NEW.formulario_json!=OLD.formulario_json OR NEW.iniciada_en!=OLD.iniciada_en
+BEGIN SELECT RAISE(ABORT,'prueba_finalizada_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS reintento_prueba_delete BEFORE DELETE ON reintentos_pruebas BEGIN SELECT RAISE(ABORT,'prueba_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS reinicio_prueba_update BEFORE UPDATE ON reinicios_pruebas BEGIN SELECT RAISE(ABORT,'reinicio_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS reinicio_prueba_delete BEFORE DELETE ON reinicios_pruebas BEGIN SELECT RAISE(ABORT,'reinicio_inmutable'); END;
+
+
+-- v31: almacenamiento NASA-TLX independiente, sin reconstruir históricos.
+CREATE TABLE IF NOT EXISTS tlx_revisiones_pruebas (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ clave TEXT NOT NULL CHECK(clave IN ('NASATLX')), firma_formulario TEXT NOT NULL,
+ formulario_json TEXT NOT NULL, observacion TEXT NOT NULL,
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ actor_nombre TEXT NOT NULL, rol TEXT NOT NULL CHECK(rol IN ('ADMINISTRADOR','JEFE_PERSONAL')),
+ registrada_en TEXT NOT NULL, UNIQUE(periodo_id,clave,firma_formulario,rol)
+);
+CREATE TABLE IF NOT EXISTS tlx_activaciones_pruebas (
+ periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ clave TEXT NOT NULL CHECK(clave IN ('NASATLX')), activa INTEGER NOT NULL CHECK(activa IN (0,1)),
+ revision INTEGER NOT NULL CHECK(revision>0), actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ modificada_en TEXT NOT NULL, PRIMARY KEY(periodo_id,clave)
+);
+CREATE TABLE IF NOT EXISTS tlx_historial_activaciones_pruebas (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ clave TEXT NOT NULL CHECK(clave IN ('NASATLX')), activa INTEGER NOT NULL CHECK(activa IN (0,1)),
+ revision INTEGER NOT NULL, actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ registrada_en TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS tlx_intentos_pruebas (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ voluntario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ clave TEXT NOT NULL CHECK(clave IN ('NASATLX')), version TEXT NOT NULL,
+ firma_formulario TEXT NOT NULL, formulario_json TEXT NOT NULL,
+ respuestas_json TEXT NOT NULL, resultados_json TEXT, revision INTEGER NOT NULL CHECK(revision>0),
+ simulacro_confirmado INTEGER NOT NULL DEFAULT 0 CHECK(simulacro_confirmado IN (0,1)),
+ iniciada_en TEXT NOT NULL, guardada_en TEXT NOT NULL, finalizada_en TEXT,
+ UNIQUE(periodo_id,voluntario_id,clave),
+ CHECK(finalizada_en IS NULL OR simulacro_confirmado=1),
+ CHECK((finalizada_en IS NULL AND resultados_json IS NULL) OR (finalizada_en IS NOT NULL AND resultados_json IS NOT NULL))
+);
+CREATE TABLE IF NOT EXISTS tlx_reinicios_pruebas (
+ id INTEGER PRIMARY KEY, periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ voluntario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ clave TEXT NOT NULL CHECK(clave IN ('NASATLX')),
+ intento_original_id INTEGER UNIQUE REFERENCES tlx_intentos_pruebas(id) ON DELETE RESTRICT,
+ reintento_anterior_id INTEGER UNIQUE REFERENCES tlx_reintentos_pruebas(id) ON DELETE RESTRICT,
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ actor_nombre TEXT NOT NULL, reiniciada_en TEXT NOT NULL,
+ CHECK((intento_original_id IS NOT NULL AND reintento_anterior_id IS NULL)
+    OR (intento_original_id IS NULL AND reintento_anterior_id IS NOT NULL))
+);
+CREATE TABLE IF NOT EXISTS tlx_reintentos_pruebas (
+ id INTEGER PRIMARY KEY, reinicio_id INTEGER NOT NULL UNIQUE REFERENCES tlx_reinicios_pruebas(id) ON DELETE RESTRICT,
+ periodo_id INTEGER NOT NULL REFERENCES periodos(id) ON DELETE RESTRICT,
+ voluntario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ clave TEXT NOT NULL CHECK(clave IN ('NASATLX')), version TEXT NOT NULL,
+ firma_formulario TEXT NOT NULL, formulario_json TEXT NOT NULL,
+ respuestas_json TEXT NOT NULL, resultados_json TEXT, revision INTEGER NOT NULL CHECK(revision>0),
+ simulacro_confirmado INTEGER NOT NULL DEFAULT 0 CHECK(simulacro_confirmado IN (0,1)),
+ iniciada_en TEXT NOT NULL, guardada_en TEXT NOT NULL, finalizada_en TEXT,
+ CHECK(finalizada_en IS NULL OR simulacro_confirmado=1),
+ CHECK((finalizada_en IS NULL AND resultados_json IS NULL) OR (finalizada_en IS NOT NULL AND resultados_json IS NOT NULL))
+);
+CREATE TRIGGER IF NOT EXISTS tlx_intento_prueba_update BEFORE UPDATE ON tlx_intentos_pruebas
+WHEN OLD.finalizada_en IS NOT NULL OR NEW.periodo_id!=OLD.periodo_id OR NEW.voluntario_id!=OLD.voluntario_id
+ OR NEW.clave!=OLD.clave OR NEW.version!=OLD.version OR NEW.firma_formulario!=OLD.firma_formulario
+ OR NEW.formulario_json!=OLD.formulario_json OR NEW.iniciada_en!=OLD.iniciada_en
+BEGIN SELECT RAISE(ABORT,'prueba_finalizada_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS tlx_intento_prueba_delete BEFORE DELETE ON tlx_intentos_pruebas BEGIN SELECT RAISE(ABORT,'prueba_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS tlx_revision_prueba_update BEFORE UPDATE ON tlx_revisiones_pruebas BEGIN SELECT RAISE(ABORT,'revision_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS tlx_revision_prueba_delete BEFORE DELETE ON tlx_revisiones_pruebas BEGIN SELECT RAISE(ABORT,'revision_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS tlx_historial_prueba_update BEFORE UPDATE ON tlx_historial_activaciones_pruebas BEGIN SELECT RAISE(ABORT,'historial_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS tlx_historial_prueba_delete BEFORE DELETE ON tlx_historial_activaciones_pruebas BEGIN SELECT RAISE(ABORT,'historial_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS tlx_reinicio_prueba_insert BEFORE INSERT ON tlx_reinicios_pruebas
+WHEN NOT ((NEW.intento_original_id IS NOT NULL AND NOT EXISTS(
+ SELECT 1 FROM tlx_reinicios_pruebas WHERE periodo_id=NEW.periodo_id AND voluntario_id=NEW.voluntario_id AND clave=NEW.clave)
+ AND EXISTS(SELECT 1 FROM tlx_intentos_pruebas i WHERE i.id=NEW.intento_original_id AND i.periodo_id=NEW.periodo_id AND i.voluntario_id=NEW.voluntario_id AND i.clave=NEW.clave AND i.finalizada_en IS NOT NULL))
+ OR (NEW.reintento_anterior_id IS NOT NULL AND EXISTS(
+ SELECT 1 FROM tlx_reintentos_pruebas i WHERE i.id=NEW.reintento_anterior_id AND i.periodo_id=NEW.periodo_id AND i.voluntario_id=NEW.voluntario_id AND i.clave=NEW.clave AND i.finalizada_en IS NOT NULL
+ AND i.reinicio_id=(SELECT max(r.id) FROM tlx_reinicios_pruebas r WHERE r.periodo_id=NEW.periodo_id AND r.voluntario_id=NEW.voluntario_id AND r.clave=NEW.clave))))
+BEGIN SELECT RAISE(ABORT,'reinicio_anterior_invalido'); END;
+CREATE TRIGGER IF NOT EXISTS tlx_reintento_prueba_insert BEFORE INSERT ON tlx_reintentos_pruebas
+WHEN NOT EXISTS(SELECT 1 FROM tlx_reinicios_pruebas r WHERE r.id=NEW.reinicio_id AND r.periodo_id=NEW.periodo_id AND r.voluntario_id=NEW.voluntario_id AND r.clave=NEW.clave)
+BEGIN SELECT RAISE(ABORT,'reinicio_incompatible'); END;
+CREATE TRIGGER IF NOT EXISTS tlx_reintento_prueba_update BEFORE UPDATE ON tlx_reintentos_pruebas
+WHEN OLD.finalizada_en IS NOT NULL OR NEW.reinicio_id!=OLD.reinicio_id OR NEW.periodo_id!=OLD.periodo_id
+ OR NEW.voluntario_id!=OLD.voluntario_id OR NEW.clave!=OLD.clave OR NEW.version!=OLD.version
+ OR NEW.firma_formulario!=OLD.firma_formulario OR NEW.formulario_json!=OLD.formulario_json OR NEW.iniciada_en!=OLD.iniciada_en
+BEGIN SELECT RAISE(ABORT,'prueba_finalizada_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS tlx_reintento_prueba_delete BEFORE DELETE ON tlx_reintentos_pruebas BEGIN SELECT RAISE(ABORT,'prueba_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS tlx_reinicio_prueba_update BEFORE UPDATE ON tlx_reinicios_pruebas BEGIN SELECT RAISE(ABORT,'reinicio_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS tlx_reinicio_prueba_delete BEFORE DELETE ON tlx_reinicios_pruebas BEGIN SELECT RAISE(ABORT,'reinicio_inmutable'); END;
+CREATE INDEX IF NOT EXISTS tlx_idx_reinicios_persona ON tlx_reinicios_pruebas(periodo_id,voluntario_id,clave,id);
+CREATE TABLE IF NOT EXISTS simulacros_tlx (
+ periodo_id INTEGER PRIMARY KEY REFERENCES periodos(id) ON DELETE RESTRICT,
+ nombre TEXT NOT NULL CHECK(length(trim(nombre)) BETWEEN 3 AND 200), fecha TEXT NOT NULL,
+ revision INTEGER NOT NULL CHECK(revision>0), actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ actor_nombre TEXT NOT NULL, registrada_en TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS simulacro_tlx_update BEFORE UPDATE ON simulacros_tlx
+WHEN NEW.periodo_id!=OLD.periodo_id OR EXISTS(SELECT 1 FROM tlx_intentos_pruebas WHERE periodo_id=OLD.periodo_id)
+BEGIN SELECT RAISE(ABORT,'simulacro_con_intentos_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS simulacro_tlx_delete BEFORE DELETE ON simulacros_tlx BEGIN SELECT RAISE(ABORT,'simulacro_inmutable'); END;

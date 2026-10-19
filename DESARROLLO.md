@@ -1,6 +1,12 @@
 # SICOSE — Bases de desarrollo, reconstrucción limpia y continuidad
 
-**Corte funcional vigente: 2026-10-18, SQLite v29. Bases históricas conservadas: v23/v24/v28.**
+**Corte funcional vigente: 2026-10-18, SQLite v31. Bases históricas conservadas: v23/v24/v28/v29/v30.**
+
+Nueva decisión e integración: [tres pruebas y modelo de quince entradas](docs/32_tres_pruebas_modelo_15.md). NASA-TLX/GSE/Mini-IPIP en el módulo separado, pesos existentes 15→6→4 seleccionados por validación (401/196), simulacro común por Gestión y confirmación de participación, privacidad/revisión/reinicio/historial intactos. Migra solo siete tablas aditivas, sin reentrenar ni inventar evidencia. Las decisiones previas de conservar únicamente dos instrumentos quedan históricas.
+
+Organización vigente: [dos módulos separados](docs/31_modulos_evaluacion_pruebas.md). Evaluaciones institucionales en su página; GSE/Mini-IPIP y Recomendación en el nuevo módulo lateral. Contexto Gestión/persona conservado en enlaces, sin migración ni cambios de entrenamiento, datos o permisos. Instructor mantiene solo formularios/estados propios.
+
+Nueva entrega: [reinicio individual autenticado de pruebas](docs/30_reinicio_pruebas.md). Administrador/Jefe reinicia solo la prueba completada del Instructor seleccionado con su contraseña; el historial queda intacto, el nuevo ciclo vacío y las recomendaciones anteriores Desactualizadas. Habilitación/revisiones conservadas y bloqueo por cierre/retiro/inactividad. Migración respaldada, 64 tablas previas preservadas y 66 finales; sin reinicios reales para ensayo. Decisión expresa: mantener el modelo operativo GSE/Mini-IPIP 9→6→4 y su entrenamiento; NASA-TLX no se incorpora al sistema.
 
 Entrega vigente: [recomendaciones del sistema](docs/27_recomendaciones_sistema.md). GSE/Mini-IPIP integrados por Gestión, revisión administrativa de ambos roles y conservación por Gestión confirmadas por el solicitante, sin despliegue en DEMO. Generación manual con nueve entradas, modelo fijado por SHA-256, Propuesta/Confirmada/Desactualizada, revisiones inmutables y publicación solo de confirmada vigente en PDF. No se borran ni adoptan históricos DASS/CBI. No se modifican los pesos originales ni se acredita validación clínica; el modelo propone orientación y la observación humana se conserva aparte.
 

@@ -148,22 +148,26 @@ def generar_individual(datos):
     a=datos['asistencia'];porcentaje='No disponible' if a['porcentaje'] is None else f"{a['porcentaje']:.2f}%"
     contenido.append(tabla(['Asiste','Atraso','Permiso','Falta','Asistencia'],[[a['ASISTE'],a['ATRASO'],a['PERMISO'],a['FALTA'],porcentaje]],[1,1,1,1,1.5]))
     contenido.extend([Spacer(1,8),texto('(Asiste + Atraso) / (Asiste + Atraso + Falta) x 100. Permiso excluido. Sin registros computables: No disponible. Conteo por registros, no por días; una fecha sin registro no se convierte en falta. Indicador informativo separado de las notas.',normal),texto('6. Pruebas psicométricas',seccion)])
-    nombres={'autoeficacia':'Autoeficacia','extraversion':'Extraversión','amabilidad':'Amabilidad','responsabilidad':'Responsabilidad','neuroticismo':'Neuroticismo','apertura':'Apertura'}
+    nombres={'autoeficacia':'Autoeficacia','extraversion':'Extraversión','amabilidad':'Amabilidad','responsabilidad':'Responsabilidad','neuroticismo':'Neuroticismo','apertura':'Apertura','demanda_mental':'Demanda mental','demanda_fisica':'Demanda física','demanda_temporal':'Demanda temporal','rendimiento':'Rendimiento (0 bueno / 100 malo)','esfuerzo':'Esfuerzo','frustracion':'Frustración'}
     filas=[]
     for prueba in datos.get('pruebas',[]):
-        escalas='\n'.join(f"{nombres.get(k,k)}: {v['valor']} (rango {v['rango'][0]} a {v['rango'][1]})" for k,v in prueba.get('subescalas',{}).items())
+        resultados=prueba.get('subescalas',{})
+        escalas='\n'.join(f"{nombres[k]}: {resultados[k]['valor']} (rango {resultados[k]['rango'][0]} a {resultados[k]['rango'][1]})" for k in nombres if k in resultados)
+        simulacro=prueba.get('formulario',{}).get('simulacro')
+        if simulacro:
+            escalas += f"\nSimulacro: {simulacro['nombre']}\nFecha: {simulacro['fecha']}"
         filas.append([prueba['nombre'],prueba['estado'],escalas or 'Pendiente'])
     contenido.append(tabla(['Instrumento','Estado','Resultados descriptivos'],filas,[1.5,1,3]))
     contenido.extend([Spacer(1,8),texto('Subescalas separadas, sin categorías diagnósticas. Las respuestas individuales y los avances no se incluyen en este PDF. Resultados conservados por Gestión.',normal),texto('7. Recomendación de la red neuronal',seccion)])
     rec=datos.get('recomendacion')
     if rec:
         contenido.append(texto(f"Versión {rec['id']} - Confirmada. Generada el {rec['generada_en']} por {rec['generada_por']}.",normal))
-        contenido.append(texto('Salida del modelo',seccion))
+        contenido.append(texto('Recomendación (Salida del Modelo)' if rec['resultado'].get('criterio_seleccion')=='ARGMAX_V1' else 'Salida del modelo',seccion))
         contenido.extend(texto(t,normal) for t in rec['resultado']['sugerencias'])
-        contenido.extend([texto('Observación del responsable',seccion),texto(rec['confirmacion']['observacion'],normal),texto(f"Confirmó: {rec['confirmacion']['actor_nombre']} | {rec['confirmacion']['confirmada_en']}",normal),texto(f"Modelo: 9-6-4 | SHA-256: {rec['modelo_sha256']}",pequeno),texto(rec['resultado']['aviso'],normal)])
+        contenido.extend([texto('Observación del responsable',seccion),texto(rec['confirmacion']['observacion'],normal),texto(f"Confirmó: {rec['confirmacion']['actor_nombre']} | {rec['confirmacion']['confirmada_en']}",normal),texto(f"Modelo: {"-".join(map(str,rec["resultado"].get("arquitectura",[9,6,4])))} | SHA-256: {rec['modelo_sha256']}",pequeno),texto(rec['resultado']['aviso'],normal)])
     else:
         contenido.append(texto('Pendiente de una propuesta vigente confirmada por Administrador o Jefe de Personal. Las propuestas sin confirmar y las desactualizadas no se incorporan.',normal))
-    contenido.extend([texto('Alcance y trazabilidad',seccion),texto('Fuentes: perfil institucional, cursos y operaciones, notas vigentes, asistencia y pruebas finalizadas de la Gestión activa. La observación humana está separada de la salida del modelo experimental. No es una instantánea de cierre ni una evaluación clínica. Uso reservado a personal administrativo autorizado.',normal)])
+    contenido.extend([Spacer(1,8),Paragraph('<b>Alcance y trazabilidad.</b> Fuentes: perfil institucional, cursos y operaciones, notas vigentes, asistencia y pruebas finalizadas de la Gestión activa. La observación humana está separada de la salida del modelo experimental. No es una instantánea de cierre ni una evaluación clínica. Uso reservado a personal administrativo autorizado.',pequeno)])
     doc.build(contenido,onFirstPage=carimbo,onLaterPages=carimbo)
     salida.seek(0)
     return salida

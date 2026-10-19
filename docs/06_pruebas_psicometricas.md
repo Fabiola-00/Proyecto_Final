@@ -1,5 +1,9 @@
 # 06. Revisión documental de instrumentos psicométricos candidatos
 
+**Decisión vigente posterior, 2026-10-18:** [NASA-TLX, GSE y Mini-IPIP integrados con red 15→6→4](32_tres_pruebas_modelo_15.md). NASA permite uso/traducción; se identifica expresamente la adaptación española SICOSE y sus límites, con revisión de ambos roles, seis dimensiones y simulacro común realizado por Gestión. Esta instrucción sustituye la conservación exclusiva de dos pruebas del bloque siguiente, que queda como antecedente.
+
+**Decisión posterior, 2026-10-18:** se conserva el modelo GSE/Mini-IPIP operativo de nueve entradas; NASA-TLX/redes de quince entradas quedan como antecedentes experimentales. Se agrega [reinicio individual con contraseña propia](30_reinicio_pruebas.md), conservando intentos anteriores y permitiendo una nueva finalización por ciclo explícito; sin modificar instrumentos, puntuación ni pesos del modelo.
+
 **Continuidad vigente, 2026-10-18:** [GSE/Mini-IPIP y recomendaciones v29](27_recomendaciones_sistema.md). Las decisiones posteriores autorizan revisión por Administrador y Jefe y conservación por Gestión. Los formularios actuales requieren constancia de ambos roles antes de habilitar; el Instructor solo ve Completada al finalizar. El modelo seleccionado propone orientación con confirmación humana, sin validez clínica acreditada. Los candidatos y condiciones DASS/CBI siguientes se conservan como antecedentes, sin mezclarlos con las versiones actuales.
 
 **Actualización 2026-10-17:** el solicitante seleccionó DASS-21 y CBI para un circuito condicionado a revisión. Ver [versiones, puntuación, condiciones y pendientes actuales](25_psicometria_y_red_experimental.md). La revisión de candidatos que sigue se conserva como antecedente fechado; no es la selección vigente.

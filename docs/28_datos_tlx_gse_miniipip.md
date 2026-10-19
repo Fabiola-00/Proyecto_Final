@@ -27,3 +27,7 @@ El solicitante aprobó Preparación progresiva y confianza; Organización de tar
 Generador `scripts/etiquetar_datos_tlx_gse_miniipip.py`; reglas completas en `reglas.json` y README de la nueva carpeta. Cada etiqueta combina una condición contextual institucional/TLX con un índice ponderado >= 0,50. Son pesos y cortes inventados para experimentar, no baremos de GSE, Mini-IPIP o NASA-TLX. Ningún rasgo por sí solo activa una línea. Las cuatro pueden coexistir; cuatro ceros indican seguimiento general según las reglas, no acreditan capacidad ni bienestar.
 
 Se comprueba cobertura únicamente en entrenamiento/validación, sin explorar prueba para ajustar reglas. Entrenamiento contiene las 16 combinaciones; las cuatro salidas tienen ambas clases en entrenamiento y validación. No se fuerza balance ni se remuestrea. El entrenamiento del nuevo modelo sigue pendiente; no cambia el modelo operativo, SQLite, formularios o revisiones existentes. El diagrama anterior conserva su fecha/estado de propuesta antes de aprobar las salidas.
+
+## Entrenamiento posterior solicitado
+
+El entrenamiento pendiente del corte anterior se completó después para ambas arquitecturas, con diez semillas por red. Ver [comparación verificada](29_comparacion_redes_tlx.md). La recomendación experimental favorece 15→6→4, sin sustituir automáticamente el modelo operativo 9→6→4.

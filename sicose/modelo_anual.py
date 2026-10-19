@@ -101,7 +101,7 @@ def calcular(c,uid,pid):
     from .pruebas_actuales import estado as estado_prueba, intento as intento_prueba
     from .instrumentos_actuales import firma as firma_prueba
     psico_estados=[]
-    for clave in ('GSE','MINIIPIP'):
+    for clave in ('GSE','MINIIPIP','NASATLX'):
         a=estado_prueba(c,pid,clave);i=intento_prueba(c,pid,uid,clave)
         completa=bool(i and i['finalizada_en'] and i['firma_formulario']==firma_prueba(clave))
         psico_estados.append('COMPLETADA' if completa and a['activa'] and a['revisada'] else ('DESHABILITADA' if not a['activa'] else 'PENDIENTE_PRUEBA'))
@@ -110,7 +110,7 @@ def calcular(c,uid,pid):
         ('FISICA','Física',fisica,estado_componente('FISICA_1','FISICA_2')),
         ('DESEMPENO','Desempeño',desempeno,estado_componente('DESEMPENO_JEFE','DESEMPENO_COMANDANTE')),
         ('ACADEMICA','Académica',academia,'CALCULADA' if cursos or ops else 'CERO_INICIAL_OFICIAL'),
-        ('PSICOMETRICA_1','GSE · Autoeficacia',None,psico_estados[0]),('PSICOMETRICA_2','Mini-IPIP · Personalidad',None,psico_estados[1]))]
+        ('PSICOMETRICA_1','GSE · Autoeficacia',None,psico_estados[0]),('PSICOMETRICA_2','Mini-IPIP · Personalidad',None,psico_estados[1]),('PSICOMETRICA_3','NASA-TLX · Carga de trabajo',None,psico_estados[2]))]
     return {'regla':'CINCO_ENTRADAS_V3','estado':'INCOMPLETO' if faltantes_psico or bloqueos else 'COMPLETO','resultado_conjunto':None,'fisica':numero(fisica),'desempeno':numero(desempeno),
         'academica':{'valor':float(Decimal(academia)/100) if academia is not None else None,'puntos_sin_tope':float(Decimal(suma_cursos+suma_ops)/100),'tope':100,'detalle':cursos,'operaciones':ops,'estado_operaciones':'CALIFICADAS' if ops else 'PENDIENTE','aporte_operaciones':numero(suma_ops)},
         'entradas':entradas,'fuentes':notas,'faltantes':faltantes_psico+bloqueos,'bloqueos':bloqueos,'provisional':True,
@@ -131,7 +131,16 @@ def privada(r):
 @anual_bp.get('/gestion/modelo-anual')
 @role_required('ADMINISTRADOR','JEFE_PERSONAL')
 def pagina():
-    return render_template('modelo_anual.html',titulo_pagina='Evaluación anual',nav_activo='evaluaciones_jefe',indicadores=[],periodo_actual=db.periodo_actual(),descripcion='Evaluación institucional, GSE, Mini-IPIP y propuestas de orientación con revisión humana.')
+    return render_template('modelo_anual.html',titulo_pagina='Evaluaciones',nav_activo='evaluaciones_jefe',indicadores=[],periodo_actual=db.periodo_actual(),descripcion='Evaluación institucional: Físico, Desempeño y Académica, con sus respaldos de formación, operaciones y asistencia.')
+
+
+@anual_bp.get('/gestion/pruebas-recomendacion')
+@role_required('ADMINISTRADOR','JEFE_PERSONAL','INSTRUCTOR_VOLUNTARIO')
+def pagina_pruebas():
+    propia = current_user.rol == 'INSTRUCTOR_VOLUNTARIO'
+    return render_template('pruebas_recomendacion.html',titulo_pagina='Pruebas y Recomendación',
+        nav_activo='pruebas_recomendacion',indicadores=[],periodo_actual=db.periodo_actual(),
+        propia=propia,descripcion='Responde tus pruebas habilitadas y consulta su estado.' if propia else 'Administra NASA-TLX, GSE y Mini-IPIP, consulta resultados y revisa las propuestas de orientación del modelo.')
 
 
 @anual_bp.get('/api/modelo-anual/gestiones')

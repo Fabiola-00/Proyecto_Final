@@ -26,11 +26,11 @@
         {% if current_user.rol == 'JEFE_PERSONAL' %}
           <p class="etiqueta-nav grupo-nav">PERSONAL Y OPERACIONES</p>
           {% for clave,etiqueta,ruta,icono in [('voluntarios','Instructores Voluntarios','management.pagina_gestion_voluntarios','♙'),('asistencias','Asistencias','evaluations.pagina_asistencias','◷'),('capacitaciones','Cursos y Capacitaciones','evaluations.pagina_capacitaciones','▤'),('operaciones','Operaciones','relaciones.pagina_operaciones','▦')] %}
-          <a class="enlace-nav{% if nav_activo == clave %} activo{% endif %}" href="{{ url_for(ruta) }}" aria-label="{{ etiqueta }}"{% if nav_activo == clave %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">{{ icono }}</span><span>{{ etiqueta }}</span></a>
+          <a class="enlace-nav{% if nav_activo == clave %} activo{% endif %}" href="{{ url_for(ruta) }}"{% if clave in ['evaluaciones_jefe','pruebas_recomendacion'] %} data-contexto-evaluacion{% endif %} aria-label="{{ etiqueta }}"{% if nav_activo == clave %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">{{ icono }}</span><span>{{ etiqueta }}</span></a>
           {% endfor %}
           <p class="etiqueta-nav grupo-nav">EVALUACIÓN ANUAL</p>
-          {% for clave,etiqueta,ruta,icono in [('periodos_5b','Gestión','periodos_5b.pagina','▦'),('evaluaciones_jefe','Evaluaciones','modelo_anual.pagina','✓'),('reportes','Reportes','espacio_jefe.reportes','▤')] %}
-          <a class="enlace-nav{% if nav_activo == clave or (clave == 'evaluaciones_jefe' and nav_activo in ['tabla_evaluaciones','evaluaciones']) %} activo{% endif %}" href="{{ url_for(ruta) }}" aria-label="{{ etiqueta }}"{% if nav_activo == clave %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">{{ icono }}</span><span>{{ etiqueta }}</span></a>
+          {% for clave,etiqueta,ruta,icono in [('periodos_5b','Gestión','periodos_5b.pagina','▦'),('evaluaciones_jefe','Evaluaciones','modelo_anual.pagina','✓'),('pruebas_recomendacion','Pruebas y Recomendación','modelo_anual.pagina_pruebas','◈'),('reportes','Reportes','espacio_jefe.reportes','▤')] %}
+          <a class="enlace-nav{% if nav_activo == clave or (clave == 'evaluaciones_jefe' and nav_activo in ['tabla_evaluaciones','evaluaciones']) %} activo{% endif %}" href="{{ url_for(ruta) }}"{% if clave in ['evaluaciones_jefe','pruebas_recomendacion'] %} data-contexto-evaluacion{% endif %} aria-label="{{ etiqueta }}"{% if nav_activo == clave %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">{{ icono }}</span><span>{{ etiqueta }}</span></a>
           {% endfor %}
         {% elif current_user.rol == 'ADMINISTRADOR' %}
           <p class="etiqueta-nav grupo-nav">PERSONAL Y OPERACIONES</p>
@@ -41,7 +41,8 @@
           <a class="enlace-nav{% if nav_activo == 'operaciones' %} activo{% endif %}" href="{{ url_for('relaciones.pagina_operaciones') }}" aria-label="Operaciones"><span class="nav-icono" aria-hidden="true">▦</span><span>Operaciones</span></a>
           <p class="etiqueta-nav grupo-nav">EVALUACIÓN ANUAL</p>
           <a class="enlace-nav{% if nav_activo == 'periodos_5b' %} activo{% endif %}" href="{{ url_for('periodos_5b.pagina') }}" aria-label="Gestión"><span class="nav-icono" aria-hidden="true">▦</span><span>Gestión</span></a>
-          <a class="enlace-nav{% if nav_activo == 'evaluaciones' %} activo{% endif %}" href="{{ url_for('modelo_anual.pagina') }}" aria-label="Evaluaciones"><span class="nav-icono" aria-hidden="true">▤</span><span>Evaluaciones</span></a>
+          <a class="enlace-nav{% if nav_activo in ['evaluaciones','evaluaciones_jefe'] %} activo{% endif %}" href="{{ url_for('modelo_anual.pagina') }}" data-contexto-evaluacion{% if nav_activo in ['evaluaciones','evaluaciones_jefe'] %} aria-current="page"{% endif %} aria-label="Evaluaciones"><span class="nav-icono" aria-hidden="true">▤</span><span>Evaluaciones</span></a>
+          <a class="enlace-nav{% if nav_activo == 'pruebas_recomendacion' %} activo{% endif %}" href="{{ url_for('modelo_anual.pagina_pruebas') }}" data-contexto-evaluacion aria-label="Pruebas y Recomendación"{% if nav_activo == 'pruebas_recomendacion' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">◈</span><span>Pruebas y Recomendación</span></a>
           <a class="enlace-nav" href="{{ url_for('espacio_jefe.reportes') }}">Reportes</a>
           {% if current_user.rol == 'ADMINISTRADOR' %}<p class="etiqueta-nav grupo-nav">CUENTA</p><a class="enlace-nav{% if nav_activo == 'configuracion' %} activo{% endif %}" href="{{ url_for('management.pagina_configuracion') }}" aria-label="Mi cuenta y contraseña"><span class="nav-icono" aria-hidden="true">⚙</span><span>Mi cuenta y contraseña</span></a>{% endif %}
         {% elif current_user.rol == 'INSTRUCTOR_VOLUNTARIO' %}
@@ -49,6 +50,7 @@
           <a class="enlace-nav{% if nav_activo == 'perfil' %} activo{% endif %}" href="{{ url_for('management.pagina_perfil_propio') }}" aria-label="Mi perfil"><span class="nav-icono" aria-hidden="true">♙</span><span>Mi perfil</span></a>
           <a class="enlace-nav{% if nav_activo == 'asistencias' %} activo{% endif %}" href="{{ url_for('asistencias.pagina_propia') }}"><span class="nav-icono" aria-hidden="true">◷</span><span>Mis asistencias</span></a>
           <a class="enlace-nav{% if nav_activo == 'tabla_evaluaciones' %} activo{% endif %}" href="{{ url_for('demostraciones.pagina') }}" aria-label="Mis evaluaciones"><span class="nav-icono" aria-hidden="true">✓</span><span>Mis evaluaciones</span></a>
+          <a class="enlace-nav{% if nav_activo == 'pruebas_recomendacion' %} activo{% endif %}" href="{{ url_for('modelo_anual.pagina_pruebas') }}" data-contexto-evaluacion aria-label="Pruebas y Recomendación"{% if nav_activo == 'pruebas_recomendacion' %} aria-current="page"{% endif %}><span class="nav-icono" aria-hidden="true">◈</span><span>Pruebas y Recomendación</span></a>
           <a class="enlace-nav{% if nav_activo == 'capacitaciones' %} activo{% endif %}" href="{{ url_for('relaciones.pagina_cursos_propios') }}"><span class="nav-icono" aria-hidden="true">▤</span><span>Mis cursos</span></a>
           <a class="enlace-nav{% if nav_activo == 'operaciones' %} activo{% endif %}" href="{{ url_for('relaciones.pagina_operaciones') }}"><span class="nav-icono" aria-hidden="true">▦</span><span>Mis operaciones</span></a>
         {% endif %}

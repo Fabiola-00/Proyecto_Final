@@ -30,6 +30,8 @@ class RecomendacionesTestCase(unittest.TestCase):
 
     def habilitar(self):
         self.revisar()
+        r=self.cliente.put(self.url+'/simulacro-tlx',json={'nombre':'Simulacro común de prueba','fecha':'2025-09-01','revision':0,'realizado':True},headers=self.h)
+        self.assertEqual(r.status_code,200,r.json)
         for clave in CATALOGO:
             r=self.cliente.patch(self.url+f'/pruebas/{clave}',json={'activa':True,'revision':0},headers=self.h)
             self.assertEqual(r.status_code,200,r.json)
@@ -37,7 +39,7 @@ class RecomendacionesTestCase(unittest.TestCase):
     def completar(self):
         self.preparar_anual();self.habilitar();self.login_rol('propia')
         for clave in CATALOGO:
-            r=self.cliente.post(self.url+f'/pruebas/{clave}/finalizar',json={'revision':0,'respuestas':[3]*len(CATALOGO[clave]['items'])},headers=self.h)
+            r=self.cliente.post(self.url+f'/pruebas/{clave}/finalizar',json=({'revision':0,'respuestas':[50]*6,'confirmar_simulacro':True} if clave=='NASATLX' else {'revision':0,'respuestas':[3]*len(CATALOGO[clave]['items'])}),headers=self.h)
             self.assertEqual(r.status_code,200,r.json)
         self.login_rol('jefe')
         self.rec=self.url+'/personas/3/recomendacion'
@@ -109,7 +111,7 @@ class RecomendacionesTestCase(unittest.TestCase):
         self.assertEqual(resultado['subescalas']['autoeficacia']['valor'],20)
         self.assertEqual(resultado['respuestas'],[2]*10)
 
-    def test_nueve_entradas_con_ceros_oficiales_y_propuesta_idempotente(self):
+    def test_quince_entradas_con_ceros_oficiales_y_propuesta_idempotente(self):
         d=self.completar()
         calculo=self.datos()['calculo']
         self.assertEqual(calculo['estado'],'COMPLETO')
@@ -218,17 +220,21 @@ class RecomendacionesTestCase(unittest.TestCase):
         with patch('sicose.recomendaciones.MODELO_SHA','otra'):
             self.assertFalse(self.cliente.get(self.rec).json['puede_generar'])
         with self.app.app_context():
-            self.assertEqual(cargar_modelo().exportar()['arquitectura'],[9,6,4])
+            self.assertEqual(cargar_modelo().exportar()['arquitectura'],[15,6,4])
 
-    def test_abstencion_se_conserva_sin_inventar_salida_y_migracion_idempotente(self):
+    def test_prioridad_unica_con_empate_e_historial_inmutable(self):
         self.completar()
         modelo=cargar_modelo()
-        with patch.object(type(modelo),'adelante',return_value=([0]*9,[0]*6,[.8,.5,.8,.1])):
+        with patch.object(type(modelo),'adelante',return_value=([0]*15,[0]*6,[.8,.5,.8,.1])):
             rid=self.generar()
         d=self.cliente.get(self.rec).json['historial'][0]
-        self.assertEqual(d['resultado']['estado_modelo'],'ABSTENCION')
-        self.assertEqual(d['resultado']['sugerencias'],['Resultado indeterminado: requiere revisión humana.'])
-        self.assertEqual(self.confirmar(rid,'Se deja constancia de abstención; requiere acompañamiento humano.').status_code,200)
+        self.assertEqual(d['resultado']['estado_modelo'],'PROPUESTA')
+        self.assertEqual(d['resultado']['criterio_seleccion'],'ARGMAX_V1')
+        self.assertEqual(d['resultado']['salida_prioritaria'],'preparacion_progresiva_y_confianza')
+        self.assertEqual(len(d['resultado']['sugerencias']),1)
+        self.assertEqual(d['resultado']['margen_activacion'],0)
+        self.assertEqual(len(d['resultado']['empates_maximos']),2)
+        self.assertEqual(self.confirmar(rid,'Se revisa la línea prioritaria y el empate con otra salida.').status_code,200)
         with self.app.app_context():
             c=obtener_conexion();antes=[tuple(f) for f in c.execute('SELECT * FROM recomendaciones')]
             inicializar_base_datos();inicializar_base_datos()

@@ -2,6 +2,5 @@
 {% block contenido %}
 <section class="seccion-panel"><h2>Gestión activa</h2><p>Las calificaciones oficiales permanecen sujetas a publicación. Los ejercicios de sumas/restas son demostrativos y no constituyen pruebas psicométricas.</p><div id="evaluaciones-anuales-propias"></div><p id="ejemplo-mensaje" role="status" aria-live="polite"></p><a href="{{ url_for('tabla_evaluaciones.pagina_propia') }}">Consultar evaluaciones históricas publicadas</a></section>
 <script src="{{ url_for('static',filename='js/ejemplos.js') }}" defer></script>
-<section class="seccion-panel"><h2>Pruebas psicométricas</h2><p>Una finalización por prueba y Gestión. Puedes guardar avances. Al finalizar solo se mostrará «Completada».</p><div id="psicometria-propia"></div><p id="psicometria-mensaje" role="status" aria-live="polite"></p></section>
-<script src="{{ url_for('static',filename='js/psicometria.js') }}" defer></script>
+<p><a href="{{ url_for('modelo_anual.pagina_pruebas') }}">Ir a Pruebas y Recomendación</a> para responder GSE y Mini-IPIP.</p>
 {% endblock %}
