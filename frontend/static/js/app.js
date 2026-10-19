@@ -917,6 +917,43 @@ if (gradeSelect) {
 const perfilPropioForm = document.querySelector("#perfil-propio-form");
 if (perfilPropioForm) {
   const mensaje = document.querySelector("#perfil-propio-mensaje");
+  const foto = perfilPropioForm.elements.foto;
+  const previa = document.querySelector('#perfil-foto-previa');
+  const imagen = document.querySelector('#perfil-foto-imagen');
+  const estadoFoto = document.querySelector('#perfil-foto-estado');
+  const descartar = document.querySelector('#perfil-foto-descartar');
+  let fotoUrl;
+  function limpiarFoto(texto = 'Tu foto actual se conserva si no seleccionas otra.') {
+    if (fotoUrl) URL.revokeObjectURL(fotoUrl);
+    fotoUrl = null;
+    imagen.removeAttribute('src');
+    previa.hidden = true;
+    foto.value = '';
+    foto.removeAttribute('aria-invalid');
+    estadoFoto.textContent = texto;
+  }
+  foto.addEventListener('change', () => {
+    const archivo = foto.files[0];
+    if (!archivo) { limpiarFoto(); return; }
+    if (archivo.size > 3 * 1024 * 1024 || (archivo.type && !['image/png', 'image/jpeg'].includes(archivo.type))) {
+      limpiarFoto('Selecciona una imagen PNG o JPEG de hasta 3 MiB.');
+      foto.setAttribute('aria-invalid', 'true');
+      return;
+    }
+    if (fotoUrl) URL.revokeObjectURL(fotoUrl);
+    foto.removeAttribute('aria-invalid');
+    fotoUrl = URL.createObjectURL(archivo);
+    imagen.src = fotoUrl;
+    document.querySelector('#perfil-foto-nombre').textContent = archivo.name;
+    previa.hidden = false;
+    estadoFoto.textContent = 'Foto seleccionada. Guarda los cambios para aplicarla.';
+  });
+  imagen.addEventListener('error', () => {
+    limpiarFoto('No se pudo leer la imagen. Selecciona otro archivo PNG o JPEG.');
+    foto.setAttribute('aria-invalid', 'true');
+  });
+  descartar.addEventListener('click', () => { limpiarFoto(); foto.focus(); });
+  window.addEventListener('pagehide', () => { if (fotoUrl) URL.revokeObjectURL(fotoUrl); });
   perfilPropioForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!perfilPropioForm.reportValidity()) return;
@@ -924,11 +961,23 @@ if (perfilPropioForm) {
     const datos = new FormData(perfilPropioForm);
     if (!datos.get("foto")?.size) datos.delete("foto");
     boton.disabled = true;
+    descartar.disabled = true;
+    foto.disabled = true;
+    perfilPropioForm.setAttribute('aria-busy', 'true');
+    boton.textContent = 'Guardando…';
+    mensaje.textContent = 'Guardando tus cambios…';
     try {
       await apiJson("/api/instructor-voluntario/perfil", { method: "PATCH", body: datos });
       mensaje.textContent = "Perfil actualizado.";
       window.setTimeout(() => window.location.reload(), 1000);
-    } catch (error) { mensaje.textContent = error.message; boton.disabled = false; }
+    } catch (error) {
+      mensaje.textContent = error.message;
+      boton.disabled = false;
+      descartar.disabled = false;
+      foto.disabled = false;
+      perfilPropioForm.removeAttribute('aria-busy');
+      boton.textContent = 'Guardar cambios';
+    }
   });
 }
 

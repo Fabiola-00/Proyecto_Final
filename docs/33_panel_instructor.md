@@ -36,3 +36,10 @@ Regresión final de 18 pruebas aprobada en 34,410 s (`.tmp/panel-instructor-regr
 Suite general ejecutada: 259 pruebas en 598,652 s; 257 aprobadas y dos expectativas antiguas de texto de Inicio fallaron (`Cursos asignados` y `Privacidad personal`). Se actualizaron al diseño autorizado y ambas pasaron dentro de la regresión final de 18 pruebas. No se ejecutó una segunda suite general ni se declara 259/259 aprobadas. Log `.tmp/panel-instructor-suite.log`.
 
 Control final: 89 enlaces locales válidos en README, AGENTS, HISTORY y este documento; base local consultada en solo lectura v32/quick_check=ok/FK=0, tabla nueva con cero publicaciones. Servidor de ensayo detenido y sus dos bases sintéticas retiradas tras verificar su identidad.
+
+
+## Ajuste posterior de Perfil — 2026-10-19
+
+El solicitante eligió dos bloques: información personal y edición de correo/foto, lado a lado en escritorio y apilados en móvil. Identidad destacada, foto ampliada o inicial si falta, datos descriptivos, especialidades separadas, ayuda de campos y guardado con estado visible. Incluye vista previa local de foto y descarte sin guardar; los datos institucionales continúan en consulta.
+
+Cuatro pruebas de autoservicio aprobadas (3,565 s), ocho comprobaciones de lógica de vista previa/guardado y sintaxis JavaScript/diff correctos. Perfil revisado en escritorio y a 360 px en ambos temas, sin desborde global ni errores de consola observados. La selección real de archivo en Opera quedó bloqueada por permisos de la extensión; no se afirma haber probado visualmente la carga. No se cambió el esquema ni la base real, ni se repitió la suite general. Véase el registro de esta entrega en HISTORY.md.

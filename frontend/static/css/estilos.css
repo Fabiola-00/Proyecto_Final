@@ -897,6 +897,45 @@ label.fila-compacta { flex-direction:row; justify-content:flex-start; font-size:
 @media(max-width:1100px) { .dimensiones-grupos[data-vista="radar"] { grid-template-columns: minmax(0,1fr); } }
 @media(max-width:800px) { .dimensiones-grupos { grid-template-columns: minmax(0,1fr); } }
 
+/* Perfil propio: información de consulta y edición en bloques independientes. */
+.perfil-personal { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 1.4rem; align-items: stretch; }
+.perfil-panel { min-width: 0; padding: 1.5rem; border: 1px solid var(--border); border-radius: 1rem; background: var(--surface); box-shadow: 0 .3rem 1.2rem rgb(0 84 178 / 3%); }
+.perfil-panel h2 { margin: 0 0 1.25rem; color: var(--text-strong); font-size: 1.05rem; }
+.perfil-identidad { display: flex; align-items: center; gap: 1rem; padding-bottom: 1.4rem; border-bottom: 1px solid var(--border); }
+.perfil-identidad > div { min-width: 0; }
+.perfil-retrato { width: 6rem; height: 6rem; flex: 0 0 auto; object-fit: cover; border-radius: 50%; border: 3px solid var(--surface-brand); outline: 1px solid var(--border-strong); }
+.perfil-inicial { display: grid; place-items: center; color: var(--brand); background: var(--surface-brand); font-size: 2rem; font-weight: 700; }
+.perfil-identidad h3 { margin: 0 0 .4rem; font-size: 1.2rem; color: var(--text-strong); overflow-wrap: anywhere; line-height: 1.35; }
+.perfil-usuario { margin: 0 0 .65rem; color: var(--muted); font-size: .85rem; overflow-wrap: anywhere; }
+.perfil-rol { display: inline-block; padding: .3rem .6rem; border-radius: .5rem; color: var(--brand); background: var(--surface-brand); font-size: .73rem; font-weight: 600; }
+.perfil-datos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.3rem 1rem; margin: 1.4rem 0; }
+.perfil-datos dt { color: var(--muted); font-size: .78rem; margin-bottom: .4rem; }
+.perfil-especialidad-principal { grid-column: 1; }
+.perfil-datos dd { margin: 0; color: var(--text-strong); font-size: .88rem; line-height: 1.55; overflow-wrap: anywhere; }
+.perfil-especialidades { display: flex; flex-wrap: wrap; gap: .35rem; padding: 0; margin: 0; list-style: none; }
+.perfil-especialidades li { padding: 0; }
+.perfil-nota { margin: 0; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: .78rem; line-height: 1.6; }
+.perfil-introduccion { margin: -.55rem 0 1.4rem; color: var(--muted); font-size: .85rem; }
+.perfil-formulario { display: grid; gap: .5rem; }
+.perfil-formulario label { color: var(--text-strong); font-size: .84rem; font-weight: 600; }
+.perfil-opcional { color: var(--muted); font-weight: 400; }
+.perfil-formulario input { min-width: 0; width: 100%; min-height: 2.75rem; padding: .65rem .75rem; border: 1px solid var(--border-strong); border-radius: .55rem; color: var(--text); background: var(--surface); font: inherit; font-size: .85rem; }
+.perfil-formulario .perfil-ayuda { margin: 0; color: var(--muted); font-size: .76rem; line-height: 1.55; }
+.perfil-foto-campo { display: grid; gap: .65rem; margin-top: 1rem; padding: 1rem; border: 1px dashed var(--border-strong); border-radius: .75rem; background: var(--surface-soft); min-width: 0; }
+.perfil-formulario input[type="file"] { padding: .45rem; font-size: .75rem; background: var(--surface); }
+.perfil-formulario input::file-selector-button { margin-right: .65rem; padding: .5rem .7rem; border: 0; border-radius: .35rem; background: var(--surface-brand); color: var(--brand); font: inherit; font-weight: 600; cursor: pointer; }
+.perfil-foto-previa:not([hidden]) { display: flex; gap: .85rem; align-items: center; }
+.perfil-foto-previa > img { width: 4.5rem; height: 4.5rem; border-radius: 50%; object-fit: cover; flex: 0 0 auto; }
+.perfil-foto-previa > div { min-width: 0; font-size: .8rem; }
+.perfil-foto-previa p { margin: .25rem 0 .5rem; overflow-wrap: anywhere; color: var(--muted); }
+.perfil-foto-previa button { padding: .4rem .65rem; min-height: 2rem; }
+.perfil-guardar { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem 1rem; padding-top: .85rem; }
+.perfil-guardar button { min-height: 2.75rem; font-size: .82rem; }
+.perfil-guardar span { color: var(--muted); font-size: .75rem; }
+.perfil-formulario .mensaje:empty { display: none; }
+@media (max-width: 1100px) { .perfil-personal { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 480px) { .perfil-panel { padding: 1.1rem; } .perfil-identidad { align-items: flex-start; gap: .8rem; } .perfil-retrato { width: 4.5rem; height: 4.5rem; } .perfil-identidad h3 { font-size: 1.05rem; } .perfil-datos { grid-template-columns: minmax(0, 1fr); gap: 1rem; } .perfil-guardar button { width: 100%; } }
+
 /* Resumen compacto del Instructor Voluntario. */
 body[data-rol="INSTRUCTOR_VOLUNTARIO"] .indicadores { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 body[data-rol="INSTRUCTOR_VOLUNTARIO"] .tarjeta-indicador { padding: 14px; min-height: 0; }

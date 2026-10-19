@@ -1,8 +1,17 @@
 # SICOSE
 
-### Panel personal — 2026-10-19, SQLite v32
+## Estado actual — 2026-10-19, SQLite v32
 
 [Panel del Instructor Voluntario](docs/33_panel_instructor.md): cuatro resúmenes compactos de la Gestión activa, aviso de pendientes, Perfil al pie del menú, asistencia mensual y consultas de cursos/operaciones/evaluaciones por Gestión. El modelo anual permite publicar para el Instructor físicas, Académica y solo el promedio de Desempeño, mediante versiones explícitas; las correcciones requieren republicación. Pruebas conserva su tabla y privacidad. Migración aditiva respaldada, sin publicaciones reales automáticas.
+
+**Perfil propio:** dos tarjetas (Información personal / Editar perfil), lado a lado en escritorio y apiladas en móvil. Foto o inicial, datos de consulta ordenados y edición exclusiva de correo/foto, con vista previa local, descarte y estado de guardado. Conserva ambos temas y validaciones de servidor. La selección visual del archivo de ensayo fue bloqueada por la extensión; la lógica de vista previa y la persistencia se comprobaron por separado.
+
+**Verificación de la jornada:** suite general 259 pruebas en 598,652 s: 257 aprobadas y dos expectativas antiguas de texto fallidas, corregidas y aprobadas dentro de una regresión final de 18 pruebas (34,410 s). Perfil: cuatro pruebas aprobadas (3,565 s) y ocho comprobaciones de lógica JavaScript. No se repitió la suite general ni se afirma 259/259 aprobadas. Base releída v32, 74 tablas, quick_check=ok/FK=0; sin publicaciones V3 reales creadas.
+
+**Límite pendiente:** el historial V3 se conserva en `publicaciones_modelo_anual`, pero `GET /api/5b/personas/<uid>/publicaciones/historial` todavía lista únicamente la tabla histórica. Su consulta administrativa V3 queda pendiente; esto no impide publicar/republicar ni consultar la última versión propia.
+
+Para ver cambios de plantillas con un servidor iniciado sin recarga automática, reinícialo y recarga el navegador con Ctrl+F5. El servidor local de esta jornada se reinició con la misma configuración tras detectarse una plantilla retenida en memoria. Véanse [guía de inicio](docs/07_inicio_desarrollo.md) y [registro cronológico](HISTORY.md).
+
 
 
 **Sistema de Control y Evaluación de Personal** es un prototipo académico para el seguimiento de personal voluntario de rescate y emergencias. Usa Flask, SQLite y HTML/CSS/JavaScript puro. No es un producto comercial ni clínico.
@@ -13,7 +22,7 @@ Login con emblema SBRAB y estilo institucional responsivo. Su selector claro/osc
 
 **Recomendación vigente:** las nuevas propuestas seleccionan una única **Línea de orientación prioritaria**, la de mayor activación de las cuatro salidas (argmax). Sin reentrenar: modelo 15→6→4 intacto, confirmación humana obligatoria y versiones anteriores conservadas. Las propuestas antiguas abiertas quedan desactualizadas para regenerarlas; cerradas se conservan hasta reapertura. [Selección y límites](docs/32_tres_pruebas_modelo_15.md).
 
-## Estado actual — revisión 2026-10-18
+## Antecedentes de integración — 2026-10-18 (v31 y anteriores)
 
 **SQLite v31: [NASA-TLX, GSE y Mini-IPIP integrados](docs/32_tres_pruebas_modelo_15.md)** con el modelo entrenado **15→6→4, semilla 401/época 196**. Se conserva la organización en dos módulos y toda la evidencia anterior. NASA-TLX requiere simulacro común realizado, revisión de ambos roles y habilitación; una finalización por Gestión con confirmación de participación. Sin reentrenar ni autoaprobar formularios. Esta decisión posterior sustituye la conservación exclusiva de GSE/Mini-IPIP descrita en entregas anteriores.
 

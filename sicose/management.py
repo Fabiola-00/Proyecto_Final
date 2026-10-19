@@ -87,7 +87,7 @@ def pagina_gestion_instructores():
 
 def _geografia_propia():
     conexion = db.obtener_conexion()
-    perfil = conexion.execute("SELECT pais_residencia,departamento_residencia,grado FROM voluntarios WHERE usuario_id=?",(current_user.id,)).fetchone()
+    perfil = conexion.execute("SELECT pais_residencia,departamento_residencia,grado,especialidad_principal FROM voluntarios WHERE usuario_id=?",(current_user.id,)).fetchone()
     valores = dict(perfil) if perfil else {}
     valores.update(leer_geografia(conexion,current_user.id))
     return valores

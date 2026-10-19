@@ -1,0 +1,278 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1930" viewBox="0 0 2000 1930">
+  <title>SICOSE: modelo vigente 15 → 6 → 4 y selección de una recomendación</title>
+  <desc>Tres entradas institucionales se distinguen de doce entradas de pruebas: GSE, cinco dimensiones Mini-IPIP y seis NASA-TLX. Se normalizan por rangos teóricos; seis neuronas tanh y cuatro sigmoides, con pesos ya entrenados. Fuera de la red se elige la mayor puntuación: una recomendación propuesta, pendiente de revisión humana. 200 Datos: 140 entrenamiento, 30 validación, 30 prueba. 124 parámetros. Datos generados por computadora; sin validación personal.</desc>
+  <rect width="2000" height="1930" fill="white" />
+  <rect x="65" y="48" width="48" height="6" rx="0" fill="#FA9A4B" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" text-anchor="start" dominant-baseline="central" x="130" y="50" fill="#0054B2">SICOSE / MODELO VIGENTE</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="44" font-weight="700" text-anchor="start" dominant-baseline="central" x="65" y="108" fill="#142942">NASA-TLX + GSE + Mini-IPIP</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="27" font-weight="400" text-anchor="start" dominant-baseline="central" x="65" y="160" fill="#526479">15 entradas → 6 neuronas ocultas → 4 puntuaciones → 1 recomendación</text>
+  <rect x="1510" y="42" width="425" height="65" rx="10" fill="#EDF4FF" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="23" font-weight="700" text-anchor="middle" dominant-baseline="central" x="1722" y="74" fill="#0054B2">MODELO ENTRENADO</text>
+  <line stroke-width="1" x1="65" y1="202" x2="1935" y2="202" stroke="#DCE5EF" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="27" font-weight="700" text-anchor="start" dominant-baseline="central" x="65" y="247" fill="#0054B2">01  Entradas</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="27" font-weight="700" text-anchor="middle" dominant-baseline="central" x="925" y="247" fill="#142942">02  Capa oculta</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="27" font-weight="700" text-anchor="start" dominant-baseline="central" x="1300" y="247" fill="#0500B2">03  Salidas de la red</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="65" y="285" fill="#526479">Escalas originales → normalización [0, 1]</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="middle" dominant-baseline="central" x="925" y="285" fill="#526479">6 neuronas · tanh</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="1300" y="285" fill="#526479">4 sigmoides · puntuaciones entre 0 y 1</text>
+  <rect x="55" y="313" width="540" height="170" rx="12" fill="#EDF4FF" />
+  <rect x="55" y="313" width="6" height="170" rx="0" fill="#0054B2" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700" text-anchor="start" dominant-baseline="central" x="80" y="337" fill="#0054B2">A. EVALUACIÓN INSTITUCIONAL</text>
+  <rect x="55" y="502" width="540" height="805" rx="12" fill="#FFF7EF" />
+  <rect x="55" y="502" width="6" height="805" rx="0" fill="#FA9A4B" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700" text-anchor="start" dominant-baseline="central" x="80" y="529" fill="#925716">B. PRUEBAS PSICOMÉTRICAS</text>
+  <line stroke-width="1" x1="589" y1="380" x2="901" y2="400" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="380" x2="901" y2="550" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="380" x2="901" y2="700" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="380" x2="901" y2="850" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="380" x2="901" y2="1000" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="380" x2="901" y2="1150" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="420" x2="901" y2="400" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="420" x2="901" y2="550" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="420" x2="901" y2="700" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="420" x2="901" y2="850" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="420" x2="901" y2="1000" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="420" x2="901" y2="1150" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="460" x2="901" y2="400" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="460" x2="901" y2="550" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="460" x2="901" y2="700" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="460" x2="901" y2="850" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="460" x2="901" y2="1000" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="460" x2="901" y2="1150" stroke="#D3E1F2" />
+  <line stroke-width="1" x1="589" y1="587" x2="901" y2="400" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="587" x2="901" y2="550" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="587" x2="901" y2="700" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="587" x2="901" y2="850" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="587" x2="901" y2="1000" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="587" x2="901" y2="1150" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="681" x2="901" y2="400" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="681" x2="901" y2="550" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="681" x2="901" y2="700" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="681" x2="901" y2="850" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="681" x2="901" y2="1000" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="681" x2="901" y2="1150" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="723" x2="901" y2="400" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="723" x2="901" y2="550" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="723" x2="901" y2="700" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="723" x2="901" y2="850" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="723" x2="901" y2="1000" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="723" x2="901" y2="1150" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="765" x2="901" y2="400" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="765" x2="901" y2="550" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="765" x2="901" y2="700" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="765" x2="901" y2="850" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="765" x2="901" y2="1000" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="765" x2="901" y2="1150" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="807" x2="901" y2="400" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="807" x2="901" y2="550" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="807" x2="901" y2="700" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="807" x2="901" y2="850" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="807" x2="901" y2="1000" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="807" x2="901" y2="1150" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="849" x2="901" y2="400" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="849" x2="901" y2="550" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="849" x2="901" y2="700" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="849" x2="901" y2="850" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="849" x2="901" y2="1000" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="849" x2="901" y2="1150" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="977" x2="901" y2="400" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="977" x2="901" y2="550" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="977" x2="901" y2="700" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="977" x2="901" y2="850" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="977" x2="901" y2="1000" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="977" x2="901" y2="1150" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1027" x2="901" y2="400" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1027" x2="901" y2="550" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1027" x2="901" y2="700" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1027" x2="901" y2="850" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1027" x2="901" y2="1000" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1027" x2="901" y2="1150" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1077" x2="901" y2="400" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1077" x2="901" y2="550" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1077" x2="901" y2="700" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1077" x2="901" y2="850" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1077" x2="901" y2="1000" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1077" x2="901" y2="1150" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1127" x2="901" y2="400" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1127" x2="901" y2="550" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1127" x2="901" y2="700" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1127" x2="901" y2="850" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1127" x2="901" y2="1000" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1127" x2="901" y2="1150" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1177" x2="901" y2="400" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1177" x2="901" y2="550" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1177" x2="901" y2="700" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1177" x2="901" y2="850" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1177" x2="901" y2="1000" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1177" x2="901" y2="1150" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1227" x2="901" y2="400" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1227" x2="901" y2="550" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1227" x2="901" y2="700" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1227" x2="901" y2="850" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1227" x2="901" y2="1000" stroke="#EBDACB" />
+  <line stroke-width="1" x1="589" y1="1227" x2="901" y2="1150" stroke="#EBDACB" />
+  <line stroke-width="1.2" x1="949" y1="400" x2="1234" y2="450" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="400" x2="1234" y2="660" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="400" x2="1234" y2="870" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="400" x2="1234" y2="1080" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="550" x2="1234" y2="450" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="550" x2="1234" y2="660" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="550" x2="1234" y2="870" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="550" x2="1234" y2="1080" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="700" x2="1234" y2="450" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="700" x2="1234" y2="660" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="700" x2="1234" y2="870" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="700" x2="1234" y2="1080" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="850" x2="1234" y2="450" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="850" x2="1234" y2="660" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="850" x2="1234" y2="870" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="850" x2="1234" y2="1080" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="1000" x2="1234" y2="450" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="1000" x2="1234" y2="660" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="1000" x2="1234" y2="870" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="1000" x2="1234" y2="1080" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="1150" x2="1234" y2="450" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="1150" x2="1234" y2="660" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="1150" x2="1234" y2="870" stroke="#D8D8ED" />
+  <line stroke-width="1.2" x1="949" y1="1150" x2="1234" y2="1080" stroke="#D8D8ED" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700" text-anchor="start" dominant-baseline="central" x="80" y="559" fill="#925716">GSE · 1 entrada</text>
+  <line stroke-width="1" x1="80" y1="616" x2="570" y2="616" stroke="#EAD5C0" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700" text-anchor="start" dominant-baseline="central" x="80" y="644" fill="#925716">MINI-IPIP · 5 dimensiones</text>
+  <line stroke-width="1" x1="80" y1="883" x2="570" y2="883" stroke="#EAD5C0" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700" text-anchor="start" dominant-baseline="central" x="80" y="914" fill="#925716">NASA-TLX · 6 dimensiones</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" text-anchor="start" dominant-baseline="central" x="80" y="943" fill="#526479">Carga percibida después del simulacro común</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700" text-anchor="start" dominant-baseline="central" x="80" y="380" fill="#142942">Físico · promedio</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="end" dominant-baseline="central" x="506" y="380" fill="#526479">0–100</text>
+  <circle cx="567" cy="380" r="21" fill="#0054B2" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="567" y="380" fill="white">x1</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700" text-anchor="start" dominant-baseline="central" x="80" y="420" fill="#142942">Desempeño · promedio</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="end" dominant-baseline="central" x="506" y="420" fill="#526479">0–100</text>
+  <circle cx="567" cy="420" r="21" fill="#0054B2" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="567" y="420" fill="white">x2</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700" text-anchor="start" dominant-baseline="central" x="80" y="460" fill="#142942">Académica · acumulado</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="end" dominant-baseline="central" x="506" y="460" fill="#526479">0–100</text>
+  <circle cx="567" cy="460" r="21" fill="#0054B2" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="567" y="460" fill="white">x3</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700" text-anchor="start" dominant-baseline="central" x="80" y="587" fill="#142942">Autoeficacia general</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="end" dominant-baseline="central" x="506" y="587" fill="#526479">10–40</text>
+  <circle cx="567" cy="587" r="21" fill="#FA9A4B" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="567" y="587" fill="#142942">x4</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="400" text-anchor="start" dominant-baseline="central" x="80" y="681" fill="#142942">Extraversión</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="end" dominant-baseline="central" x="506" y="681" fill="#526479">4–20</text>
+  <circle cx="567" cy="681" r="21" fill="#FA9A4B" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="567" y="681" fill="#142942">x5</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="400" text-anchor="start" dominant-baseline="central" x="80" y="723" fill="#142942">Amabilidad</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="end" dominant-baseline="central" x="506" y="723" fill="#526479">4–20</text>
+  <circle cx="567" cy="723" r="21" fill="#FA9A4B" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="567" y="723" fill="#142942">x6</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="400" text-anchor="start" dominant-baseline="central" x="80" y="765" fill="#142942">Responsabilidad</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="end" dominant-baseline="central" x="506" y="765" fill="#526479">4–20</text>
+  <circle cx="567" cy="765" r="21" fill="#FA9A4B" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="567" y="765" fill="#142942">x7</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="400" text-anchor="start" dominant-baseline="central" x="80" y="807" fill="#142942">Neuroticismo</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="end" dominant-baseline="central" x="506" y="807" fill="#526479">4–20</text>
+  <circle cx="567" cy="807" r="21" fill="#FA9A4B" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="567" y="807" fill="#142942">x8</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="400" text-anchor="start" dominant-baseline="central" x="80" y="849" fill="#142942">Apertura / intelecto</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="end" dominant-baseline="central" x="506" y="849" fill="#526479">4–20</text>
+  <circle cx="567" cy="849" r="21" fill="#FA9A4B" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="567" y="849" fill="#142942">x9</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="400" text-anchor="start" dominant-baseline="central" x="80" y="977" fill="#142942">Demanda mental</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="end" dominant-baseline="central" x="506" y="977" fill="#526479">0–100</text>
+  <circle cx="567" cy="977" r="21" fill="#C67B22" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="567" y="977" fill="white">x10</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="400" text-anchor="start" dominant-baseline="central" x="80" y="1027" fill="#142942">Demanda física</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="end" dominant-baseline="central" x="506" y="1027" fill="#526479">0–100</text>
+  <circle cx="567" cy="1027" r="21" fill="#C67B22" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="567" y="1027" fill="white">x11</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="400" text-anchor="start" dominant-baseline="central" x="80" y="1077" fill="#142942">Demanda temporal</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="end" dominant-baseline="central" x="506" y="1077" fill="#526479">0–100</text>
+  <circle cx="567" cy="1077" r="21" fill="#C67B22" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="567" y="1077" fill="white">x12</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="400" text-anchor="start" dominant-baseline="central" x="80" y="1127" fill="#142942">Rendimiento percibido</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="end" dominant-baseline="central" x="506" y="1127" fill="#526479">0–100</text>
+  <circle cx="567" cy="1127" r="21" fill="#C67B22" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="567" y="1127" fill="white">x13</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="400" text-anchor="start" dominant-baseline="central" x="80" y="1177" fill="#142942">Esfuerzo</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="end" dominant-baseline="central" x="506" y="1177" fill="#526479">0–100</text>
+  <circle cx="567" cy="1177" r="21" fill="#C67B22" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="567" y="1177" fill="white">x14</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="400" text-anchor="start" dominant-baseline="central" x="80" y="1227" fill="#142942">Frustración</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="end" dominant-baseline="central" x="506" y="1227" fill="#526479">0–100</text>
+  <circle cx="567" cy="1227" r="21" fill="#C67B22" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="567" y="1227" fill="white">x15</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700" text-anchor="start" dominant-baseline="central" x="80" y="1260" fill="#925716">Rendimiento TLX: 0 = bueno; 100 = malo.</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" text-anchor="start" dominant-baseline="central" x="80" y="1287" fill="#526479">Cada dimensión se mantiene por separado.</text>
+  <circle cx="925" cy="400" r="25" fill="#0500B2" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="925" y="400" fill="white">h1</text>
+  <circle cx="925" cy="550" r="25" fill="#0500B2" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="925" y="550" fill="white">h2</text>
+  <circle cx="925" cy="700" r="25" fill="#0500B2" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="925" y="700" fill="white">h3</text>
+  <circle cx="925" cy="850" r="25" fill="#0500B2" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="925" y="850" fill="white">h4</text>
+  <circle cx="925" cy="1000" r="25" fill="#0500B2" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="925" y="1000" fill="white">h5</text>
+  <circle cx="925" cy="1150" r="25" fill="#0500B2" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="925" y="1150" fill="white">h6</text>
+  <circle cx="1258" cy="450" r="24" fill="#0500B2" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="1258" y="450" fill="white">y1</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" text-anchor="start" dominant-baseline="central" x="1300" y="420" fill="#142942">Preparación progresiva</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" text-anchor="start" dominant-baseline="central" x="1300" y="454" fill="#142942">y confianza</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="1300" y="497" fill="#526479">Prácticas paso a paso y metas</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="1300" y="527" fill="#526479">alcanzables para fortalecer la preparación.</text>
+  <circle cx="1258" cy="660" r="24" fill="#0500B2" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="1258" y="660" fill="white">y2</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" text-anchor="start" dominant-baseline="central" x="1300" y="630" fill="#142942">Organización de tareas</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" text-anchor="start" dominant-baseline="central" x="1300" y="664" fill="#142942">y manejo de la carga</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="1300" y="707" fill="#526479">Prioridades claras y distribución de tareas</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="1300" y="737" fill="#526479">para afrontar mejor las actividades.</text>
+  <circle cx="1258" cy="870" r="24" fill="#0500B2" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="1258" y="870" fill="white">y3</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" text-anchor="start" dominant-baseline="central" x="1300" y="840" fill="#142942">Comunicación y aprendizaje</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" text-anchor="start" dominant-baseline="central" x="1300" y="874" fill="#142942">acompañado</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="1300" y="917" fill="#526479">Aprender juntos, compartir dudas</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="1300" y="947" fill="#526479">y coordinar mejor en equipo.</text>
+  <circle cx="1258" cy="1080" r="24" fill="#0500B2" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="central" x="1258" y="1080" fill="white">y4</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" text-anchor="start" dominant-baseline="central" x="1300" y="1050" fill="#142942">Afrontamiento y seguimiento</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" text-anchor="start" dominant-baseline="central" x="1300" y="1084" fill="#142942">del bienestar</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="1300" y="1127" fill="#526479">Escucha voluntaria y apoyos para afrontar</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="1300" y="1157" fill="#526479">las exigencias cuidando el bienestar.</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="400" text-anchor="middle" dominant-baseline="central" x="925" y="1230" fill="#526479">h = tanh(W₁x + b₁)</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="400" text-anchor="middle" dominant-baseline="central" x="925" y="1267" fill="#526479">y = σ(W₂h + b₂)</text>
+  <rect x="1230" y="1193" width="705" height="117" rx="10" fill="#FFF0E3" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="23" font-weight="700" text-anchor="start" dominant-baseline="central" x="1252" y="1216" fill="#925716">04  Selección fuera de la red</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="1252" y="1250" fill="#142942">Se elige la puntuación mayor (argmax): una opción.</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="1252" y="1283" fill="#142942">Revisión humana y confirmación antes del reporte.</text>
+  <line stroke-width="1" x1="65" y1="1345" x2="1935" y2="1345" stroke="#DCE5EF" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="25" font-weight="700" text-anchor="start" dominant-baseline="central" x="65" y="1383" fill="#142942">Cómo funciona</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700" text-anchor="start" dominant-baseline="central" x="65" y="1428" fill="#0054B2">1. Poner las entradas en la misma escala</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="65" y="1460" fill="#526479">(valor − mínimo) / (máximo − mínimo)</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700" text-anchor="start" dominant-baseline="central" x="735" y="1428" fill="#0500B2">2. Combinar la información</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="735" y="1460" fill="#526479">Las líneas son conexiones ya entrenadas.</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700" text-anchor="start" dominant-baseline="central" x="1390" y="1428" fill="#925716">3. Proponer un apoyo prioritario</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="1390" y="1460" fill="#526479">La elección final requiere revisión humana.</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="25" font-weight="700" text-anchor="start" dominant-baseline="central" x="65" y="1506" fill="#0054B2">114 conexiones + 10 sesgos = 124 parámetros entrenados</text>
+  <line stroke-width="1" x1="65" y1="1544" x2="1935" y2="1544" stroke="#DCE5EF" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="25" font-weight="700" text-anchor="start" dominant-baseline="central" x="65" y="1582" fill="#142942">Datos · 200 registros</text>
+  <rect x="65" y="1615" width="560.0" height="40" rx="0" fill="#0054B2" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700" text-anchor="middle" dominant-baseline="central" x="345.0" y="1635" fill="white">140</text>
+  <rect x="625.0" y="1615" width="120.0" height="40" rx="0" fill="#FA9A4B" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700" text-anchor="middle" dominant-baseline="central" x="685.0" y="1635" fill="#142942">30</text>
+  <rect x="745.0" y="1615" width="120.0" height="40" rx="0" fill="#226DC6" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700" text-anchor="middle" dominant-baseline="central" x="805.0" y="1635" fill="white">30</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="65" y="1682" fill="#526479">140 entrenamiento · 30 validación · 30 prueba</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="65" y="1720" fill="#526479">Generados por computadora para experimentación.</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="65" y="1754" fill="#526479">No son respuestas reales de Instructores.</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="25" font-weight="700" text-anchor="start" dominant-baseline="central" x="1030" y="1582" fill="#142942">Configuración verificada</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="400" text-anchor="start" dominant-baseline="central" x="1030" y="1625" fill="#526479">SGD · tasa de aprendizaje 0,03 · L2 = 0,001</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="400" text-anchor="start" dominant-baseline="central" x="1030" y="1665" fill="#526479">Parada temprana: paciencia 25 · máximo 300 épocas</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="400" text-anchor="start" dominant-baseline="central" x="1030" y="1705" fill="#526479">Semilla 401 · época elegida 196 de 221 ejecutadas</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="1030" y="1745" fill="#526479">Empate exacto: prevalece el orden de las salidas 1 → 4.</text>
+  <rect x="65" y="1790" width="1870" height="77" rx="8" fill="#FFF0E3" />
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700" text-anchor="start" dominant-baseline="central" x="87" y="1815" fill="#142942">Uso orientativo: no es diagnóstico ni evaluación de aptitud; no decide ascensos o sanciones.</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" text-anchor="start" dominant-baseline="central" x="87" y="1847" fill="#526479">Las puntuaciones no son porcentajes de certeza. La selección única no acredita validación sobre personas.</text>
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="start" dominant-baseline="central" x="65" y="1900" fill="#526479">SICOSE · Actualizado el 19/10/2026 · Pesos vigentes preservados; este gráfico no reentrena el modelo.</text>
+</svg>

@@ -1,0 +1,46 @@
+{
+  "modelo_sha256": "a98b65067700a975bb1993fe9510235900c21e15009adec8a18f46bca05e1353",
+  "arquitectura": [
+    15,
+    6,
+    4
+  ],
+  "parametros": 124,
+  "entradas": [
+    "fisica",
+    "desempeno",
+    "academica",
+    "gse_autoeficacia",
+    "mini_extraversion",
+    "mini_amabilidad",
+    "mini_responsabilidad",
+    "mini_neuroticismo",
+    "mini_apertura",
+    "tlx_demanda_mental",
+    "tlx_demanda_fisica",
+    "tlx_demanda_temporal",
+    "tlx_rendimiento",
+    "tlx_esfuerzo",
+    "tlx_frustracion"
+  ],
+  "salidas": [
+    "preparacion_progresiva_y_confianza",
+    "organizacion_de_tareas_y_manejo_de_carga",
+    "comunicacion_y_aprendizaje_acompanado",
+    "afrontamiento_y_seguimiento_del_bienestar"
+  ],
+  "semilla": 401,
+  "epoca": 196,
+  "politica": "ARGMAX_V1",
+  "datos": 200,
+  "particiones": {
+    "entrenamiento": 140,
+    "validacion": 30,
+    "prueba": 30
+  },
+  "grafico_actualizado": "2026-10-19",
+  "png_dimensiones": [
+    4000,
+    3860
+  ]
+}

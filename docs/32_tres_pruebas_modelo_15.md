@@ -2,6 +2,10 @@
 
 Entrega del 2026-10-18, SQLite v31. La instrucción posterior del solicitante sustituye la decisión anterior de conservar solo dos pruebas. Se mantiene la separación entre Evaluaciones institucionales y el módulo Pruebas y Recomendación, sin incorporar funciones en DEMO.
 
+[Gráfico actualizado del modelo vigente — 19/10/2026 (PNG)](../output/grafico_modelo_vigente_20261019/modelo_red_neuronal_actual.png) · [SVG vectorial](../output/grafico_modelo_vigente_20261019/modelo_red_neuronal_actual.svg). Diferencia evaluación institucional y pruebas; muestra selección argmax y revisión humana. Actualiza la presentación del modelo entrenado, sin un nuevo entrenamiento ni cambios de pesos o Datos.
+
+[Notebook autocontenido para Google Colab](../output/colab_modelo_15_6_4_20261019/SICOSE_Modelo_15_6_4.ipynb) · [Código Python](../output/colab_modelo_15_6_4_20261019/SICOSE_Modelo_15_6_4.py) · [Instrucciones y verificación](../output/colab_modelo_15_6_4_20261019/README.md). Incluye pesos, 200 Datos, inferencia argmax y reproducción opcional del entrenamiento. Validado localmente, sin ejecutar en el servicio de Colab ni cambiar el modelo del sistema.
+
 ## Modelo y entradas
 
 Se utiliza **el modelo ya entrenado 15→6→4**, 124 parámetros, semilla 401 y época elegida 196, seleccionado por menor pérdida de validación dentro de la arquitectura preferida en la comparación de diez semillas. No se reentrena, no se generan nuevos datos ni se elige por resultados de prueba. [Comparación y límites originales](29_comparacion_redes_tlx.md).

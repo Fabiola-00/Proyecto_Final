@@ -1,6 +1,50 @@
 # SICOSE — Bases de desarrollo, reconstrucción limpia y continuidad
 
-**Corte funcional vigente: 2026-10-18, SQLite v31. Bases históricas conservadas: v23/v24/v28/v29/v30.**
+**Corte funcional vigente: 2026-10-19, SQLite v32, 74 tablas.** Los apartados históricos y el DDL v23/v24/v25 se conservan como antecedentes; no bastan por sí solos para reconstruir v32. Para una reconstrucción actual, contrastar `sicose/schema.sql`, las migraciones aditivas de `sicose/db.py` y los suplementos posteriores. Las reglas de este corte y los acuerdos posteriores prevalecen sobre restricciones antiguas incompatibles.
+
+## Estado vigente al cierre del 2026-10-19
+
+[Panel del Instructor Voluntario](docs/33_panel_instructor.md) implementado técnicamente:
+
+- Inicio usa la única Gestión activa no retirada: cuatro cuadros de evaluaciones asignadas/completadas/pendientes y cursos completados. Las evaluaciones son Física 1, Física 2, Académica y Desempeño conjunto; se excluyen psicometría y ejercicios. El cero inicial no acredita finalización. «Tu avance» se retira y «Mis Evaluaciones» es un aviso de habilitadas pendientes.
+- Perfil al pie del menú sobre PERÍODO ACTUAL. Información personal y Editar perfil son tarjetas independientes, dos columnas en escritorio y apiladas en móvil. Solo correo/foto admiten cambios. Vista previa local de foto, descarte, PNG/JPEG hasta 3 MiB y estado de guardado; el servidor sigue validando permisos/contenido.
+- Asistencias, Cursos, Operaciones y Evaluaciones tienen selector real de Gestión activa/cerrada no retirada, con fechas propias inclusivas. Por defecto se usa la activa o la más reciente. Las consultas propias no aceptan elegir otra persona. Asistencia cuenta registros por estado/actividad y mes, incluidos meses vacíos, sin calendario anual; cursos muestran participaciones del intervalo y notas publicadas; operaciones conservan tabla/detalle propios y filtran solapamientos.
+- Evaluaciones muestra las físicas y su promedio, Académica y únicamente el promedio publicado de Desempeño. Las notas del Jefe/Comandante, observaciones y resultado conjunto no se exponen al Instructor. Pruebas conserva la tabla y privacidad; no se añaden resultados psicométricos propios.
+
+### Publicación y persistencia V3
+
+Administrador/Jefe publica explícitamente desde Evaluaciones, con motivo, revisión y firma de fuentes; cuenta y Gestión activas, no retiradas y fuentes habilitadas. Las correcciones conservan lo publicado hasta republicación; deshabilitar oculta y rehabilitar recupera esa versión. Cierre conserva la publicación, sin publicar automáticamente.
+
+La tabla histórica `publicaciones_5b` depende de `reglas_calculo_5b`. V3 usa la nueva `publicaciones_modelo_anual`, referida a `modelos_anuales`, con versiones enlazadas, unicidad e inmutabilidad. Las publicaciones anteriores no se transforman ni se completan con promedios inferidos. El suplemento SQL v32 al final reproduce la adición; no sustituye las migraciones anteriores.
+
+**Consulta administrativa del historial V3 pendiente:** el endpoint de historial todavía lee exclusivamente `publicaciones_5b`. Se verificó en SQLite temporal: publicar devuelve 201 y guarda una versión V3, pero listar historial devuelve 200 con cero versiones. Se conservan la persistencia, última versión propia y publicación en cierre; no afirmar que el listado V3 está implementado. Esta revisión documental no corrige el endpoint.
+
+| Ruta | Alcance actual |
+|---|---|
+| `/panel/instructor-voluntario` | Resumen propio de Gestión activa |
+| `/mi-perfil` | Consulta propia y formulario correo/foto |
+| `PATCH /api/instructor-voluntario/perfil` | Autoservicio limitado, sin nuevos campos |
+| `/mis-asistencias?periodo_id=<id>` | Gráficos mensuales propios por intervalo |
+| `/mis-cursos?periodo_id=<id>` | Tabla propia y calificaciones publicadas |
+| `/gestion/operaciones?periodo_id=<id>` | Tabla existente con Gestión seleccionada |
+| `/api/operaciones?periodo_id=<id>` | Filtra participaciones propias por solapamiento; el API histórico sin filtro se conserva |
+| `/mis-evaluaciones/anual?periodo_id=<id>` | Resultados institucionales publicados |
+| `/api/evaluaciones/propias?periodo_id=<id>` | Proyección positiva V3, sin fuentes privadas de Desempeño |
+| `GET/POST /api/5b/personas/<uid>/publicacion` | Vista previa/publicación administrativa histórica o V3 según Gestión |
+| `/gestion/pruebas-recomendacion` | Pruebas propias; administración y recomendaciones según rol |
+
+### Modelo vigente, distinto de los antecedentes
+
+NASA-TLX/GSE/Mini-IPIP integrados con el modelo ya entrenado 15→6→4 (124 parámetros, semilla 401/época 196). Nuevas propuestas: exactamente una Línea de orientación prioritaria por argmax, criterio ARGMAX_V1 y firma ORIENTACION_PRIORITARIA_V1; desempate por orden original. Ranking/margen conservados, confirmación humana y observación separadas. Propuestas anteriores abiertas quedan Desactualizadas; cerradas conservan versión hasta reapertura. No se reentrena, no se presentan activaciones como certeza y no se alteran pesos, resultados históricos ni reglas institucionales. Ver [integración y límites](docs/32_tres_pruebas_modelo_15.md). Las menciones posteriores al modelo de nueve entradas/abstención corresponden a sus entregas históricas.
+
+### Verificación, migración y operación de la jornada
+
+- Migración v31→v32 aplicada con respaldo `instance/backups/sicose-20261019-pre-v32-e7b973fd.sqlite3`: 73 tablas previas preservadas salvo versión, 74 finales, una nueva vacía, dos inicializaciones, quick_check=ok/FK=0. Evidencia `.tmp/panel-instructor-migracion.json`. No se crearon publicaciones reales automáticamente. Relectura actual: v32/74 tablas/quick_check=ok/FK=0/publicaciones V3=0.
+- Suite general de la entrega: 259 pruebas/598,652 s; 257 aprobadas y dos expectativas antiguas de texto fallidas. Se corrigieron y aprobaron en 18 regresiones finales/34,410 s. No hubo segunda suite general; no afirmar 259/259 aprobadas. Perfil: cuatro pruebas/3,565 s y ocho comprobaciones Node de lógica. Los logs figuran en HISTORY y docs/33.
+- Panel: seis vistas a 360/1484 px sin desborde global medido. Perfil: escritorio/móvil en claro/oscuro inspeccionados. La extensión bloqueó la selección real del archivo, sin modificar permisos; vista previa comprobada por lógica y persistencia por pruebas backend, sin afirmar carga visual verificada. Servidores/bases sintéticos retirados. Las pruebas técnicas no acreditan aceptación humana/institucional.
+- Un servidor iniciado con `flask --app sicose run` puede conservar plantillas en memoria al no tener recarga automática. En esta jornada se comprobó el proceso del checkout correcto, se reinició únicamente ese servidor con la misma configuración y se verificaron HTTP 200 y CSS/JS nuevos. Después, Ctrl+F5 en el navegador. No se cambió .env, entorno, base ni permisos. Para desarrollo local puede usarse el arranque con `--debug` indicado en AGENTS; no es necesario migrar o sembrar la base para un cambio visual.
+
+## Antecedentes de integración — 2026-10-18, v31 y anteriores
 
 Nueva decisión e integración: [tres pruebas y modelo de quince entradas](docs/32_tres_pruebas_modelo_15.md). NASA-TLX/GSE/Mini-IPIP en el módulo separado, pesos existentes 15→6→4 seleccionados por validación (401/196), simulacro común por Gestión y confirmación de participación, privacidad/revisión/reinicio/historial intactos. Migra solo siete tablas aditivas, sin reentrenar ni inventar evidencia. Las decisiones previas de conservar únicamente dos instrumentos quedan históricas.
 
@@ -2032,3 +2076,29 @@ Verificación de esta corrección: cuatro pruebas específicas aprobadas en 0,00
 El gráfico de asistencia del Inicio del Jefe cuenta fechas distintas dentro de cada mes de la Gestión activa (COUNT DISTINCT fecha), no filas por persona. Varias personas o actividades registradas el mismo día cuentan como un único día. No se filtra por Asiste: se cuentan días con registro de llamada, independientemente del estado personal. Se conserva el intervalo inclusivo y los meses sin registros. Título: Días con asistencia registrada. Las demás series mantienen sus conteos.
 
 Verificación nueva: cinco pruebas mensuales aprobadas en 0,002 s, incluida deduplicación de fechas con múltiples registros y límites del período; tres pruebas del espacio del Jefe aprobadas en 7,287 s, incluida la etiqueta renderizada. Compilación Python y git diff --check correctos. Sin migración, cambios de datos ni nueva suite completa o ensayo visual. Evidencia en .tmp/dias-asistencia-tests.log y .tmp/dias-asistencia-regresion.log; las verificaciones visuales anteriores siguen siendo históricas.
+
+
+## Suplemento SQL v32 — publicación propia del modelo anual
+
+Adición sobre una base v31 existente. La reconstrucción completa debe aplicar el esquema y las migraciones anteriores; este bloque aislado no reproduce v32. No crea filas ni transforma publicaciones históricas. La migración local ya aplicada y respaldada está registrada arriba; no volver a ejecutarla como un ensayo ni reinicializar datos.
+
+```sql
+CREATE TABLE IF NOT EXISTS publicaciones_modelo_anual (
+ id INTEGER PRIMARY KEY,
+ voluntario_id INTEGER NOT NULL REFERENCES voluntarios(usuario_id) ON DELETE RESTRICT,
+ periodo_id INTEGER NOT NULL REFERENCES modelos_anuales(periodo_id) ON DELETE RESTRICT,
+ revision INTEGER NOT NULL CHECK(revision>0),
+ anterior_id INTEGER UNIQUE REFERENCES publicaciones_modelo_anual(id) ON DELETE RESTRICT,
+ contenido_json TEXT NOT NULL, fuentes_json TEXT NOT NULL, motivo TEXT NOT NULL,
+ publicada_por INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ responsable_nombre TEXT NOT NULL, publicada_en TEXT NOT NULL,
+ UNIQUE(voluntario_id,periodo_id,revision)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS publicacion_anual_inicial ON publicaciones_modelo_anual(voluntario_id,periodo_id) WHERE anterior_id IS NULL;
+CREATE TRIGGER IF NOT EXISTS publicacion_anual_inmutable_actualizar BEFORE UPDATE ON publicaciones_modelo_anual
+BEGIN SELECT RAISE(ABORT,'publicacion_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS publicacion_anual_inmutable_borrar BEFORE DELETE ON publicaciones_modelo_anual
+BEGIN SELECT RAISE(ABORT,'publicacion_inmutable'); END;
+```
+
+Validación documental del 2026-10-19: bloque SQL idéntico a la adición de `sicose/schema.sql`; dos ejecuciones en SQLite en memoria con tres tablas padre mínimas, quick_check=ok/FK=0 y cero filas nuevas. Solo comprueba sintaxis/idempotencia del suplemento, no la reconstrucción completa de v32. Los 102 enlaces locales de README/AGENTS/HISTORY/DESARROLLO son válidos y el diff no presenta errores. Sin repetir suite funcional ni migrar la base local.

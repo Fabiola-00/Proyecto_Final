@@ -1,0 +1,26 @@
+{
+  "modos": [
+    {
+      "reentrenamiento": false,
+      "celdas_ejecutadas": 9,
+      "referencias": 200,
+      "diferencia_predicciones": 0.0,
+      "diferencia_pesos": null,
+      "epoca_elegida": null,
+      "segundos": 0.047,
+      "archivos_exportados": 4
+    },
+    {
+      "reentrenamiento": true,
+      "celdas_ejecutadas": 9,
+      "referencias": 200,
+      "diferencia_predicciones": 0.0,
+      "diferencia_pesos": 0.0,
+      "epoca_elegida": 196,
+      "segundos": 1.142,
+      "archivos_exportados": 5
+    }
+  ],
+  "script_autocontenido": true,
+  "ejecucion_en_colab": false
+}

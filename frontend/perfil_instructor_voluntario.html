@@ -1,20 +1,43 @@
 {% extends "_dashboard_base.html" %}
 {% block contenido %}
-<section class="seccion-panel" aria-labelledby="perfil-titulo">
-  <div class="titulo-seccion"><h2 id="perfil-titulo">Correo y foto</h2></div>
-  <article class="tarjeta-amplia">
-    <p>{{ current_user.nombre }} · {{ current_user.username }}</p>
-    {% if current_user.foto_perfil %}<img class="foto-perfil" src="{{ url_for('management.foto_perfil', usuario_id=current_user.id) }}" alt="Tu foto actual">{% endif %}
-    <p><strong>Especialidades secundarias:</strong> {{ especialidades_secundarias | join(', ') if especialidades_secundarias else 'Sin registrar' }}</p>
-    <p><strong>Nacionalidad (país):</strong> {{ geografia.get('nacionalidad') or 'Sin registrar' }}</p>
-    <p><strong>Residencia:</strong> {{ geografia.get('pais_residencia') or 'Sin registrar' }} / {{ geografia.get('departamento_residencia') or 'Sin registrar' }}</p>
-    <p>Grado: {{ geografia.get('grado') or 'Sin registrar' }}</p>
-    <form id="perfil-propio-form" class="formulario-inline" enctype="multipart/form-data">
-      <label>Correo electrónico (opcional)<input name="correo" type="email" maxlength="254" autocomplete="email" value="{{ current_user.correo or '' }}"></label>
-      <label>Foto de perfil (PNG/JPEG, máximo 3 MiB)<input name="foto" type="file" accept="image/png,image/jpeg"></label>
-      <button type="submit">Guardar cambios</button>
+<div class="perfil-personal">
+  <section class="perfil-panel" aria-labelledby="perfil-informacion-titulo">
+    <h2 id="perfil-informacion-titulo">Información personal</h2>
+    <div class="perfil-identidad">
+      {% if current_user.foto_perfil %}
+      <img class="perfil-retrato" src="{{ url_for('management.foto_perfil', usuario_id=current_user.id) }}" alt="Tu foto actual">
+      {% else %}<span class="perfil-retrato perfil-inicial" aria-hidden="true">{{ current_user.nombre[:1]|upper }}</span>{% endif %}
+      <div><h3>{{ current_user.nombre }}</h3><p class="perfil-usuario">Usuario: {{ current_user.username }}</p><span class="perfil-rol">Instructor Voluntario</span></div>
+    </div>
+    <dl class="perfil-datos">
+      <div><dt>Grado</dt><dd>{{ geografia.get('grado') or 'Sin registrar' }}</dd></div>
+      <div><dt>Nacionalidad</dt><dd>{{ geografia.get('nacionalidad') or 'Sin registrar' }}</dd></div>
+      <div><dt>Residencia</dt><dd>{{ geografia.get('pais_residencia') or 'Sin registrar' }} / {{ geografia.get('departamento_residencia') or 'Sin registrar' }}</dd></div>
+      <div class="perfil-especialidad-principal"><dt>Especialidad Principal</dt><dd>{{ geografia.get('especialidad_principal') or 'Sin registrar' }}</dd></div>
+      <div><dt>Especialidades Secundarias</dt><dd>{% if especialidades_secundarias %}<ul class="perfil-especialidades">{% for especialidad in especialidades_secundarias %}<li>{{ especialidad }}</li>{% endfor %}</ul>{% else %}Sin registrar{% endif %}</dd></div>
+    </dl>
+    <p class="perfil-nota">Para corregir tus datos personales, contacta al Administrador o al Jefe de Personal.</p>
+  </section>
+  <section class="perfil-panel" aria-labelledby="perfil-edicion-titulo">
+    <h2 id="perfil-edicion-titulo">Editar perfil</h2>
+    <p class="perfil-introduccion">Mantén tu correo y tu foto actualizados.</p>
+    <form id="perfil-propio-form" class="perfil-formulario" enctype="multipart/form-data">
+      <label for="perfil-correo">Correo electrónico <span class="perfil-opcional">(opcional)</span></label>
+      <input id="perfil-correo" name="correo" type="email" maxlength="254" autocomplete="email" value="{{ current_user.correo or '' }}" aria-describedby="perfil-correo-ayuda">
+      <p class="perfil-ayuda" id="perfil-correo-ayuda">Puedes dejarlo vacío si no deseas registrar un correo.</p>
+      <div class="perfil-foto-campo">
+        <label for="perfil-foto">Foto de perfil</label>
+        <p class="perfil-ayuda" id="perfil-foto-ayuda">Selecciona una imagen PNG o JPEG de hasta 3 MiB.</p>
+        <input id="perfil-foto" name="foto" type="file" accept="image/png,image/jpeg" aria-describedby="perfil-foto-ayuda perfil-foto-estado">
+        <div id="perfil-foto-previa" class="perfil-foto-previa" hidden>
+          <img id="perfil-foto-imagen" alt="Vista previa de la nueva foto">
+          <div><strong>Vista previa</strong><p id="perfil-foto-nombre"></p><button type="button" id="perfil-foto-descartar" class="boton-secundario">Descartar foto</button></div>
+        </div>
+        <p class="perfil-ayuda" id="perfil-foto-estado" role="status" aria-live="polite">Tu foto actual se conserva si no seleccionas otra.</p>
+      </div>
+      <div class="perfil-guardar"><button type="submit">Guardar cambios</button><span>Los cambios se aplican al guardar.</span></div>
+      <p id="perfil-propio-mensaje" class="mensaje" role="status" aria-live="polite"></p>
     </form>
-    <p id="perfil-propio-mensaje" class="mensaje" role="status" aria-live="polite"></p>
-  </article>
-</section>
+  </section>
+</div>
 {% endblock %}
