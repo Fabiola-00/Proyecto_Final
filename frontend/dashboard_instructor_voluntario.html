@@ -1,22 +1,10 @@
 {% extends "_dashboard_base.html" %}
-
 {% block contenido %}
-<section class="seccion-panel" aria-labelledby="avance-titulo">
-  <div class="titulo-seccion"><div><p class="sobrelinea">VISTA PERSONAL</p><h2 id="avance-titulo">Tu avance</h2></div><span class="estado-fase">Vista inicial</span></div>
-  <div class="tarjeta-amplia tarjeta-personal">
-    <div class="icono-amplio" aria-hidden="true">◌</div>
-    <div><h3>Seguimiento de tu cuenta</h3><p>Consulta evaluaciones completadas y pendientes. Aquí se muestran solo estado y avance; no se exponen calificaciones, resultados individuales ni observaciones.</p></div>
-  </div>
-</section>
 <section id="mis-evaluaciones" class="seccion-panel" aria-labelledby="mis-evaluaciones-titulo">
-  <div class="titulo-seccion"><h2 id="mis-evaluaciones-titulo">Mis evaluaciones</h2></div>
+  <div class="titulo-seccion"><h2 id="mis-evaluaciones-titulo">Mis Evaluaciones</h2></div>
   {% if evaluaciones_resumen %}
-  <div class="rejilla-modulos">
-    {% for evaluacion in evaluaciones_resumen %}
-    <article class="tarjeta-modulo"><h3>{{ evaluacion.evaluacion }}</h3><p>{{ evaluacion.periodo }}</p><span class="estado-fase">{{ evaluacion.estado|replace('_', ' ')|capitalize }}</span></article>
-    {% endfor %}
-  </div>
-  {% else %}<p class="nota-informativa">Aún no tienes evaluaciones asignadas.</p>{% endif %}
+  <p class="nota-informativa">Tienes evaluaciones habilitadas pendientes en {{ gestion_panel.nombre }}: {{ evaluaciones_resumen|map(attribute='nombre')|join(', ') }}.</p>
+  {% elif gestion_panel %}<p class="nota-informativa">No tienes evaluaciones habilitadas pendientes en esta Gestión.</p>
+  {% else %}<p class="nota-informativa">Aún no hay una Gestión activa.</p>{% endif %}
 </section>
-<aside class="nota-informativa"><span class="nota-icono" aria-hidden="true">✓</span><p><strong>Privacidad personal.</strong> Este espacio no presenta datos de otros Instructores Voluntarios ni resultados psicométricos.</p></aside>
 {% endblock %}

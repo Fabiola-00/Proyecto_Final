@@ -857,3 +857,21 @@ CREATE TRIGGER IF NOT EXISTS simulacro_tlx_update BEFORE UPDATE ON simulacros_tl
 WHEN NEW.periodo_id!=OLD.periodo_id OR EXISTS(SELECT 1 FROM tlx_intentos_pruebas WHERE periodo_id=OLD.periodo_id)
 BEGIN SELECT RAISE(ABORT,'simulacro_con_intentos_inmutable'); END;
 CREATE TRIGGER IF NOT EXISTS simulacro_tlx_delete BEFORE DELETE ON simulacros_tlx BEGIN SELECT RAISE(ABORT,'simulacro_inmutable'); END;
+
+-- v32: publicación propia del modelo anual, independiente de las reglas históricas.
+CREATE TABLE IF NOT EXISTS publicaciones_modelo_anual (
+ id INTEGER PRIMARY KEY,
+ voluntario_id INTEGER NOT NULL REFERENCES voluntarios(usuario_id) ON DELETE RESTRICT,
+ periodo_id INTEGER NOT NULL REFERENCES modelos_anuales(periodo_id) ON DELETE RESTRICT,
+ revision INTEGER NOT NULL CHECK(revision>0),
+ anterior_id INTEGER UNIQUE REFERENCES publicaciones_modelo_anual(id) ON DELETE RESTRICT,
+ contenido_json TEXT NOT NULL, fuentes_json TEXT NOT NULL, motivo TEXT NOT NULL,
+ publicada_por INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ responsable_nombre TEXT NOT NULL, publicada_en TEXT NOT NULL,
+ UNIQUE(voluntario_id,periodo_id,revision)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS publicacion_anual_inicial ON publicaciones_modelo_anual(voluntario_id,periodo_id) WHERE anterior_id IS NULL;
+CREATE TRIGGER IF NOT EXISTS publicacion_anual_inmutable_actualizar BEFORE UPDATE ON publicaciones_modelo_anual
+BEGIN SELECT RAISE(ABORT,'publicacion_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS publicacion_anual_inmutable_borrar BEFORE DELETE ON publicaciones_modelo_anual
+BEGIN SELECT RAISE(ABORT,'publicacion_inmutable'); END;

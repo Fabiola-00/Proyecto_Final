@@ -896,3 +896,11 @@ label.fila-compacta { flex-direction:row; justify-content:flex-start; font-size:
 #recomendacion-panel > details { min-width: 0; overflow-wrap: anywhere; }
 @media(max-width:1100px) { .dimensiones-grupos[data-vista="radar"] { grid-template-columns: minmax(0,1fr); } }
 @media(max-width:800px) { .dimensiones-grupos { grid-template-columns: minmax(0,1fr); } }
+
+/* Resumen compacto del Instructor Voluntario. */
+body[data-rol="INSTRUCTOR_VOLUNTARIO"] .indicadores { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+body[data-rol="INSTRUCTOR_VOLUNTARIO"] .tarjeta-indicador { padding: 14px; min-height: 0; }
+body[data-rol="INSTRUCTOR_VOLUNTARIO"] .indicador-valor { font-size: 1.7rem; margin: 6px 0; }
+body[data-rol="INSTRUCTOR_VOLUNTARIO"] .indicador-marca { display: none; }
+@media (max-width: 1000px) { body[data-rol="INSTRUCTOR_VOLUNTARIO"] .indicadores { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { body[data-rol="INSTRUCTOR_VOLUNTARIO"] .indicadores { grid-template-columns: 1fr; } }

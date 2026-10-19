@@ -45,7 +45,8 @@
     }
     function eliminar(o){const f=elemento('form',undefined,'formulario-inline');f.append(elemento('p','Sin vínculos se eliminará permanentemente. Con participantes o notas se conservará como baja histórica.'));const m=motivo(f);f.append(elemento('button','Confirmar eliminación','boton-secundario'));enviar(f,async()=>{const r=await apiJson(`/api/operaciones/${o.id}`,{method:'DELETE',body:{revision:o.revision,motivo:m.value}});mensaje.textContent=r.baja?'Operación dada de baja; historial conservado.':'Operación eliminada.';});return accion('Eliminar operación',f,'desactivar','Eliminar operación');}
     async function cargar(){
-      const d=await apiJson('/api/operaciones'+(document.querySelector('#operaciones-incluir-bajas')?.checked?'?incluir_bajas=1':''));lista.replaceChildren();
+      const seleccion=document.querySelector('#gestion-propia-selector');
+      const d=seleccion && !seleccion.value ? {operaciones:[]} : await apiJson('/api/operaciones'+(seleccion && seleccion.value ? '?periodo_id='+encodeURIComponent(seleccion.value) : '')+(document.querySelector('#operaciones-incluir-bajas')?.checked?'?incluir_bajas=1':''));lista.replaceChildren();
       const wrap=elemento('div',undefined,'tabla-contenedor'),t=elemento('table',undefined,'tabla-registros tabla-compacta tabla-operaciones'),head=elemento('thead'),fila=elemento('tr'),body=elemento('tbody');
       ['Departamento','Fecha inicio','Fecha fin','Institución','Estado','Acciones'].forEach(v=>{const th=elemento('th',v);th.scope='col';fila.append(th);});head.append(fila);t.append(head,body);wrap.append(t);lista.append(wrap);
       if(!d.operaciones.length){const tr=elemento('tr'),td=elemento('td','Sin operaciones registradas.','tabla-vacia');td.colSpan=6;tr.append(td);body.append(tr);}

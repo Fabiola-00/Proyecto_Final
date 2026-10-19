@@ -28,6 +28,17 @@
       const previa=personas.value||new URLSearchParams(location.search).get('persona_id')||'';personas.replaceChildren(elemento('option','Seleccionar persona'));personas.options[0].value='';datos.personas.forEach(p=>{const o=elemento('option',`${p.nombre} · ${(p.estado==='BORRADOR'?'Preparada':p.estado)}`);o.value=p.id;o.dataset.estado=p.estado;personas.append(o);});if([...personas.options].some(o=>o.value===previa))personas.value=previa;actualizarContextoEvaluacion(pid,personas.value);if(personas.value)await cargarPersona();
     }
     async function cargarPersona(){const uid=personas.value,pid=filtro.elements.periodo.value;const t=++turno;entradas.replaceChildren();notas.replaceChildren();ops.replaceChildren();historial.replaceChildren();actualizarContextoEvaluacion(pid,uid);if(!uid)return;const d=await apiJson(`/api/modelo-anual/gestiones/${pid}/personas/${uid}`);if(t!==turno || uid!==personas.value)return;const c=d.calculo;const editable=!gestion.retirada && gestion.estado==='ACTIVO' && personas.selectedOptions[0].dataset.estado==='ACTIVO';
+      const publicacion=await apiJson(`/api/5b/personas/${uid}/publicacion?periodo_id=${pid}`);
+      if(t!==turno || uid!==personas.value)return;
+      const v=publicacion.publicacion;
+      const publicado=elemento('section',undefined,'tarjeta-modulo');
+      publicado.append(elemento('h3','Publicación para el Instructor'),elemento('p',`Versión publicada: ${v.revision_publicada}. Se muestran físicas, Académica y únicamente el promedio de Desempeño. Las correcciones requieren republicación.`));
+      if(editable && v.puede_publicar)publicado.append(accion('Publicar resultados para el Instructor','Publicar resultados',f=>{
+        Object.entries(v.contenido.fisicas).forEach(([k,n])=>f.append(elemento('p',`${nombres[k]}: ${n.nota??'Pendiente'}`)));
+        f.append(elemento('p',`Académica: ${v.contenido.academica?.valor??'No disponible'} · Promedio Desempeño: ${v.contenido.desempeno?.valor??'No disponible'}`));
+        motivo(f);
+      },f=>apiJson(`/api/5b/personas/${uid}/publicacion`,{method:'POST',body:{periodo_id:Number(pid),revision_publicada:v.revision_publicada,firma_fuentes:v.firma_fuentes,motivo:f.elements.motivo.value}})));
+      historial.append(publicado);
       (c.entradas||[]).filter(e=>!e.clave.startsWith('PSICOMETRICA')).forEach(e=>{const a=elemento('article',undefined,'tarjeta-modulo');a.dataset.fuente=e.clave;a.append(elemento('h3',e.nombre),elemento('strong',e.valor??'Pendiente'),elemento('p',e.estado.replaceAll('_',' ')));entradas.append(a);});
       if(editable){const permisos=elemento('details');permisos.append(elemento('summary','Habilitación individual'));Object.entries({...nombres,ACADEMICA:'Académica'}).forEach(([clave,nombre])=>permisos.append(accion(`${nombre} · Habilitación`,`${d.habilitaciones[clave]?'Deshabilitar':'Habilitar'} ${nombre}`,f=>f.append(elemento('p','El cambio conserva las notas y su historial.')),()=>apiJson(`/api/evaluaciones/personas/${uid}/habilitacion`,{method:'PATCH',body:{periodo_id:Number(pid),clave,habilitada:!d.habilitaciones[clave]}}))));historial.append(permisos);}
       const notasTabla=tablaParticipaciones('Calificación y habilitación',['Evaluación','Nota','Estado / origen','Habilitación','Acción'],notas);Object.entries(nombres).forEach(([fuente,nombre])=>{const n=c.fuentes?.[fuente];if(!n)return;const fila=filaParticipacion(notasTabla,[nombre,(n.puntos_centesimas/100).toFixed(2),n.origen.replaceAll('_',' '),d.habilitaciones[fuente]?'Habilitada':'Deshabilitada']),a=elemento('td');

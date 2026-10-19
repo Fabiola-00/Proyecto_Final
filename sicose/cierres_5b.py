@@ -101,7 +101,8 @@ def preparar(c, pid, documental=False):
                  'asignaciones_historicas': filas(c, 'SELECT a.*,e.nombre AS evaluacion,e.categoria FROM asignaciones_evaluacion a JOIN evaluaciones e ON e.id=a.evaluacion_id WHERE a.voluntario_id=? AND a.periodo_id=? ORDER BY a.id', (uid,pid)),
                  'notas_historicas': filas(c, '''SELECT n.*,u.nombre_completo AS autor_al_cierre FROM calificaciones n JOIN asignaciones_evaluacion a ON a.id=n.asignacion_id JOIN evaluaciones e ON e.id=a.evaluacion_id JOIN usuarios u ON u.id=n.registrada_por WHERE a.voluntario_id=? AND a.periodo_id=? AND e.categoria!='PSICOMETRICA' ORDER BY n.id''', (uid,pid)),
                  'publicacion': None}
-        pub = c.execute('SELECT * FROM publicaciones_5b WHERE voluntario_id=? AND periodo_id=? ORDER BY id DESC LIMIT 1', (uid,pid)).fetchone()
+        from .publicaciones_5b import ultima
+        pub = ultima(c,uid,pid)
         if pub:
             datos['publicacion'] = dict(pub)
         if nuevo:

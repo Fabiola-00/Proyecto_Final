@@ -53,8 +53,8 @@ def totales(estados):
 @asistencias_bp.get('/mis-asistencias')
 @role_required('INSTRUCTOR_VOLUNTARIO')
 def pagina_propia():
-    return render_template('calendario_asistencias.html',titulo_pagina='Mis asistencias',nav_activo='asistencias',indicadores=[],
-        periodo_actual=db.periodo_actual(),descripcion='Calendario y resumen de tus asistencias por gestión.')
+    from .panel_instructor import pagina
+    return pagina('asistencias')
 
 @asistencias_bp.get('/api/instructor-voluntario/asistencias')
 @role_required('INSTRUCTOR_VOLUNTARIO')

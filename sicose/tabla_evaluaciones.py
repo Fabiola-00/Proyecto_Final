@@ -176,12 +176,19 @@ def propias():
         pid = periodo_solicitado()
         c = db.obtener_conexion()
         c.execute('BEGIN')
-        p = c.execute('SELECT id,nombre,estado FROM periodos WHERE id=?', (pid,)).fetchone()
+        p = c.execute('SELECT id,nombre,estado,fecha_inicio,fecha_fin FROM periodos WHERE id=?', (pid,)).fetchone()
         if p is None:
             raise ValueError('Gestión no encontrada.')
         from .modelo_anual import es_modelo
         if es_modelo(c,pid):
-            c.rollback();return jsonify(error='El modelo anual no tiene publicación propia habilitada.'),403
+            from .panel_instructor import estados
+            from .publicaciones_5b import proyeccion
+            items = estados(c,current_user.id,dict(p))
+            publicacion = proyeccion(c,current_user.id,pid)
+            c.commit()
+            respuesta = jsonify(periodo=dict(p),evaluaciones=items,publicacion=publicacion)
+            respuesta.headers['Cache-Control'] = 'private, no-store'
+            return respuesta
         valores = evaluaciones_persona(c, current_user.id, pid)
         # Ni filas ni denominadores propios revelan estados de Desempeño.
         valores = [e for e in valores if not e['clave'].startswith('DESEMPENO_')]

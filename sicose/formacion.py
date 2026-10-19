@@ -183,7 +183,10 @@ def propias():
     participaciones = [dict(f) for f in filas]
     from .publicaciones_5b import proyeccion
     publicaciones = []
-    for p in c.execute("SELECT DISTINCT p.periodo_id,substr(g.fecha_inicio,1,4) AS gestion FROM publicaciones_5b p JOIN periodos g ON g.id=p.periodo_id WHERE p.voluntario_id=? ORDER BY gestion DESC", (current_user.id,)):
+    for p in c.execute("""SELECT DISTINCT p.periodo_id,substr(g.fecha_inicio,1,4) AS gestion
+            FROM (SELECT voluntario_id,periodo_id FROM publicaciones_5b UNION
+                  SELECT voluntario_id,periodo_id FROM publicaciones_modelo_anual) p
+            JOIN periodos g ON g.id=p.periodo_id WHERE p.voluntario_id=? ORDER BY gestion DESC""", (current_user.id,)):
         valor = proyeccion(c, current_user.id, p["periodo_id"])
         if valor and valor["academica"] is not None:
             publicaciones.append({"periodo_id": p["periodo_id"], "gestion": p["gestion"], "academica": valor["academica"]})

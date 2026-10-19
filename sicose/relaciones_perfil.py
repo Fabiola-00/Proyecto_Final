@@ -91,14 +91,19 @@ def cursos_propios():
 @relaciones_bp.get('/mis-cursos')
 @role_required('INSTRUCTOR_VOLUNTARIO')
 def pagina_cursos_propios():
-    return render_template('consulta_cursos.html',titulo_pagina='Mis cursos',nav_activo='capacitaciones',
-        indicadores=[],periodo_actual=db.periodo_actual(),descripcion='Consulta tu historial formativo.')
+    from .panel_instructor import pagina
+    return pagina('cursos')
 
 @relaciones_bp.get('/gestion/operaciones')
 @role_required('ADMINISTRADOR','JEFE_PERSONAL','INSTRUCTOR_VOLUNTARIO')
 def pagina_operaciones():
+    contexto = {}
+    if current_user.rol == 'INSTRUCTOR_VOLUNTARIO':
+        from .panel_instructor import seleccion
+        opciones, elegida = seleccion(db.obtener_conexion())
+        contexto = dict(gestiones=opciones, gestion=elegida)
     return render_template('gestion_operaciones.html',titulo_pagina='Operaciones',nav_activo='operaciones',
-        indicadores=[],periodo_actual=db.periodo_actual(),descripcion='Eventos y participaciones dentro de tu ámbito.')
+        indicadores=[],periodo_actual=db.periodo_actual(),descripcion='Eventos y participaciones dentro de tu ámbito.', **contexto)
 
 @relaciones_bp.get('/api/operaciones')
 @role_required('ADMINISTRADOR','JEFE_PERSONAL','INSTRUCTOR_VOLUNTARIO')
@@ -110,6 +115,13 @@ def listar_operaciones():
     if current_user.rol=='INSTRUCTOR_VOLUNTARIO':
         consulta+=' WHERE EXISTS(SELECT 1 FROM participaciones_operacion p WHERE p.operacion_id=o.id AND p.voluntario_id=?)'
         parametros.append(current_user.id)
+        from .panel_instructor import seleccion
+        _, p = seleccion(conexion) if request.args else ([], None)
+        if p:
+            consulta += ' AND o.fecha_inicio<=? AND COALESCE(o.fecha_fin,o.fecha_inicio)>=?'
+            parametros.extend((p['fecha_fin'],p['fecha_inicio']))
+        elif request.args:
+            consulta += ' AND 0'
     elif request.args.get('incluir_bajas') != '1':
         consulta+=' WHERE NOT EXISTS(SELECT 1 FROM bajas_operacion b WHERE b.operacion_id=o.id)'
     eventos=[dict(f) for f in conexion.execute(consulta+' ORDER BY o.fecha_inicio DESC,o.id DESC',parametros)]

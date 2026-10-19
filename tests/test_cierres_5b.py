@@ -164,7 +164,7 @@ class CierresTestCase(unittest.TestCase):
             c=obtener_conexion();antes=[tuple(r) for r in c.execute('SELECT * FROM cierres_5b')]
             inicializar_base_datos();inicializar_base_datos()
             self.assertEqual([tuple(r) for r in c.execute('SELECT * FROM cierres_5b')],antes)
-            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'31')
+            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'32')
             self.assertEqual(c.execute('PRAGMA quick_check').fetchone()[0],'ok')
             self.assertEqual(c.execute('PRAGMA foreign_key_check').fetchall(),[])
 

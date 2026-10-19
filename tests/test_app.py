@@ -424,7 +424,7 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertEqual(self.cliente.get('/api/instructor-voluntario/formacion?voluntario_id=1').status_code,400)
         self.assertEqual(propia['estado'],'No completado');self.assertNotIn('puntaje',propia);self.assertNotIn('motivo',propia);self.assertNotIn('registrada_por',propia)
         self.assertEqual(self.cliente.get(ruta).status_code,403);self.assertEqual(self.cliente.get(url+'/historial').status_code,403)
-        self.assertIn(b'Cursos asignados',self.cliente.get('/',follow_redirects=True).data)
+        self.assertIn(b'Cantidad de Cursos Completados',self.cliente.get('/',follow_redirects=True).data)
 
     def test_formacion_fechas_revision_csrf_inactivos_y_sin_finalizacion_automatica(self):
         from sicose.db import obtener_conexion
@@ -792,7 +792,7 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertEqual(respuesta.status_code, 200)
         self.assertEqual(self.cliente.get("/panel/instructor-voluntario").status_code, 200)
         self.assertIn(b"Mi seguimiento", respuesta.data)
-        self.assertIn(b"Privacidad personal", respuesta.data)
+        self.assertEqual(respuesta.data.count(b'class="tarjeta-indicador"'), 4)
         self.assertNotIn(b"Panel del Jefe de Personal", respuesta.data)
 
     def test_ruta_panel_de_otro_rol_retorna_403(self):
@@ -867,7 +867,7 @@ class AplicacionTestCase(unittest.TestCase):
             version = conexion.execute(
                 "SELECT valor FROM app_meta WHERE clave = ?", ("schema_version",)
             ).fetchone()[0]
-            self.assertEqual(version, "31")
+            self.assertEqual(version, "32")
             columnas_asistencias = {fila["name"] for fila in conexion.execute("PRAGMA table_info(asistencias)")}
             self.assertIn("estado_detalle", columnas_asistencias)
             self.assertEqual(
@@ -937,7 +937,7 @@ class AplicacionTestCase(unittest.TestCase):
                 self.assertIsNone(conexion.execute("SELECT fecha_nacimiento FROM voluntarios WHERE usuario_id=?", (iv_id,)).fetchone()[0])
                 asistencia_migrada = conexion.execute("SELECT estado,estado_detalle FROM asistencias WHERE voluntario_id=?", (iv_id,)).fetchone()
                 self.assertEqual(tuple(asistencia_migrada), ("PRESENTE", "ASISTE"))
-                self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "31")
+                self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "32")
                 self.assertEqual(conexion.execute("PRAGMA foreign_key_check").fetchall(), [])
         finally:
             if legacy_path.exists():
@@ -1624,7 +1624,7 @@ class AplicacionTestCase(unittest.TestCase):
             for campo in antes.keys(): self.assertEqual(antes[campo], despues[campo])
             for campo in ("pais_residencia", "departamento_residencia", "ano_incorporacion"):
                 self.assertIsNone(despues[campo])
-            self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "31")
+            self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "32")
             self.assertEqual(conexion.execute("PRAGMA quick_check").fetchone()[0], "ok")
             self.assertEqual(conexion.execute("PRAGMA foreign_key_check").fetchall(), [])
 

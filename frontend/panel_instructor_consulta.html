@@ -1,0 +1,26 @@
+{% extends '_dashboard_base.html' %}
+{% block contenido %}
+<section class="seccion-panel">
+{% include '_selector_gestion_propia.html' %}
+{% if tipo == 'asistencias' %}
+<h2>Mis asistencias por mes</h2><p>Los totales cuentan registros propios por actividad. Sin registro no equivale a Falta.</p>
+<div class="tendencias-panel">{% for grafico in graficos %}<figure class="grafico-tendencia"><h3>{{ grafico.titulo }}</h3><div class="torres-gestiones" tabindex="0" role="group" aria-label="{{ grafico.titulo }} por mes">{% for fila in grafico.filas %}<div class="torre-gestion"><strong>{{ fila.valor }}</strong><span class="torre" style="--alto:{{ fila.alto }}px" aria-hidden="true"></span><small>{{ fila.nombre }}</small></div>{% endfor %}</div></figure>{% endfor %}</div>
+{% elif tipo == 'cursos' %}
+<h2>Cursos asignados y finalizados</h2>
+<div class="tabla-contenedor"><table class="tabla-registros tabla-compacta tabla-operaciones"><thead><tr>{% for titulo in ['Curso','Tipo','Institución','Inicio','Fin','Estado','Calificación publicada'] %}<th scope="col">{{ titulo }}</th>{% endfor %}</tr></thead><tbody>
+{% for curso in cursos %}<tr><td>{{ curso.nombre_curso }}</td><td>{{ curso.tipo_curso or 'Sin registrar' }}</td><td>{{ curso.entidad_curso or 'Sin registrar' }}</td><td>{{ curso.inicio_curso or 'Sin registrar' }}</td><td>{{ curso.fin_curso or 'Sin registrar' }}</td><td>{{ curso.estado }}</td><td>{{ curso.puntaje_publicado if curso.puntaje_publicado is not none else 'Sin publicar' }}</td></tr>{% else %}<tr><td colspan="7" class="tabla-vacia">Sin cursos en esta Gestión.</td></tr>{% endfor %}
+</tbody></table></div><p>Las calificaciones corresponden a la última versión publicada.</p>
+{% elif tipo == 'evaluaciones' %}
+<h2>Resultados publicados</h2>
+{% if publicacion %}
+<p>Versión {{ publicacion.revision }} · {{ publicacion.publicada_en }}</p>
+<div class="tabla-contenedor"><table class="tabla-registros tabla-compacta"><thead><tr><th scope="col">Evaluación</th><th scope="col">Resultado publicado</th></tr></thead><tbody>
+{% for fisica in publicacion.fisicas %}<tr><td>{{ fisica.nombre }}</td><td>{{ fisica.nota if fisica.nota is not none else 'Sin publicar' }}</td></tr>{% endfor %}
+<tr><td>Promedio físico</td><td>{{ publicacion.promedio_fisico if publicacion.promedio_fisico is not none else 'Sin publicar' }}</td></tr>
+<tr><td>Evaluación Académica</td><td>{{ publicacion.academica.valor if publicacion.academica and publicacion.academica.valor is not none else 'Sin publicar' }}</td></tr>
+<tr><td>Evaluación Desempeño · Promedio</td><td>{{ publicacion.desempeno.valor if publicacion.desempeno is defined and publicacion.desempeno else 'Sin publicar' }}</td></tr>
+</tbody></table></div>
+{% else %}<p class="nota-informativa">Aún no hay resultados publicados para esta Gestión.</p>{% endif %}
+{% endif %}
+</section>
+{% endblock %}

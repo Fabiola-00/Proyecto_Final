@@ -27,7 +27,8 @@ def disponible(c, pid, clave, uid):
 @demo_bp.get('/mis-evaluaciones/anual')
 @role_required('INSTRUCTOR_VOLUNTARIO')
 def pagina():
-    return render_template('evaluaciones_anuales_propias.html', titulo_pagina='Mis evaluaciones', nav_activo='tabla_evaluaciones', indicadores=[], periodo_actual=db.periodo_actual(), descripcion='Consulta el estado de tus evaluaciones institucionales de la Gestión activa.')
+    from .panel_instructor import pagina as consulta
+    return consulta('evaluaciones')
 
 
 @demo_bp.get('/api/modelo-anual/propio')

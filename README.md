@@ -1,5 +1,10 @@
 # SICOSE
 
+### Panel personal — 2026-10-19, SQLite v32
+
+[Panel del Instructor Voluntario](docs/33_panel_instructor.md): cuatro resúmenes compactos de la Gestión activa, aviso de pendientes, Perfil al pie del menú, asistencia mensual y consultas de cursos/operaciones/evaluaciones por Gestión. El modelo anual permite publicar para el Instructor físicas, Académica y solo el promedio de Desempeño, mediante versiones explícitas; las correcciones requieren republicación. Pruebas conserva su tabla y privacidad. Migración aditiva respaldada, sin publicaciones reales automáticas.
+
+
 **Sistema de Control y Evaluación de Personal** es un prototipo académico para el seguimiento de personal voluntario de rescate y emergencias. Usa Flask, SQLite y HTML/CSS/JavaScript puro. No es un producto comercial ni clínico.
 
 Paleta institucional vigente (2026-10-16): azules `#0500B2` y `#0054B2`, naranjas `#FA9A4B` y `#FCC495`, complementarios `#226DC6` y `#C67B22`. Interfaz con tonos derivados para modos claro/oscuro; PDF en paleta clara para impresión. Verde/rojo conservan su significado de estado.

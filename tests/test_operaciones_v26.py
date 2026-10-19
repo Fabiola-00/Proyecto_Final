@@ -95,5 +95,5 @@ class OperacionesV26TestCase(unittest.TestCase):
             self.assertEqual(o['tipo_evento'],'Texto histórico sin inferir');self.assertIsNone(o['tipo_operativo']);self.assertIsNone(o['estado_operacion'])
             self.assertEqual(o['revision'],1)
             self.assertEqual(c.execute('SELECT COUNT(*) FROM participaciones_operacion WHERE operacion_id=?',(self.oid,)).fetchone()[0],1)
-            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'31')
+            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'32')
             self.assertEqual(c.execute('PRAGMA quick_check').fetchone()[0],'ok');self.assertEqual(c.execute('PRAGMA foreign_key_check').fetchall(),[])

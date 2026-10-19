@@ -91,40 +91,21 @@ def jefe_personal():
 @role_required("INSTRUCTOR_VOLUNTARIO")
 def instructor_voluntario():
     conexion = obtener_conexion()
-    filas = conexion.execute(
-        """SELECT COUNT(*) AS total,
-                  SUM(CASE WHEN estado = 'COMPLETADA' THEN 1 ELSE 0 END) AS completadas
-           FROM asignaciones_evaluacion WHERE voluntario_id = ?""",
-        (current_user.id,),
-    ).fetchone()
-    total = filas["total"] or 0
-    completadas = filas["completadas"] or 0
-    capacitaciones = conexion.execute(
-        "SELECT COUNT(*) AS total FROM capacitaciones WHERE voluntario_id = ?",
-        (current_user.id,),
-    ).fetchone()["total"]
-    cursos_asignados = conexion.execute("SELECT COUNT(*) FROM participaciones_curso WHERE voluntario_id=?", (current_user.id,)).fetchone()[0]
-    cursos_finalizados = conexion.execute("SELECT COUNT(*) FROM participaciones_curso WHERE voluntario_id=? AND estado='Finalizado'", (current_user.id,)).fetchone()[0]
-    evaluaciones = conexion.execute(
-        """SELECT e.nombre AS evaluacion,p.nombre AS periodo,a.estado
-           FROM asignaciones_evaluacion a JOIN evaluaciones e ON e.id=a.evaluacion_id
-           JOIN periodos p ON p.id=a.periodo_id WHERE a.voluntario_id=?
-           ORDER BY p.fecha_inicio DESC,e.nombre""", (current_user.id,)
-    ).fetchall()
+    from .panel_instructor import gestiones, estados
+    opciones = gestiones(conexion)
+    gestion = next((p for p in opciones if p['estado'] == 'ACTIVO'), None)
+    evaluaciones = estados(conexion, current_user.id, gestion)
+    completadas = sum(e['completa'] for e in evaluaciones)
+    cursos_finalizados = conexion.execute("SELECT COUNT(*) FROM participaciones_curso WHERE voluntario_id=? AND estado='Finalizado' AND fecha_finalizacion BETWEEN ? AND ?", (current_user.id,gestion['fecha_inicio'],gestion['fecha_fin'])).fetchone()[0] if gestion else 0
+    detalle = gestion['nombre'] if gestion else 'Sin Gestión activa'
     return _renderizar_panel(
-        "dashboard_instructor_voluntario.html",
-        "Mi seguimiento como Instructor Voluntario",
-        "inicio",
-        [
-            {"etiqueta": "Evaluaciones asignadas", "valor": total, "detalle": "En todos los períodos"},
-            {"etiqueta": "Completadas", "valor": completadas, "detalle": "Según el estado registrado"},
-            {"etiqueta": "Pendientes", "valor": total - completadas, "detalle": "Aún no completadas"},
-            {"etiqueta": "Formación histórica", "valor": capacitaciones, "detalle": "Registros anteriores de tu perfil"},
-            {"etiqueta": "Cursos asignados", "valor": cursos_asignados, "detalle": f"{cursos_finalizados} finalizados individualmente"},
-        ],
-        "Consulta tu avance personal y la información asociada a tu cuenta de Instructor Voluntario.",
-        evaluaciones_resumen=[dict(fila) for fila in evaluaciones],
-    )
+        'dashboard_instructor_voluntario.html', 'Mi seguimiento como Instructor Voluntario', 'inicio',
+        [dict(etiqueta=etiqueta,valor=valor,detalle=detalle) for etiqueta,valor in (
+            ('Evaluaciones Asignadas',len(evaluaciones)), ('Evaluaciones Completadas',completadas),
+            ('Evaluaciones Pendientes',len(evaluaciones)-completadas), ('Cantidad de Cursos Completados',cursos_finalizados))],
+        'Resumen personal de la Gestión activa.',
+        evaluaciones_resumen=[e for e in evaluaciones if not e['completa']], gestion_panel=gestion)
+
 
 
 @dashboard_bp.get("/api/admin/estado")

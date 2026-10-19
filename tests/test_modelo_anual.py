@@ -142,7 +142,7 @@ class ModeloAnualTestCase(unittest.TestCase):
             inicializar_base_datos();inicializar_base_datos()
             for t,filas in antes.items():self.assertEqual([tuple(f) for f in c.execute('SELECT * FROM '+t)],filas)
             for t in tablas:self.assertEqual(c.execute('SELECT COUNT(*) FROM '+t).fetchone()[0],0)
-            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'31')
+            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'32')
             self.assertEqual(c.execute('PRAGMA quick_check').fetchone()[0],'ok');self.assertEqual(c.execute('PRAGMA foreign_key_check').fetchall(),[])
 
     def test_bloqueo_formacion_en_fecha_anterior_y_nueva_del_periodo_cerrado(self):
@@ -173,7 +173,7 @@ class ModeloAnualTestCase(unittest.TestCase):
         self.assertEqual(self.cliente.post(f'/api/admin/5b/periodos/{self.pid}/configuracion',json={'fuentes':{}},headers=self.h).status_code,409)
         self.assertEqual(self.cliente.post(f'/api/admin/5b/periodos/{self.pid}/publicar',json={'revision':1},headers=self.h).status_code,409)
         self._login('voluntario.demo','Clave voluntario 123!')
-        self.assertEqual(self.cliente.get(f'/api/evaluaciones/propias?periodo_id={self.pid}').status_code,403)
+        self.assertEqual(self.cliente.get(f'/api/evaluaciones/propias?periodo_id={self.pid}').status_code,200)
         self.assertNotIn(self.pid,[p['id'] for p in self.cliente.get('/api/evaluaciones/gestiones').json['periodos']])
 
     def test_retiro_revision_y_triggers_preservan_historia(self):
