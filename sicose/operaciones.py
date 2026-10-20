@@ -33,13 +33,15 @@ def retirar(oid):
         if baja(c,oid):raise ValueError('La operación está dada de baja.')
         for i in items:
             p=c.execute('SELECT revision FROM participaciones_operacion WHERE operacion_id=? AND voluntario_id=?',(oid,i['voluntario_id'])).fetchone()
-            if (p is None or p['revision']!=i['revision'] or c.execute('SELECT 1 FROM retiros_operacion WHERE operacion_id=? AND voluntario_id=?',(oid,i['voluntario_id'])).fetchone()):
+            if (p is None or p['revision']!=i['revision'] or c.execute('SELECT 1 FROM retiros_operacion_vigentes WHERE operacion_id=? AND voluntario_id=?',(oid,i['voluntario_id'])).fetchone()):
                 raise ValueError('Una participación cambió o ya fue retirada. No se guardaron cambios parciales.')
             if not c.execute("SELECT 1 FROM usuarios WHERE id=? AND estado='ACTIVO'",(i['voluntario_id'],)).fetchone():
                 raise ValueError('Reactiva la cuenta antes de retirar su participación.')
             if c.execute("SELECT 1 FROM notas_operacion_anual n JOIN periodos p ON p.id=n.periodo_id WHERE n.operacion_id=? AND n.voluntario_id=? AND p.estado='CERRADO'",(oid,i['voluntario_id'])).fetchone():
                 raise ValueError('La participación tiene notas en una Gestión cerrada; requiere reapertura administrativa.')
-            c.execute('INSERT INTO retiros_operacion VALUES (?,?,?,?,?,?)',(oid,i['voluntario_id'],d['motivo'].strip(),current_user.id,current_user.nombre,db._ahora_utc()))
+            if not c.execute('SELECT 1 FROM retiros_operacion WHERE operacion_id=? AND voluntario_id=?',(oid,i['voluntario_id'])).fetchone():
+                c.execute('INSERT INTO retiros_operacion VALUES (?,?,?,?,?,?)',(oid,i['voluntario_id'],d['motivo'].strip(),current_user.id,current_user.nombre,db._ahora_utc()))
+            c.execute('INSERT INTO movimientos_participacion_operacion VALUES (?,?,?,?,?,?,?,?)',(oid,i['voluntario_id'],p['revision']+1,'RETIRO',d['motivo'].strip(),current_user.id,current_user.nombre,db._ahora_utc()))
             c.execute('UPDATE participaciones_operacion SET revision=revision+1 WHERE operacion_id=? AND voluntario_id=?',(oid,i['voluntario_id']))
         db.registrar_auditoria(c,current_user.id,f'PARTICIPANTES_OPERACION_RETIRADOS:{oid}','EXITOSO')
         c.commit();return jsonify(ok=True,retirados=len(items))

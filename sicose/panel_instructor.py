@@ -47,7 +47,7 @@ def estados(c, uid, p):
         if claves == ('ACADEMICA',):
             completa = c.execute("SELECT 1 FROM participaciones_curso WHERE voluntario_id=? AND estado='Finalizado' AND fecha_finalizacion BETWEEN ? AND ?", (uid,p['fecha_inicio'],p['fecha_fin'])).fetchone() or c.execute("""SELECT 1 FROM notas_operacion_anual n JOIN operaciones o ON o.id=n.operacion_id
                 WHERE n.periodo_id=? AND n.voluntario_id=? AND o.fecha_inicio BETWEEN ? AND ?
-                AND NOT EXISTS(SELECT 1 FROM retiros_operacion r WHERE r.operacion_id=n.operacion_id AND r.voluntario_id=n.voluntario_id)""", (p['id'],uid,p['fecha_inicio'],p['fecha_fin'])).fetchone()
+                AND NOT EXISTS(SELECT 1 FROM retiros_operacion_vigentes r WHERE r.operacion_id=n.operacion_id AND r.voluntario_id=n.voluntario_id)""", (p['id'],uid,p['fecha_inicio'],p['fecha_fin'])).fetchone()
         else:
             notas = [c.execute('SELECT origen FROM notas_modelo_anual WHERE periodo_id=? AND voluntario_id=? AND fuente=? ORDER BY id DESC LIMIT 1', (p['id'],uid,k)).fetchone() for k in claves]
             completa = all(n and n['origen'] != 'CERO_INICIAL' for n in notas)

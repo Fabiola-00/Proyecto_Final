@@ -90,9 +90,15 @@ def calcular(c,uid,pid):
     bloqueos=[f for f in FUENTES if not habilitada(c,uid,pid,f)]
     cursos=[dict(f) for f in c.execute("SELECT id AS participacion_id,nombre_curso,puntaje,fecha_finalizacion,revision FROM participaciones_curso WHERE voluntario_id=? AND estado='Finalizado' AND fecha_finalizacion BETWEEN ? AND ? ORDER BY fecha_finalizacion,id",(uid,p['fecha_inicio'],p['fecha_fin']))]
     ops=[dict(f) for f in c.execute('''SELECT n.*,COALESCE(o.tipo_operativo,o.tipo_evento) AS tipo_evento,o.fecha_inicio FROM notas_operacion_anual n JOIN operaciones o ON o.id=n.operacion_id
-          WHERE NOT EXISTS(SELECT 1 FROM retiros_operacion r WHERE r.operacion_id=n.operacion_id AND r.voluntario_id=n.voluntario_id) AND n.periodo_id=? AND n.voluntario_id=? AND o.fecha_inicio BETWEEN ? AND ? AND NOT EXISTS(SELECT 1 FROM notas_operacion_anual x WHERE x.anterior_id=n.id) ORDER BY n.operacion_id''',(pid,uid,p['fecha_inicio'],p['fecha_fin']))]
-    suma_cursos=sum(f['puntaje']*100 for f in cursos);suma_ops=sum(f['puntos_centesimas'] for f in ops)
-    academia=min(10000,suma_cursos+suma_ops) if 'ACADEMICA' not in bloqueos else None
+          WHERE NOT EXISTS(SELECT 1 FROM retiros_operacion_vigentes r WHERE r.operacion_id=n.operacion_id AND r.voluntario_id=n.voluntario_id) AND n.periodo_id=? AND n.voluntario_id=? AND o.fecha_inicio BETWEEN ? AND ? AND NOT EXISTS(SELECT 1 FROM notas_operacion_anual x WHERE x.anterior_id=n.id) ORDER BY n.operacion_id''',(pid,uid,p['fecha_inicio'],p['fecha_fin']))]
+    suma_cursos=sum(f['puntaje']*100 for f in cursos)
+    promedio_ops=Fraction(sum(f['puntos_centesimas'] for f in ops),len(ops)) if ops else 0
+    from .asistencias import PROYECCION, totales
+    asistencia_academica=totales(f[0] for f in c.execute(f'SELECT {PROYECCION} FROM asistencias a WHERE a.voluntario_id=? AND a.fecha BETWEEN ? AND ?',(uid,p['fecha_inicio'],p['fecha_fin'])))
+    nota_asistencia=Decimal(str(asistencia_academica['porcentaje'] or 0))
+    nota_cursos=min(10000,suma_cursos)
+    suma_componentes=Fraction(nota_asistencia*100)+nota_cursos+promedio_ops
+    academia=(suma_componentes/3 if suma_componentes else 0) if 'ACADEMICA' not in bloqueos else None
     def media(a,b):return None if a in bloqueos or b in bloqueos else Fraction(notas[a]['puntos_centesimas']+notas[b]['puntos_centesimas'],2)
     fisica=media('FISICA_1','FISICA_2');desempeno=media('DESEMPENO_JEFE','DESEMPENO_COMANDANTE')
     def estado_componente(a,b):
@@ -109,10 +115,10 @@ def calcular(c,uid,pid):
     entradas=[{'clave':k,'nombre':n,'valor':numero(v),'estado':'DESHABILITADA' if v is None and not k.startswith('PSICO') else estado} for k,n,v,estado in (
         ('FISICA','Física',fisica,estado_componente('FISICA_1','FISICA_2')),
         ('DESEMPENO','Desempeño',desempeno,estado_componente('DESEMPENO_JEFE','DESEMPENO_COMANDANTE')),
-        ('ACADEMICA','Académica',academia,'CALCULADA' if cursos or ops else 'CERO_INICIAL_OFICIAL'),
+        ('ACADEMICA','Académica',academia,'CALCULADA' if cursos or ops or asistencia_academica['computables'] else 'CERO_INICIAL_OFICIAL'),
         ('PSICOMETRICA_1','GSE · Autoeficacia',None,psico_estados[0]),('PSICOMETRICA_2','Mini-IPIP · Personalidad',None,psico_estados[1]),('PSICOMETRICA_3','NASA-TLX · Carga de trabajo',None,psico_estados[2]))]
     return {'regla':'CINCO_ENTRADAS_V3','estado':'INCOMPLETO' if faltantes_psico or bloqueos else 'COMPLETO','resultado_conjunto':None,'fisica':numero(fisica),'desempeno':numero(desempeno),
-        'academica':{'valor':float(Decimal(academia)/100) if academia is not None else None,'puntos_sin_tope':float(Decimal(suma_cursos+suma_ops)/100),'tope':100,'detalle':cursos,'operaciones':ops,'estado_operaciones':'CALIFICADAS' if ops else 'PENDIENTE','aporte_operaciones':numero(suma_ops)},
+        'academica':{'valor':float(numero(academia)) if academia is not None else None,'puntos_sin_tope':float(numero(suma_componentes)), 'criterio_academica':'PROMEDIO_ASISTENCIA_CURSOS_OPERACIONES_V1','aporte_asistencia':float(nota_asistencia),'aporte_cursos':nota_cursos/100,'cursos_sin_tope':suma_cursos/100,'asistencia':asistencia_academica,'tope':100,'detalle':cursos,'operaciones':ops,'estado_operaciones':'CALIFICADAS' if ops else 'PENDIENTE','aporte_operaciones':numero(promedio_ops),'criterio_operaciones':'PROMEDIO_CALIFICADAS','operaciones_calificadas':len(ops)},
         'entradas':entradas,'fuentes':notas,'faltantes':faltantes_psico+bloqueos,'bloqueos':bloqueos,'provisional':True,
         'modelo':{'estado':'ENTRENADO_EXPERIMENTAL','recomendacion_ascenso':None,'recomendacion_operaciones':None,'listo_para_inferencia':not faltantes_psico and not bloqueos}}
 
@@ -213,7 +219,7 @@ def calificar(pid,uid):
             if not c.execute('SELECT 1 FROM personas_modelo_anual WHERE periodo_id=? AND voluntario_id=?',(pid,uid)).fetchone():raise LookupError('Persona no inscrita.')
             from .calculos_5b import calcular as resultado
             from .fisicas import vigente
-            ops=[dict(f) for f in c.execute('SELECT o.*,EXISTS(SELECT 1 FROM bajas_operacion b WHERE b.operacion_id=o.id) AS baja,EXISTS(SELECT 1 FROM retiros_operacion r WHERE r.operacion_id=o.id AND r.voluntario_id=x.voluntario_id) AS retirada FROM operaciones o JOIN participaciones_operacion x ON x.operacion_id=o.id WHERE x.voluntario_id=? AND o.fecha_inicio<=? AND COALESCE(o.fecha_fin,o.fecha_inicio)>=? ORDER BY o.fecha_inicio,o.id',(uid,p['fecha_fin'],p['fecha_inicio']))]
+            ops=[dict(f) for f in c.execute('SELECT o.*,EXISTS(SELECT 1 FROM bajas_operacion b WHERE b.operacion_id=o.id) AS baja,EXISTS(SELECT 1 FROM retiros_operacion_vigentes r WHERE r.operacion_id=o.id AND r.voluntario_id=x.voluntario_id) AS retirada FROM operaciones o JOIN participaciones_operacion x ON x.operacion_id=o.id WHERE x.voluntario_id=? AND o.fecha_inicio<=? AND COALESCE(o.fecha_fin,o.fecha_inicio)>=? ORDER BY o.fecha_inicio,o.id',(uid,p['fecha_fin'],p['fecha_inicio']))]
             cursos=[dict(f) for f in c.execute('''SELECT pc.id,pc.curso_id,pc.nombre_curso,pc.entidad_curso,pc.tipo_curso,
                        pc.inicio_curso,pc.fin_curso,pc.estado,pc.puntaje,pc.fecha_finalizacion,
                        EXISTS(SELECT 1 FROM retiros_curso r WHERE r.participacion_id=pc.id) AS retirada
@@ -262,9 +268,9 @@ def operacion(pid,uid,oid):
         valor=puntos(d['nota']);razon=observacion_calificacion(d);c.execute('BEGIN IMMEDIATE');p=periodo(c,pid,True);habilitada=persona(c,pid,uid)
         from .operaciones import baja
         if baja(c,oid):raise ValueError('La operación está dada de baja; conserva sus calificaciones históricas.')
-        if c.execute('SELECT 1 FROM retiros_operacion WHERE operacion_id=? AND voluntario_id=?',(oid,uid)).fetchone():raise ValueError('La participación fue retirada; conserva sus notas históricas.')
+        if c.execute('SELECT 1 FROM retiros_operacion_vigentes WHERE operacion_id=? AND voluntario_id=?',(oid,uid)).fetchone():raise ValueError('La participación fue retirada; conserva sus notas históricas.')
         if not habilitada(c,uid,pid,'ACADEMICA'):raise ValueError('Académica deshabilitada.')
-        o=c.execute('SELECT o.*,EXISTS(SELECT 1 FROM bajas_operacion b WHERE b.operacion_id=o.id) AS baja,EXISTS(SELECT 1 FROM retiros_operacion r WHERE r.operacion_id=o.id AND r.voluntario_id=x.voluntario_id) AS retirada FROM operaciones o JOIN participaciones_operacion x ON x.operacion_id=o.id WHERE o.id=? AND x.voluntario_id=?',(oid,uid)).fetchone()
+        o=c.execute('SELECT o.*,EXISTS(SELECT 1 FROM bajas_operacion b WHERE b.operacion_id=o.id) AS baja,EXISTS(SELECT 1 FROM retiros_operacion_vigentes r WHERE r.operacion_id=o.id AND r.voluntario_id=x.voluntario_id) AS retirada FROM operaciones o JOIN participaciones_operacion x ON x.operacion_id=o.id WHERE o.id=? AND x.voluntario_id=?',(oid,uid)).fetchone()
         if not o or not p['fecha_inicio']<=o['fecha_inicio']<=p['fecha_fin']:raise ValueError('Participación fuera del período o no asignada.')
         anterior=c.execute('SELECT id FROM notas_operacion_anual WHERE periodo_id=? AND voluntario_id=? AND operacion_id=? ORDER BY id DESC LIMIT 1',(pid,uid,oid)).fetchone()
         if d['anterior_id']!=(anterior[0] if anterior else None):raise ValueError('La nota de operación cambió; recarga.')

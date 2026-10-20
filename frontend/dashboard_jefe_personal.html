@@ -7,5 +7,5 @@
 {% if grafico.total %}<dl>{% for fila in grafico.filas %}<div><dt>{{ fila.etiqueta }}</dt><dd><strong>{{ fila.valor }}</strong><progress max="{{ grafico.total }}" value="{{ fila.valor }}" aria-label="{{ fila.etiqueta }}: {{ fila.valor }} de {{ grafico.total }}"></progress></dd></div>{% endfor %}</dl>
 {% else %}<p>Sin registros para este resumen.</p>{% endif %}</article>{% endfor %}
 </div></section>
-<section class="seccion-panel"><h2>Accesos de trabajo</h2><div class="rejilla-modulos"><a class="tarjeta-modulo" href="{{ url_for('espacio_jefe.evaluaciones') }}">Evaluaciones y personal habilitado</a><a class="tarjeta-modulo" href="{{ url_for('espacio_jefe.reportes') }}">Generar reportes</a></div></section>
+<section class="seccion-panel"><h2>Accesos de trabajo</h2><div class="rejilla-modulos"><a class="tarjeta-modulo" href="{{ url_for('modelo_anual.pagina') }}">Evaluaciones y personal habilitado</a><a class="tarjeta-modulo" href="{{ url_for('espacio_jefe.reportes') }}">Generar reportes</a></div></section>
 {% endblock %}

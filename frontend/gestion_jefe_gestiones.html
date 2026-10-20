@@ -1,6 +1,6 @@
 {% extends "_dashboard_base.html" %}
 {% block contenido %}
-<section class="seccion-panel" id="gestiones-jefe"><h2>Gestiones de evaluación</h2><p>Consulta el año, edita borradores sin registros y elimina mediante baja lógica con motivo. El circuito anterior conserva configuración y activación administrativas; el nuevo modelo permite al Jefe iniciar y cerrar períodos con fechas propias. La activación de evaluaciones y la asignación de personal están en <a href="{{ url_for('espacio_jefe.evaluaciones') }}">Evaluaciones</a>.</p><div id="gestiones-jefe-lista" class="rejilla-modulos"></div><p id="gestiones-jefe-mensaje" role="status"></p></section>
+<section class="seccion-panel" id="gestiones-jefe"><h2>Gestiones de evaluación</h2><p>Consulta el año, edita borradores sin registros y elimina mediante baja lógica con motivo. El circuito anterior conserva configuración y activación administrativas; el nuevo modelo permite al Jefe iniciar y cerrar períodos con fechas propias. La activación de evaluaciones y la asignación de personal están en <a href="{{ url_for('modelo_anual.pagina') }}">Evaluaciones</a>.</p><div id="gestiones-jefe-lista" class="rejilla-modulos"></div><p id="gestiones-jefe-mensaje" role="status"></p></section>
 <script src="{{ url_for('static',filename='js/espacio_jefe.js') }}" defer></script>
 {% include '_crear_modelo_anual.html' %}
 {% endblock %}

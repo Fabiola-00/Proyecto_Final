@@ -1,5 +1,13 @@
 # SICOSE
 
+**Académica vigente (2026-10-20):** promedio de Asistencia, Cursos y Capacitaciones (suma con tope 100) y Operaciones (promedio de calificadas). Asistencia sin registros computables aporta cero. Cuatro bloques separados con gráfico, tablas, totales y resumen del cálculo. Sustituye la suma anterior; cierres y versiones publicadas se conservan. [Reglas confirmadas y verificación](docs/38_academica_tres_componentes.md).
+
+**Cálculo de Operaciones (2026-10-20):** en gestiones V3 abiertas, Académica = suma de cursos + promedio de operaciones calificadas, con tope 100. Sustituye la suma anterior de operaciones; cierres y versiones publicadas se conservan. [Regla y alcance](docs/37_promedio_operaciones.md).
+
+**Operaciones, SQLite v33 (2026-10-20):** los Instructores activos retirados vuelven a estar disponibles en Asignar participantes. Reincorporarlos recupera su nota y aporte académico, conservando retiros e historial; notas en Gestión cerrada requieren reapertura. [Reglas y migración respaldada](docs/36_reingreso_operaciones.md).
+
+**Reporte de notas por grado (2026-10-20):** Administrador y Jefe de Personal eligen Gestión en Reportes. Lista Instructores activos vinculados, agrupados por grado y ordenados por promedio de las tres notas publicadas (Físico, Académica y Desempeño), con carimbo y firmas. [Reglas y verificación](docs/35_reporte_notas_por_grado.md).
+
 ## Estado actual — 2026-10-19, SQLite v32
 
 [Panel del Instructor Voluntario](docs/33_panel_instructor.md): cuatro resúmenes compactos de la Gestión activa, aviso de pendientes, Perfil al pie del menú, asistencia mensual y consultas de cursos/operaciones/evaluaciones por Gestión. El modelo anual permite publicar para el Instructor físicas, Académica y solo el promedio de Desempeño, mediante versiones explícitas; las correcciones requieren republicación. Pruebas conserva su tabla y privacidad. Migración aditiva respaldada, sin publicaciones reales automáticas.
@@ -16,9 +24,9 @@ Para ver cambios de plantillas con un servidor iniciado sin recarga automática,
 
 **Sistema de Control y Evaluación de Personal** es un prototipo académico para el seguimiento de personal voluntario de rescate y emergencias. Usa Flask, SQLite y HTML/CSS/JavaScript puro. No es un producto comercial ni clínico.
 
-Paleta institucional vigente (2026-10-16): azules `#0500B2` y `#0054B2`, naranjas `#FA9A4B` y `#FCC495`, complementarios `#226DC6` y `#C67B22`. Interfaz con tonos derivados para modos claro/oscuro; PDF en paleta clara para impresión. Verde/rojo conservan su significado de estado.
+Interfaz web actualizada (2026-10-20): azul `#1E1BBB`, naranja de acento `#F2AB7E`, botón Modo Claro/Modo Oscuro con preferencia persistente. Barra lateral de 230 px (oscuro #16163A, claro #3B3B70), sin búsqueda en cabecera y una acción principal cuando corresponde. Estados semánticos separados, controles de 44 px y foco visible. Los PDF conservan su paleta anterior para impresión. [Implementación y verificaciones](docs/34_diseno_temas.md).
 
-Login con emblema SBRAB y estilo institucional responsivo. Su selector claro/oscuro comparte la preferencia de tema con los paneles (actualizado el 2026-10-18).
+Login con emblema SBRAB y estilo institucional responsivo. Acceso, registro, errores y paneles comparten el botón Modo Claro/Modo Oscuro. Sin elección guardada se utiliza inicialmente el tema del equipo.
 
 **Recomendación vigente:** las nuevas propuestas seleccionan una única **Línea de orientación prioritaria**, la de mayor activación de las cuatro salidas (argmax). Sin reentrenar: modelo 15→6→4 intacto, confirmación humana obligatoria y versiones anteriores conservadas. Las propuestas antiguas abiertas quedan desactualizadas para regenerarlas; cerradas se conservan hasta reapertura. [Selección y límites](docs/32_tres_pruebas_modelo_15.md).
 

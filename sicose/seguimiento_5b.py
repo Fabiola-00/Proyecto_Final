@@ -50,8 +50,8 @@ def panel_comandante():
 @seguimiento_bp.get("/gestion/seguimiento-operativo")
 @role_required(*GESTORES)
 def pagina_seguimiento():
-    if request.args.get('historico') != '1': return redirect('/gestion/modelo-anual')
-    return pagina("Notas y resultados", "seguimiento_5b", "seguimiento_operativo.html")
+    # Página histórica retirada; los enlaces guardados llevan al módulo vigente.
+    return redirect('/gestion/modelo-anual')
 
 
 @seguimiento_bp.get("/gestion/comandante")

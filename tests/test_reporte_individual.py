@@ -57,7 +57,7 @@ class ReporteIndividualTestCase(unittest.TestCase):
             self.assertEqual(d['operaciones'][0]['puntos_centesimas'],7500)
             self.assertEqual(d['cursos'][0]['estado'],'Asignado')
             self.assertIsNone(d['cursos'][0]['puntaje'])
-            self.assertEqual(d['calculo']['academica']['valor'],75)
+            self.assertAlmostEqual(d['calculo']['academica']['valor'],(66.67+75)/3)
 
     def test_sin_activa_cambio_de_gestion_parametros_y_persona(self):
         self._login()

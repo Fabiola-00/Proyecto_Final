@@ -14,12 +14,24 @@
 <h2>Resultados publicados</h2>
 {% if publicacion %}
 <p>Versión {{ publicacion.revision }} · {{ publicacion.publicada_en }}</p>
-<div class="tabla-contenedor"><table class="tabla-registros tabla-compacta"><thead><tr><th scope="col">Evaluación</th><th scope="col">Resultado publicado</th></tr></thead><tbody>
-{% for fisica in publicacion.fisicas %}<tr><td>{{ fisica.nombre }}</td><td>{{ fisica.nota if fisica.nota is not none else 'Sin publicar' }}</td></tr>{% endfor %}
-<tr><td>Promedio físico</td><td>{{ publicacion.promedio_fisico if publicacion.promedio_fisico is not none else 'Sin publicar' }}</td></tr>
-<tr><td>Evaluación Académica</td><td>{{ publicacion.academica.valor if publicacion.academica and publicacion.academica.valor is not none else 'Sin publicar' }}</td></tr>
-<tr><td>Evaluación Desempeño · Promedio</td><td>{{ publicacion.desempeno.valor if publicacion.desempeno is defined and publicacion.desempeno else 'Sin publicar' }}</td></tr>
-</tbody></table></div>
+{% macro torre_resultado(nombre, nota) %}
+<div class="resultado-torre">
+  <strong>{{ '%.2f'|format(nota|float) if nota is not none else 'Sin publicar' }}</strong>
+  <div class="resultado-pista" aria-hidden="true">{% if nota is not none %}<span class="resultado-columna" style="height:{{ nota|float }}%"></span>{% endif %}</div>
+  <span class="resultado-nombre">{{ nombre }}</span>
+</div>
+{% endmacro %}
+<figure class="resultados-publicados-grafico" aria-label="Resultados publicados: escala de 0 a 100 puntos">
+<figcaption>Resultados publicados · escala de 0 a 100 puntos</figcaption>
+<div class="resultados-desplazamiento" tabindex="0" role="group" aria-label="Gráfico de torres de las evaluaciones publicadas">
+<div class="resultados-ejes"><div class="resultados-escala" aria-hidden="true"><span>100</span><span>75</span><span>50</span><span>25</span><span>0</span></div>
+<div class="resultados-torres">
+{% for fisica in publicacion.fisicas %}{{ torre_resultado(fisica.nombre, fisica.nota) }}{% endfor %}
+{{ torre_resultado('Promedio físico', publicacion.promedio_fisico) }}
+{{ torre_resultado('Evaluación Académica', publicacion.academica.valor if publicacion.academica else none) }}
+{{ torre_resultado('Evaluación Desempeño · Promedio', publicacion.desempeno.valor if publicacion.desempeno is defined and publicacion.desempeno else none) }}
+</div></div></div>
+</figure>
 {% else %}<p class="nota-informativa">Aún no hay resultados publicados para esta Gestión.</p>{% endif %}
 {% endif %}
 </section>

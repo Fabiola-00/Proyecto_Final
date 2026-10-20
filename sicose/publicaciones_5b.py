@@ -105,6 +105,7 @@ def preparar_anual(c, uid, pid):
         a = calculo['academica']
         contenido['academica'] = dict(valor=a['valor'],puntos_sin_tope=a['puntos_sin_tope'],cursos=[{k:f[k] for k in ('participacion_id','nombre_curso','puntaje','fecha_finalizacion')} for f in a['detalle']])
         fuentes['ACADEMICA'] = dict(cursos=[[f['participacion_id'],f['revision']] for f in a['detalle']],operaciones=[f['id'] for f in a['operaciones']])
+        fuentes['ACADEMICA'].update(criterio=a.get('criterio_academica'),asistencia=a.get('asistencia'),aporte_cursos=a.get('aporte_cursos'),aporte_operaciones=a.get('aporte_operaciones'))
     if habilitadas['DESEMPENO_JEFE'] and habilitadas['DESEMPENO_COMANDANTE']:
         from decimal import Decimal, ROUND_HALF_UP
         contenido['desempeno'] = {'valor':str(Decimal(calculo['desempeno']).quantize(Decimal('.01'),rounding=ROUND_HALF_UP))}

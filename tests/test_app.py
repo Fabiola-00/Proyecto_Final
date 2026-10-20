@@ -773,8 +773,8 @@ class AplicacionTestCase(unittest.TestCase):
         self.assertIn(b"Emblema institucional SBRAB", respuesta.data)
         css = self.cliente.get("/static/css/estilos.css")
         self.assertEqual(css.status_code, 200)
-        self.assertIn(b"#0500B2", css.data)
-        self.assertIn(b"#FA9A4B", css.data)
+        self.assertIn(b"#1E1BBB", css.data)
+        self.assertIn(b"#F2AB7E", css.data)
         css.close()
 
     def test_inicio_instructor_muestra_solo_su_panel(self):
@@ -867,7 +867,7 @@ class AplicacionTestCase(unittest.TestCase):
             version = conexion.execute(
                 "SELECT valor FROM app_meta WHERE clave = ?", ("schema_version",)
             ).fetchone()[0]
-            self.assertEqual(version, "32")
+            self.assertEqual(version, "33")
             columnas_asistencias = {fila["name"] for fila in conexion.execute("PRAGMA table_info(asistencias)")}
             self.assertIn("estado_detalle", columnas_asistencias)
             self.assertEqual(
@@ -937,7 +937,7 @@ class AplicacionTestCase(unittest.TestCase):
                 self.assertIsNone(conexion.execute("SELECT fecha_nacimiento FROM voluntarios WHERE usuario_id=?", (iv_id,)).fetchone()[0])
                 asistencia_migrada = conexion.execute("SELECT estado,estado_detalle FROM asistencias WHERE voluntario_id=?", (iv_id,)).fetchone()
                 self.assertEqual(tuple(asistencia_migrada), ("PRESENTE", "ASISTE"))
-                self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "32")
+                self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "33")
                 self.assertEqual(conexion.execute("PRAGMA foreign_key_check").fetchall(), [])
         finally:
             if legacy_path.exists():
@@ -1624,7 +1624,7 @@ class AplicacionTestCase(unittest.TestCase):
             for campo in antes.keys(): self.assertEqual(antes[campo], despues[campo])
             for campo in ("pais_residencia", "departamento_residencia", "ano_incorporacion"):
                 self.assertIsNone(despues[campo])
-            self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "32")
+            self.assertEqual(conexion.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0], "33")
             self.assertEqual(conexion.execute("PRAGMA quick_check").fetchone()[0], "ok")
             self.assertEqual(conexion.execute("PRAGMA foreign_key_check").fetchall(), [])
 

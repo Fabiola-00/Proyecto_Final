@@ -21,6 +21,21 @@ class PanelInstructorTestCase(unittest.TestCase):
         v=self.cliente.get(ruta+f'?periodo_id={self.pid}').json['publicacion']
         return self.cliente.post(ruta,json=dict(periodo_id=self.pid,revision_publicada=v['revision_publicada'],firma_fuentes=v['firma_fuentes'],motivo='Publicación DEMO'),headers=self.h)
 
+    def test_promedio_operaciones_se_publica_y_correccion_requiere_republicacion(self):
+        self.preparar_anual()
+        a=self.operacion_demo();b=self.operacion_demo()
+        self.assertEqual(self.puntuar_operacion(a,50).status_code,201)
+        self.assertEqual(self.puntuar_operacion(b,20).status_code,201)
+        self.assertEqual(self.publicar().status_code,201)
+        self.assertAlmostEqual(self.propia().json['publicacion']['academica']['valor'],35/3)
+        self._login('instructor.demo','Clave instructor 123!');self.h={'X-CSRFToken':self._csrf_token()}
+        anterior=[n for n in self.datos()['historial']['operaciones'] if n['operacion_id']==b][-1]['id']
+        self.assertEqual(self.puntuar_operacion(b,100,anterior).status_code,201)
+        self.assertAlmostEqual(self.propia().json['publicacion']['academica']['valor'],35/3)
+        self._login('instructor.demo','Clave instructor 123!');self.h={'X-CSRFToken':self._csrf_token()}
+        self.assertEqual(self.publicar().status_code,201)
+        self.assertEqual(self.propia().json['publicacion']['academica']['valor'],25)
+
     def test_promedio_publicado_correccion_republicacion_y_privacidad(self):
         self.preparar_anual()
         self.assertEqual(self.nota('DESEMPENO_JEFE','81.01').status_code,201)
@@ -30,6 +45,13 @@ class PanelInstructorTestCase(unittest.TestCase):
         self.assertEqual(self.publicar().status_code,201)
         p=self.propia().json['publicacion']
         self.assertEqual(p['desempeno']['valor'],'75.51')
+        grafico=self.cliente.get(f'/mis-evaluaciones/anual?periodo_id={self.pid}')
+        self.assertEqual(grafico.status_code,200)
+        html=grafico.data.decode()
+        self.assertIn('resultados-torres',html)
+        self.assertIn('height:75.51%',html)
+        self.assertNotIn('Nombre reservado',html)
+        self.assertNotIn('81.01',html)
         for prohibido in ('81.01','70.00','Nombre reservado','nota_id','motivo','DESEMPENO_JEFE','DESEMPENO_COMANDANTE'):
             self.assertNotIn(prohibido,json.dumps(p))
         self._login('instructor.demo','Clave instructor 123!');self.h={'X-CSRFToken':self._csrf_token()}

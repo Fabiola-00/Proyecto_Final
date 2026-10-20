@@ -875,3 +875,22 @@ CREATE TRIGGER IF NOT EXISTS publicacion_anual_inmutable_actualizar BEFORE UPDAT
 BEGIN SELECT RAISE(ABORT,'publicacion_inmutable'); END;
 CREATE TRIGGER IF NOT EXISTS publicacion_anual_inmutable_borrar BEFORE DELETE ON publicaciones_modelo_anual
 BEGIN SELECT RAISE(ABORT,'publicacion_inmutable'); END;
+
+-- Reingresos sin modificar los retiros originales ni las notas.
+CREATE TABLE IF NOT EXISTS movimientos_participacion_operacion (
+ operacion_id INTEGER NOT NULL, voluntario_id INTEGER NOT NULL,
+ revision INTEGER NOT NULL CHECK(revision>0),
+ tipo TEXT NOT NULL CHECK(tipo IN ('RETIRO','REINGRESO')),
+ motivo TEXT NOT NULL CHECK(length(trim(motivo)) BETWEEN 1 AND 2000),
+ actor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+ actor_nombre TEXT NOT NULL, registrada_en TEXT NOT NULL,
+ PRIMARY KEY(operacion_id,voluntario_id,revision),
+ FOREIGN KEY(operacion_id,voluntario_id) REFERENCES participaciones_operacion(operacion_id,voluntario_id) ON DELETE RESTRICT
+);
+CREATE TRIGGER IF NOT EXISTS movimiento_operacion_update BEFORE UPDATE ON movimientos_participacion_operacion BEGIN SELECT RAISE(ABORT,'movimiento_operacion_inmutable'); END;
+CREATE TRIGGER IF NOT EXISTS movimiento_operacion_delete BEFORE DELETE ON movimientos_participacion_operacion BEGIN SELECT RAISE(ABORT,'movimiento_operacion_inmutable'); END;
+CREATE VIEW IF NOT EXISTS retiros_operacion_vigentes AS
+ SELECT r.* FROM retiros_operacion r WHERE COALESCE((
+ SELECT m.tipo FROM movimientos_participacion_operacion m
+ WHERE m.operacion_id=r.operacion_id AND m.voluntario_id=r.voluntario_id
+ ORDER BY m.revision DESC LIMIT 1),'RETIRO')='RETIRO';

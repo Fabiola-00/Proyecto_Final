@@ -1,5 +1,21 @@
 # Guía del proyecto SICOSE
 
+## Académica: tres componentes — 2026-10-20
+
+Leer docs/38_academica_tres_componentes.md. Decisiones posteriores expresas: V3 abierta usa (Asistencia + Cursos + Operaciones)/3. Asistencia 0–100 según porcentaje propio; sin computables o solo Permisos aporta 0. Cursos sumados con tope 100 ANTES del promedio. Operaciones conserva su promedio de calificadas vigentes. Sustituye la suma cursos+operaciones anterior. Cuatro tarjetas separadas, subtotales y fórmula final; explicación de asistencia en icono informativo. Cierres/publicaciones conservados, cambios requieren republicación. SQLite v33 sin migración ni reentrenamiento. 35 regresiones finales aprobadas/87,253 s; interfaz revisada con datos sintéticos en ambos temas, sin datos reales modificados.
+
+## Promedio de Operaciones — 2026-10-20
+
+Leer docs/37_promedio_operaciones.md. Nueva decisión: V3 abierta suma cursos + PROMEDIO de últimas notas de operaciones vigentes calificadas, tope 100. Pendientes fuera del denominador; ceros registrados sí cuentan. Sin calificadas, aporte 0/Pendiente. Promedio exacto con Fraction. Cierres congelados y publicaciones previas intactos hasta republicación. Sin migración ni reentrenamiento. Sustituye los alcances anteriores que sumaban operaciones.
+
+## Reingresos en Operaciones — 2026-10-20, SQLite v33
+
+Leer docs/36_reingreso_operaciones.md. Instructor activo retirado vuelve al selector de asignación; reingreso recupera nota y aporte académico anteriores por confirmación expresa. Tabla append-only movimientos_participacion_operacion y vista retiros_operacion_vigentes; conservar retiros originales, revisiones y notas. Cierre con notas bloquea reingreso hasta reapertura; baja de operación, roles y estado activo conservan restricciones. Migración respaldada, 74 tablas previas preservadas/75 finales/nueva vacía/dos aplicaciones/quick_check=ok/FK=0. 23 regresiones aprobadas en 58,552 s, sin suite general ni movimientos reales creados por el agente. Sustituye la prohibición histórica de reasignación v27.
+
+## Reporte por grado — 2026-10-20
+
+Leer docs/35_reporte_notas_por_grado.md. Reportes permite a Administrador/Jefe elegir Gestión del modelo anual y listar solo Instructores activos vinculados, usando exclusivamente notas publicadas. Nota final = promedio simple de Físico, Académica y promedio de Desempeño, dos decimales HALF_UP; ordenar con precisión exacta dentro de cada grado. Faltantes Sin resultado, al final, nunca ceros inventados. Carimbo, título Gestión/año, fecha y firmas Comandante/Jefe. Sin migración ni publicaciones reales automáticas.
+
 SICOSE significa **Sistema de Control y Evaluación de Personal**. Es un prototipo académico para seguimiento de personal voluntario de rescate y emergencias, no un producto comercial ni clínico.
 
 ## Panel del Instructor — 2026-10-19, SQLite v32
@@ -82,7 +98,7 @@ Leer docs/20_modelo_anual_cinco_entradas.md y capítulo 0 de DESARROLLO.md. Las 
 - Backend: Python y Flask; comunicación de interfaz mediante API REST JSON.
 - Persistencia: SQLite con consultas parametrizadas, claves foráneas activadas y cambios de esquema aditivos.
 - Mantener módulos pequeños y nombres consistentes en español. No agregar frameworks/servicios sin necesidad y autorización.
-- Identidad visual aprobada: azules `#0500B2`/`#0054B2`, naranjas `#FA9A4B`/`#FCC495`, complementarios `#226DC6`/`#C67B22`; adaptar derivados para modo claro/oscuro con contraste legible; incorporar el emblema institucional SBRAB proporcionado en la cabecera de la barra lateral. Usar Evaluar.com solo como referencia general, sin copiar marca o interfaz.
+- Identidad web vigente desde 2026-10-20: azul `#1E1BBB` (oscuro `#9C9AFF`), naranja de acento `#F2AB7E` y texto de acento claro `#8F3A0A`. Sustituye la paleta web anterior; PDF conserva sus colores. Leer docs/34_diseno_temas.md. Tokens centralizados, botón Claro/Oscuro persistente, sidebar 230 px (oscuro #16163A y claro #3B3B70), controles 44 px y foco 2 px separado 2 px. Una acción principal por pantalla o diálogo; la cabecera remite a la acción existente. Sin buscador en cabecera por decisión posterior del solicitante. Mantener emblema SBRAB y estados con texto; ámbar para advertencias, rojo para errores/destrucción. Sin cambios de datos, permisos o modelos.
 
 ## Roles y datos
 

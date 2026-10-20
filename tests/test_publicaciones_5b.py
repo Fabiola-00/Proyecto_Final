@@ -179,5 +179,5 @@ class PublicacionesTestCase(unittest.TestCase):
             inicializar_base_datos();inicializar_base_datos()
             for t in tablas:self.assertEqual(antes[t],[tuple(r) for r in c.execute(f'SELECT * FROM {t} ORDER BY rowid')],t)
             self.assertEqual(c.execute('SELECT count(*) FROM publicaciones_5b').fetchone()[0],0)
-            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'32')
+            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'33')
             self.assertEqual(c.execute('PRAGMA quick_check').fetchone()[0],'ok');self.assertEqual(c.execute('PRAGMA foreign_key_check').fetchall(),[])

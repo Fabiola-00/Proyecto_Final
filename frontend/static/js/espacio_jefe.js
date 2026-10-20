@@ -46,6 +46,8 @@
     });
   }
   const seleccion=document.querySelector('#reporte-gestion');
+  const gradosGestion=document.querySelector('#reporte-grados-gestion');
+  if(gradosGestion)apiJson('/api/modelo-anual/gestiones').then(d=>(d.periodos||[]).filter(p=>!p.retirada).forEach(p=>{const o=elemento('option',`${p.nombre} · ${p.estado}`);o.value=p.id;gradosGestion.append(o);})).catch(e=>gradosGestion.closest('form').querySelector('[role=status]').textContent=e.message);
   if(seleccion)Promise.all([apiJson('/api/evaluaciones/gestiones'),apiJson('/api/modelo-anual/gestiones')]).then(([historicos,actuales])=>[...(actuales.periodos||[]).filter(p=>!p.retirada),...(historicos.periodos||[])].forEach(p=>{const o=elemento('option',`${p.nombre} · ${p.estado==='BORRADOR'?'Preparada':p.estado}`);o.value=p.id;seleccion.append(o);})).catch(e=>seleccion.closest('form').querySelector('[role=status]').textContent=e.message);
   document.querySelectorAll('.reporte-central').forEach(form=>form.addEventListener('submit',async evento=>{
     evento.preventDefault();if(!form.reportValidity())return;const mensaje=form.querySelector('[role=status]'),boton=form.querySelector('button');boton.disabled=true;mensaje.textContent='Generando reporte…';const vista=window.open('about:blank','_blank');if(vista)vista.opener=null;

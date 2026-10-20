@@ -859,3 +859,76 @@ Verificación de cierre v28: **191 pruebas aprobadas en 469,415 s**, log .tmp/ps
 
 - Especialidad Principal ocupa el lugar señalado junto a Residencia, leyendo el valor registrado en voluntarios.especialidad_principal. Especialidades Secundarias se muestra aparte en una fila completa con su lista; ambas son de consulta, con Sin registrar cuando corresponde. Sin migración ni modificación de datos o permisos de autoservicio.
 - Dos regresiones existentes aprobadas en 2,177 s: consulta de especialidades y rechazo de edición de campos protegidos/roles/CSRF/inactivos. Log `.tmp/perfil-especialidades-regresion.log`; diff correcto. No se repitió la suite completa.
+
+## 2026-10-20 — Diseño institucional, Claro suave/Oscuro/Sistema
+
+- Nueva paleta web solicitada: azul #1E1BBB, acento #F2AB7E, neutros con matiz azul y estados semánticos. Tokens compartidos, sidebar 230 px, controles 44 px, foco visible, tablas responsivas y sombras suprimidas en oscuro. PDF mantiene su paleta anterior.
+- Selector de tres preferencias persistentes, seguimiento del sistema y sincronización de pestañas; aplicación inicial anterior al CSS. Buscador de secciones autorizadas y acción principal de cabecera que remite al control existente, con prioridad del diálogo abierto. Sin nuevas APIs, cambios de permisos, migraciones ni datos operativos/modelos.
+- Regresión final: 14 pruebas aprobadas en 30,571 s; dos pruebas de tokens incluyen 42 comprobaciones de contraste, más ensayo Node de preferencias y sintaxis JavaScript. Expectativa de la paleta anterior corregida antes de repetir la regresión. Sin nueva suite general ni certificación WCAG integral.
+- Acceso, panel del Jefe, Operaciones/formulario/diálogo y Perfil móvil comprobados con datos sintéticos; guardado desde cabecera verificado en base aislada. El último recorrido administrativo quedó limitado por timeout del navegador; su prueba automatizada sí pasó. Detalle y límites en docs/34_diseno_temas.md.
+- Servidor local 5000 reiniciado con su misma configuración por plantilla retenida; HTTP 200 y archivos nuevos confirmados. Servidor de ensayo detenido y dos bases sintéticas identificadas retiradas. Entorno y base operativa conservados.
+
+## 2026-10-20 — Ajuste de menú y botón de tema
+
+- Por solicitud posterior, menú oscuro #16163A y claro #3B3B70, misma gama con mayor luminosidad. Botón Modo Claro/Modo Oscuro sustituye al desplegable; conserva preferencia y tema inicial del equipo. Se elimina la búsqueda de cabecera y su código/estilos.
+- Dos pruebas de contraste aprobadas y prueba Node actualizada para clic/persistencia; sintaxis JavaScript y diff correctos. Sin nueva suite general ni cambios de datos o permisos.
+
+## 2026-10-20 — Especialidades en el reporte individual
+
+- Experiencia previa registrada se reemplaza por Especialidades: Principal y Secundarias, con dos columnas y Sin registrar si faltan datos. Se eliminan las filas duplicadas de especialidades en la tabla personal. Solo presentación del reporte, sin alterar datos históricos.
+- Cinco pruebas del reporte aprobadas en 8,726 s; PDF sintético de tres páginas generado, texto de la sección comprobado y primera página renderizada e inspeccionada. Sin nueva suite general.
+
+## 2026-10-20 — Interpretación y dimensiones en el reporte
+
+- Interpretación descriptiva bajo la salida de la recomendación, equivalente a la interfaz y separada de la observación humana. Gráficos de barras antes del punto 7 para calificaciones institucionales, GSE, Mini-IPIP y NASA-TLX, con rangos y valores conservados en la propuesta confirmada. Sin propuesta vigente se indica no disponible; sin inferir entradas ni generar recomendaciones. Punto 7 inicia página para conservar legibilidad.
+- Cinco regresiones del reporte aprobadas en 7,976 s antes del ajuste final de salto de página; PDF sintético generado y orden/textos comprobados, gráficos renderizados e inspeccionados. Sin nueva suite general ni cambios de datos/modelos.
+
+## 2026-10-20 — Simplificación de textos del reporte individual
+
+- Retirados los cinco bloques señalados: explicación de cálculo/regla, alcance temporal de cursos, fórmula de asistencia, explicación de subescalas y bloque de arquitectura/SHA/aviso del modelo. Conservados resultados, gráficos, interpretación, observación, confirmación y trazabilidad restante. Sin cambios de cálculo ni almacenamiento.
+- Cinco pruebas del reporte aprobadas en 8,580 s; PDF sintético generado, ausencia de textos y conservación de secciones comprobadas, última página renderizada e inspeccionada. Sin nueva suite general.
+
+## 2026-10-20 — Retirada de Evaluaciones históricas
+
+- Eliminados el acceso en Evaluaciones y la plantilla evaluaciones_jefe.html. La URL anterior /gestion/evaluaciones-personal, incluido historico=1, redirige al módulo vigente para conservar enlaces guardados; otros accesos apuntan directamente a este. No se eliminan registros históricos, APIs ni otras páginas de consulta histórica.
+- Seis pruebas de módulos y espacio del Jefe aprobadas en 16,050 s, incluida ausencia del enlace y redirección para Administrador/Jefe. Sin nueva suite general ni cambios de base.
+
+## 2026-10-20 — Retirada del acceso histórico de calificaciones/publicaciones
+
+- Eliminado el enlace Calificaciones y publicaciones históricas en Evaluaciones. /gestion/seguimiento-operativo redirige siempre al módulo vigente, también con historico=1; la página anterior deja de mostrarse por esa ruta. Registros y APIs históricas conservados; plantilla compartida con la ruta histórica del Comandante no eliminada por afectar otro alcance.
+- Doce pruebas de módulos y organización aprobadas en 24,163 s, incluida ausencia del acceso y redirección para ambos gestores. Servidor local recargado con la misma configuración. Sin nueva suite general ni modificaciones de datos.
+
+## 2026-10-20 — Resultados propios en gráfico de torres
+
+- Tabla de resultados publicados sustituida por columnas verticales con escala fija 0–100, valores numéricos y nombres visibles. Física 1/2, promedio físico, Académica y solo promedio de Desempeño; ausentes indican Sin publicar y cero conserva su valor. Colores por grupo y desplazamiento interno en móvil. Misma proyección publicada, sin nuevas APIs ni datos.
+- Seis pruebas del panel aprobadas en 13,362 s; tras añadir comprobaciones del HTML del gráfico y privacidad, la prueba específica pasó en 1,510 s. Sin suite general ni recorrido visual completo nuevo.
+
+## 2026-10-20 — Reporte de notas publicadas por grado
+
+- Nuevo reporte para Administrador/Jefe con selector de Gestión del modelo anual. Solo activos vinculados y notas publicadas, según confirmación del solicitante. Agrupa por grado y ordena por promedio exacto de Físico, Académica y promedio de Desempeño; dos decimales, faltantes Sin resultado al final. PDF horizontal con carimbo, Gestión/año, fecha y firmas Comandante/Jefe.
+- Seis pruebas finales aprobadas en 14,910 s; PDF sintético multipágina y compacto inspeccionados, sintaxis JS y diff correctos. Fixture inicial corregido antes de repetir. Sin suite general, migraciones, datos operativos ni publicaciones reales creadas. Detalles en docs/35_reporte_notas_por_grado.md.
+
+## 2026-10-20 — Cabecera de Reportes sin acción duplicada
+
+- Suprimido el botón de acción superior en Reportes para ambos gestores; cada reporte conserva su botón Generar PDF y sus filtros. El resto de pantallas conserva su acción de cabecera. Regresión de generación PDF/acceso de ambos gestores aprobada en 1,272 s; diff correcto.
+
+## 2026-10-20 — Reingreso a Operaciones, SQLite v33
+
+- Instructor retirado vuelve a Asignar participantes. Confirmado por solicitante: recuperar nota y aporte anteriores. Movimientos append-only y vista vigente conservan retiro original y ciclos sucesivos; revisión incrementada, sin duplicar participación/notas. Cierre con notas requiere reapertura; inactivos/bajas y permisos conservan restricciones.
+- Migración respaldada en instance/backups/sicose-20261020-pre-v33-1228ca21.sqlite3: 74 tablas previas preservadas, 75 finales, nueva tabla vacía, dos aplicaciones, quick_check=ok/FK=0. Sin reingresos/retiros reales creados por el agente.
+- 23 regresiones aprobadas en 58,552 s; sintaxis JS y diff correctos. Sin suite general ni nuevo recorrido visual completo. Detalles en docs/36_reingreso_operaciones.md.
+
+## 2026-10-20 — Operaciones aporta su promedio a Académica
+
+- Por solicitud expresa, últimas notas de operaciones calificadas/vigentes se promedian en V3 abierta: 50 y 20 aportan 35. Académica conserva suma de cursos más ese promedio, tope 100. Pendientes no cuentan; ceros registrados sí. Precisión racional, sin modificar notas ni cierres/versiones publicadas. Resumen identifica promedio; históricos congelados conservan aporte.
+- Regresión de 30 pruebas/70,130 s: 29 aprobadas y fallo de formato del cero inicial corregido; esa prueba y nueva comprobación de publicación/republicación pasaron después, dos/2,121 s. Sin segunda regresión completa ni suite general. Sin migración, reentrenamiento ni publicaciones reales. Ver docs/37_promedio_operaciones.md.
+
+## 2026-10-20 — Académica promedia tres componentes y separa resúmenes
+
+- Decisiones confirmadas: (Asistencia + Cursos con tope 100 + promedio Operaciones)/3; asistencia sin computables aporta 0. Tarjetas independientes por Gestión, gráfico/tabla existentes, subtotales en negrita, fórmula visible y explicación de asistencia en icono informativo. Publicaciones previas/cierres conservados; fuentes de publicación incluyen criterio/asistencia.
+- 35 regresiones finales aprobadas en 87,253 s, tras corregir una expectativa previa detectada en primer conjunto. Ambos temas recorridos con datos sintéticos; ejemplo 75/100/35=70 comprobado. Sin suite general ni migración, datos/modelos/entorno preservados. Ver docs/38_academica_tres_componentes.md.
+
+## 2026-10-20 — Formato de notas con dos decimales
+
+- Tarjetas Física/Desempeño/Académica, listado, consulta de cierre y vista previa de publicación formatean notas con dos decimales. 36.666… se presenta como 36.67, sin redondear ni modificar el cálculo almacenado. Resumen académico reutiliza el mismo formato.
+- Cuatro comprobaciones Node aprobadas (decimal periódico, 82.5, cero y ausencia), sintaxis JavaScript y diff correctos. Sin cambios de backend/datos ni nueva suite funcional por ser formato de presentación.

@@ -6,16 +6,16 @@
   <meta name="description" content="Acceso a SICOSE">
   <title>SICOSE - SBRAB</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/sbrab-logo.png') }}">
+  <script src="{{ url_for('static', filename='js/tema_inicio.js') }}"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
   <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/interfaz.js') }}" defer></script>
 </head>
 <body class="pagina-login">
   <div class="login-pagina-contenido">
   <header class="login-cabecera">
     <p><strong>SICOSE</strong><span aria-hidden="true"> / </span>Acceso institucional</p>
-    <button id="boton-tema" class="boton-tema" type="button" aria-label="Cambiar a modo oscuro" aria-pressed="false">
-      <span id="tema-icono" class="tema-icono" aria-hidden="true">◐</span><span id="tema-etiqueta" class="tema-etiqueta">Modo oscuro</span>
-    </button>
+    {% include '_selector_tema.html' %}
   </header>
   <main class="login-shell">
     <section class="login-presentacion" aria-label="Sistema SICOSE">

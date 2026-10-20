@@ -25,26 +25,34 @@ function guardarPreferencia(clave, valor) {
   catch { /* El panel sigue siendo usable aunque el navegador bloquee el almacenamiento local. */ }
 }
 
-function aplicarTema(tema) {
-  const oscuro = tema === "dark";
-  document.documentElement.dataset.theme = oscuro ? "dark" : "light";
-  document.documentElement.style.colorScheme = oscuro ? "dark" : "light";
+const esquemaSistema = window.matchMedia('(prefers-color-scheme: dark)');
+let preferenciaTema = leerPreferencia('sicose-tema', 'system');
+if (!['light', 'dark', 'system'].includes(preferenciaTema)) preferenciaTema = 'system';
+function aplicarTema(preferencia) {
+  const oscuro = preferencia === 'dark' || (preferencia === 'system' && esquemaSistema.matches);
+  document.documentElement.dataset.theme = oscuro ? 'dark' : 'light';
+  document.documentElement.dataset.themePreference = preferencia;
+  document.documentElement.style.colorScheme = oscuro ? 'dark' : 'light';
+  const etiqueta = oscuro ? 'Modo Claro' : 'Modo Oscuro';
+  if (themeLabel) themeLabel.textContent = etiqueta;
+  if (themeIcon) themeIcon.textContent = oscuro ? '☀' : '☾';
   if (themeButton) {
-    themeButton.setAttribute("aria-pressed", String(oscuro));
-    themeButton.setAttribute("aria-label", oscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
-    if (themeIcon) themeIcon.textContent = oscuro ? "☀" : "◐";
-    if (themeLabel) themeLabel.textContent = oscuro ? "Modo claro" : "Modo oscuro";
+    themeButton.setAttribute('aria-label', oscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
+    themeButton.title = etiqueta;
   }
 }
-
-aplicarTema(appShell || loginForm ? leerPreferencia("sicose-tema", "light") : "light");
-if (themeButton) {
-  themeButton.addEventListener("click", () => {
-    const nuevoTema = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-    aplicarTema(nuevoTema);
-    guardarPreferencia("sicose-tema", nuevoTema);
-  });
-}
+aplicarTema(preferenciaTema);
+if (themeButton) themeButton.addEventListener('click', () => {
+  preferenciaTema = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  guardarPreferencia('sicose-tema', preferenciaTema);
+  aplicarTema(preferenciaTema);
+});
+esquemaSistema.addEventListener('change', () => { if (preferenciaTema === 'system') aplicarTema('system'); });
+window.addEventListener('storage', evento => {
+  if (evento.key !== 'sicose-tema') return;
+  preferenciaTema = ['light', 'dark', 'system'].includes(evento.newValue) ? evento.newValue : 'system';
+  aplicarTema(preferenciaTema);
+});
 
 if (appShell && sidebarButton) {
   const plegado = leerPreferencia("sicose-menu-plegado", "false") === "true";

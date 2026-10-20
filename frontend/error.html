@@ -5,10 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SICOSE - SBRAB</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/sbrab-logo.png') }}">
+  <script src="{{ url_for('static', filename='js/tema_inicio.js') }}"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/interfaz.js') }}" defer></script>
 </head>
 <body>
   <main class="contenedor error-pagina">
+    <div class="opciones-tema">{% include '_selector_tema.html' %}</div>
     <p class="marca">SICOSE</p>
     <p class="sobrelinea">ERROR {{ codigo }}</p>
     <h1>Acceso no disponible</h1>

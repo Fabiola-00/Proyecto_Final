@@ -34,7 +34,7 @@
     }
     function participantes(o,retirar){
       const f=elemento('form',undefined,'formulario-inline'),grupo=elemento('fieldset',undefined,'campo-ancho');grupo.append(elemento('legend',retirar?'Participantes que se retirarán':'Instructores Voluntarios activos'));
-      const candidatos=retirar?o.participantes.filter(p=>!p.retirada):personal.filter(p=>!o.participantes.some(v=>v.voluntario_id===p.id));
+      const candidatos=retirar?o.participantes.filter(p=>!p.retirada):personal.filter(p=>!o.participantes.some(v=>v.voluntario_id===p.id&&!v.retirada));
       candidatos.forEach(p=>{const l=elemento('label',undefined,'asignacion-participante'),i=elemento('input');i.type='checkbox';i.value=retirar?p.voluntario_id:p.id;i.dataset.revision=p.revision;i.disabled=retirar&&p.cuenta_estado!=='ACTIVO';l.append(i,elemento('span',p.nombre));grupo.append(l);});
       f.append(grupo);if(!candidatos.length)f.append(elemento('p',retirar?'Sin participantes vigentes para retirar.':'Sin personal disponible para asignar.'));
       const m=retirar?motivo(f):null;

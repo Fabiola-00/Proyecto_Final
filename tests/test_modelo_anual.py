@@ -52,6 +52,19 @@ class ModeloAnualTestCase(unittest.TestCase):
         for fuente in ('PSICOMETRICA_1','ACADEMICA'):
             self.assertEqual(self.cliente.post(self.url+'/personas/3',json={'fuente':fuente,'nota':80,'anterior_id':1,'motivo':'DEMO','evidencia':{}},headers=self.h).status_code,409)
 
+    def test_operaciones_promediadas_no_sumadas_con_cero_y_pendiente(self):
+        self.preparar_anual()
+        primera=self.operacion_demo();segunda=self.operacion_demo();self.operacion_demo()
+        self.assertEqual(self.puntuar_operacion(primera,50).status_code,201)
+        self.assertEqual(self.puntuar_operacion(segunda,20).status_code,201)
+        a=self.datos()['calculo']['academica']
+        self.assertAlmostEqual(a['valor'],35/3)
+        self.assertEqual(a['aporte_operaciones'],'35')
+        self.assertEqual(a['operaciones_calificadas'],2)
+        anterior=[n for n in self.datos()['historial']['operaciones'] if n['operacion_id']==segunda][-1]['id']
+        self.assertEqual(self.puntuar_operacion(segunda,0,anterior).status_code,201)
+        self.assertAlmostEqual(self.datos()['calculo']['academica']['valor'],25/3)
+
     def test_academica_suma_cursos_operaciones_tope_rango_y_correccion(self):
         self.preparar_anual();oid=self.operacion_demo();self.assertEqual(self.puntuar_operacion(oid,'60.25').status_code,201)
         curso={'nombre':'Curso dentro DEMO','tipo':'Taller','entidad':'Entidad DEMO','fecha_inicio':'2025-08-01','fecha_fin':'2025-09-01','puntaje':70}
@@ -60,10 +73,10 @@ class ModeloAnualTestCase(unittest.TestCase):
         part=self.cliente.get(f'/api/cursos/{cid}/participantes').json['participantes'][0]
         self.partid=part['id']
         r=self.cliente.patch(f'/api/formacion/participaciones/{self.partid}',json={'revision':1,'estado':'Finalizado','puntaje':70,'fecha_finalizacion':'2025-09-02','motivo':'Finalización DEMO'},headers=self.h);self.assertEqual(r.status_code,200,r.json)
-        a=self.datos()['calculo']['academica'];self.assertEqual(a['valor'],100);self.assertEqual(a['puntos_sin_tope'],130.25);self.assertEqual(len(a['detalle']),1)
+        a=self.datos()['calculo']['academica'];self.assertAlmostEqual(a['valor'],130.25/3);self.assertEqual(a['puntos_sin_tope'],130.25);self.assertEqual(len(a['detalle']),1)
         anterior=self.datos()['historial']['operaciones'][-1]['id']
         self.assertEqual(self.puntuar_operacion(oid,0).status_code,409)
-        self.assertEqual(self.puntuar_operacion(oid,0,anterior).status_code,201);self.assertEqual(self.datos()['calculo']['academica']['valor'],70)
+        self.assertEqual(self.puntuar_operacion(oid,0,anterior).status_code,201);self.assertAlmostEqual(self.datos()['calculo']['academica']['valor'],70/3)
         fuera=self.operacion_demo('2025-12-01');self.assertEqual(self.puntuar_operacion(fuera,100).status_code,409)
         for v in (True,-1,101,'0.001'):
             self.assertEqual(self.puntuar_operacion(oid,v,anterior).status_code,409)
@@ -85,7 +98,7 @@ class ModeloAnualTestCase(unittest.TestCase):
         self.preparar_anual();oid=self.operacion_demo();self.assertEqual(self.puntuar_operacion(oid,25).status_code,201)
         self.assertEqual(self.nota('DESEMPENO_JEFE',80).status_code,201)
         r=self.cierre();self.assertEqual(r.status_code,201,r.json);cid=r.json['cierre_id']
-        d=self.datos();self.assertFalse(d['calculo']['provisional']);self.assertEqual(d['calculo']['academica']['valor'],25)
+        d=self.datos();self.assertFalse(d['calculo']['provisional']);self.assertAlmostEqual(d['calculo']['academica']['valor'],25/3)
         self.assertEqual(self.nota('DESEMPENO_JEFE',90).status_code,409);self.assertEqual(self.puntuar_operacion(oid,100).status_code,409)
         self.assertEqual(self.cliente.patch(f'/api/operaciones/{oid}',json={'lugar':'Cambio cerrado'},headers=self.h).status_code,409)
         url=f'/api/admin/5b/periodos/{self.pid}/reabrir'
@@ -142,7 +155,7 @@ class ModeloAnualTestCase(unittest.TestCase):
             inicializar_base_datos();inicializar_base_datos()
             for t,filas in antes.items():self.assertEqual([tuple(f) for f in c.execute('SELECT * FROM '+t)],filas)
             for t in tablas:self.assertEqual(c.execute('SELECT COUNT(*) FROM '+t).fetchone()[0],0)
-            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'32')
+            self.assertEqual(c.execute("SELECT valor FROM app_meta WHERE clave='schema_version'").fetchone()[0],'33')
             self.assertEqual(c.execute('PRAGMA quick_check').fetchone()[0],'ok');self.assertEqual(c.execute('PRAGMA foreign_key_check').fetchall(),[])
 
     def test_bloqueo_formacion_en_fecha_anterior_y_nueva_del_periodo_cerrado(self):
@@ -242,7 +255,7 @@ class ModeloAnualTestCase(unittest.TestCase):
         self.assertEqual({f['id'] for f in d['operaciones']},{oid})
         self.assertNotIn(fuera,{f['id'] for f in d['operaciones']})
         self.assertEqual(d['asistencia'],{'ASISTE':1,'ATRASO':1,'PERMISO':1,'FALTA':1,'computables':3,'porcentaje':66.67})
-        self.assertEqual(d['calculo']['academica']['valor'],25)
+        self.assertAlmostEqual(d['calculo']['academica']['valor'],(66.67+25)/3)
         with self.app.app_context():
             c = obtener_conexion()
             c.execute("UPDATE asistencias SET estado='JUSTIFICADO',estado_detalle='PERMISO' WHERE voluntario_id=3")

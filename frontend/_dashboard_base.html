@@ -6,8 +6,10 @@
   <meta name="description" content="Sistema de Control y Evaluación de Personal">
   <title>SICOSE - SBRAB</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/sbrab-logo.png') }}">
+  <script src="{{ url_for('static', filename='js/tema_inicio.js') }}"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
   <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/interfaz.js') }}" defer></script>
 </head>
 <body class="pagina-panel" data-rol="{{ current_user.rol }}" data-usuario-id="{{ current_user.id }}">
   <div class="app-shell">
@@ -80,9 +82,8 @@
         <button class="boton-sidebar" id="boton-sidebar" type="button" aria-label="Plegar menú lateral" aria-controls="barra-lateral" aria-expanded="true" title="Plegar menú lateral">‹</button>
         <div class="miga"><span>SICOSE</span><span aria-hidden="true">/</span><strong>{{ titulo_pagina }}</strong></div>
         <span class="rol-chip">{{ current_user.rol_etiqueta }}</span>
-        <button class="boton-tema" id="boton-tema" type="button" aria-label="Cambiar a modo oscuro" aria-pressed="false">
-          <span class="tema-icono" id="tema-icono" aria-hidden="true">◐</span><span class="tema-etiqueta" id="tema-etiqueta">Modo oscuro</span>
-        </button>
+        {% include '_selector_tema.html' %}
+        {% if nav_activo != 'reportes' %}<button type="button" id="accion-principal-pagina" hidden></button>{% endif %}
       </header>
       <div class="contenido-pagina">
         <div class="encabezado-pagina">

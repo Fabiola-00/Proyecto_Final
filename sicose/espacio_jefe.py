@@ -68,14 +68,38 @@ def resumen_panel(c):
 @espacio_bp.get('/gestion/evaluaciones-personal')
 @role_required('ADMINISTRADOR','JEFE_PERSONAL')
 def evaluaciones():
-    if request.args.get('historico') != '1': return redirect('/gestion/modelo-anual')
-    return render_template('evaluaciones_jefe.html', titulo_pagina='Evaluaciones', nav_activo='evaluaciones_jefe', indicadores=[], periodo_actual=db.periodo_actual(), descripcion='Activa los ítems por gestión y habilita al personal.')
+    # Compatibilidad de enlaces guardados: la página histórica fue retirada.
+    return redirect('/gestion/modelo-anual')
 
 
 @espacio_bp.get('/gestion/reportes')
 @role_required('ADMINISTRADOR','JEFE_PERSONAL')
 def reportes():
     return render_template('gestion_reportes.html', titulo_pagina='Reportes',nav_activo='reportes',indicadores=[],periodo_actual=db.periodo_actual(),descripcion='Reportes administrativos de evaluaciones, asistencia, formación y operaciones.')
+
+
+@espacio_bp.get('/api/reportes/notas-por-grado.pdf')
+@role_required('ADMINISTRADOR','JEFE_PERSONAL')
+def reporte_notas_por_grado():
+    from .reporte_notas_grados import datos_listado, generar_listado
+    from flask_login import current_user
+    c=db.obtener_conexion()
+    try:
+        if set(request.args)!={'periodo_id'} or len(request.args.getlist('periodo_id'))!=1:
+            raise ValueError('Selecciona una Gestión.')
+        pid=int(request.args['periodo_id'])
+        c.execute('BEGIN')
+        datos=datos_listado(c,pid)
+        archivo=generar_listado(datos)
+        db.registrar_auditoria(c,current_user.id,f'REPORTE_NOTAS_GRADO:GESTION={pid}','EXITOSO')
+        c.commit()
+        respuesta=send_file(archivo,mimetype='application/pdf',as_attachment=False,download_name=f'notas-por-grado-gestion-{pid}.pdf',max_age=0)
+    except (ValueError,TypeError):
+        c.rollback();respuesta=jsonify(error='Selecciona una Gestión válida.');respuesta.status_code=400
+    except LookupError as error:
+        c.rollback();respuesta=jsonify(error=str(error));respuesta.status_code=404
+    respuesta.headers['Cache-Control']='private, no-store'
+    return respuesta
 
 
 @espacio_bp.get('/api/reportes/<tipo>.pdf')

@@ -37,8 +37,8 @@ class OperacionesV27TestCase(unittest.TestCase):
         self.assertIn('js/operaciones.js',html)
         self.assertNotIn('name="lugar"',html)
 
-    def test_retirada_recalcula_sin_borrar_notas_y_bloquea_reasignar(self):
-        self.vincular_y_calificar();self.assertEqual(self.datos()['calculo']['academica']['valor'],60)
+    def test_retirada_reingreso_recupera_notas_y_preserva_historial(self):
+        self.vincular_y_calificar();self.assertEqual(self.datos()['calculo']['academica']['valor'],20)
         d=self.datos_retiro();self.assertEqual(d['participaciones'][0]['revision'],2)
         r=self.cliente.post(self.ruta+'/retirar-participantes',json=d,headers=self.h)
         self.assertEqual(r.status_code,200,r.json)
@@ -47,7 +47,15 @@ class OperacionesV27TestCase(unittest.TestCase):
         self.assertEqual(actual['historial']['operaciones'][0]['puntos_centesimas'],6000)
         self.assertTrue(actual['operaciones'][0]['retirada'])
         self.assertEqual(self.puntuar_operacion(self.oid,80).status_code,409)
+        self.assertEqual(self.cliente.post(self.ruta+'/participaciones',json={'voluntario_ids':[3]},headers=self.h).status_code,201)
+        self.assertEqual(self.datos()['calculo']['academica']['valor'],20)
+        self.assertFalse(self.datos()['operaciones'][0]['retirada'])
         self.assertEqual(self.cliente.post(self.ruta+'/participaciones',json={'voluntario_ids':[3]},headers=self.h).status_code,409)
+        nuevo=self.datos_retiro()
+        self.assertEqual(self.cliente.post(self.ruta+'/retirar-participantes',json=nuevo,headers=self.h).status_code,200)
+        self.assertEqual(self.datos()['calculo']['academica']['valor'],0)
+        self.assertEqual(self.cliente.post(self.ruta+'/participaciones',json={'voluntario_ids':[3]},headers=self.h).status_code,201)
+        self.assertEqual(self.datos()['calculo']['academica']['valor'],20)
         self.assertEqual(self.cliente.post(self.ruta+'/retirar-participantes',json=d,headers=self.h).status_code,409)
         with self.app.app_context():
             c=obtener_conexion()
@@ -64,12 +72,50 @@ class OperacionesV27TestCase(unittest.TestCase):
         self.assertEqual(self.cliente.post(self.ruta+'/retirar-participantes',json=d,headers=self.h).status_code,200)
         self.assertEqual(self.datos()['calculo']['academica']['valor'],0)
 
+    def test_reingreso_bloquea_cierre_inactivo_y_lote_parcial(self):
+        self.vincular_y_calificar()
+        self.assertEqual(self.cliente.post(self.ruta+'/retirar-participantes',json=self.datos_retiro(),headers=self.h).status_code,200)
+        self.assertEqual(self.cliente.post(self.ruta+'/participaciones',json={'voluntario_ids':[3,99999]},headers=self.h).status_code,404)
+        self.assertTrue(self.datos()['operaciones'][0]['retirada'])
+        with self.app.app_context():
+            c=obtener_conexion();c.execute("UPDATE usuarios SET estado='INACTIVO' WHERE id=3");c.commit()
+        self.assertEqual(self.cliente.post(self.ruta+'/participaciones',json={'voluntario_ids':[3]},headers=self.h).status_code,404)
+        with self.app.app_context():
+            c=obtener_conexion();c.execute("UPDATE usuarios SET estado='ACTIVO' WHERE id=3");c.commit()
+        self.assertEqual(self.cierre().status_code,201)
+        self.assertEqual(self.cliente.post(self.ruta+'/participaciones',json={'voluntario_ids':[3]},headers=self.h).status_code,409)
+        with self.app.app_context():
+            c=obtener_conexion()
+            self.assertEqual(c.execute('SELECT count(*) FROM retiros_operacion').fetchone()[0],1)
+            self.assertEqual(c.execute('SELECT count(*) FROM movimientos_participacion_operacion').fetchone()[0],1)
+            with self.assertRaises(sqlite3.IntegrityError):
+                c.execute('DELETE FROM movimientos_participacion_operacion')
+            c.rollback()
+
+    def test_migracion_v32_conserva_retiro_y_notas(self):
+        self.vincular_y_calificar()
+        self.assertEqual(self.cliente.post(self.ruta+'/retirar-participantes',json=self.datos_retiro(),headers=self.h).status_code,200)
+        with self.app.app_context():
+            c=obtener_conexion()
+            retiro=tuple(c.execute('SELECT * FROM retiros_operacion').fetchone())
+            nota=tuple(c.execute('SELECT * FROM notas_operacion_anual').fetchone())
+            c.execute('DROP VIEW retiros_operacion_vigentes')
+            c.execute('DROP TABLE movimientos_participacion_operacion')
+            c.execute("UPDATE app_meta SET valor='32' WHERE clave='schema_version'");c.commit()
+            inicializar_base_datos();inicializar_base_datos()
+            self.assertEqual(tuple(c.execute('SELECT * FROM retiros_operacion').fetchone()),retiro)
+            self.assertEqual(tuple(c.execute('SELECT * FROM notas_operacion_anual').fetchone()),nota)
+            self.assertEqual(c.execute('SELECT count(*) FROM retiros_operacion_vigentes').fetchone()[0],1)
+            self.assertEqual(c.execute('SELECT count(*) FROM movimientos_participacion_operacion').fetchone()[0],0)
+            self.assertEqual(c.execute('PRAGMA quick_check').fetchone()[0],'ok')
+            self.assertEqual(c.execute('PRAGMA foreign_key_check').fetchall(),[])
+
     def test_retiro_atomico_revision_inactivo_csrf_y_roles(self):
         self.vincular_y_calificar();d=self.datos_retiro()
         self.assertEqual(self.cliente.post(self.ruta+'/retirar-participantes',json=d).status_code,400)
         alterado={'motivo':'DEMO','participaciones':d['participaciones']+[{'voluntario_id':99999,'revision':1}]}
         self.assertEqual(self.cliente.post(self.ruta+'/retirar-participantes',json=alterado,headers=self.h).status_code,409)
-        self.assertEqual(self.datos()['calculo']['academica']['valor'],60)
+        self.assertEqual(self.datos()['calculo']['academica']['valor'],20)
         obsoleto={'motivo':'DEMO','participaciones':[{'voluntario_id':3,'revision':1}]}
         self.assertEqual(self.cliente.post(self.ruta+'/retirar-participantes',json=obsoleto,headers=self.h).status_code,409)
         with self.app.app_context():
@@ -84,6 +130,8 @@ class OperacionesV27TestCase(unittest.TestCase):
         self.vincular_y_calificar()
         with self.app.app_context():
             c=obtener_conexion();antes=tuple(c.execute('SELECT * FROM notas_operacion_anual').fetchone())
+            c.execute('DROP VIEW retiros_operacion_vigentes')
+            c.execute('DROP TABLE movimientos_participacion_operacion')
             c.execute('DROP TABLE retiros_operacion')
             for campo in ('departamento','zona'):c.execute(f'ALTER TABLE operaciones DROP COLUMN {campo}')
             c.execute('ALTER TABLE participaciones_operacion DROP COLUMN revision')

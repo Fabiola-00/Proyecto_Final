@@ -127,7 +127,7 @@ def listar_operaciones():
     eventos=[dict(f) for f in conexion.execute(consulta+' ORDER BY o.fecha_inicio DESC,o.id DESC',parametros)]
     for evento in eventos:
         evento['baja']=baja(conexion,evento['id'])
-        q='''SELECT p.voluntario_id,p.revision,u.estado AS cuenta_estado,u.nombre_completo AS nombre,EXISTS(SELECT 1 FROM retiros_operacion r WHERE r.operacion_id=p.operacion_id AND r.voluntario_id=p.voluntario_id) AS retirada FROM participaciones_operacion p
+        q='''SELECT p.voluntario_id,p.revision,u.estado AS cuenta_estado,u.nombre_completo AS nombre,EXISTS(SELECT 1 FROM retiros_operacion_vigentes r WHERE r.operacion_id=p.operacion_id AND r.voluntario_id=p.voluntario_id) AS retirada FROM participaciones_operacion p
              JOIN voluntarios v ON v.usuario_id=p.voluntario_id JOIN usuarios u ON u.id=v.usuario_id WHERE p.operacion_id=?'''
         args=[evento['id']]
         if current_user.rol=='INSTRUCTOR_VOLUNTARIO': q+=' AND p.voluntario_id=?';args.append(current_user.id)
@@ -205,7 +205,18 @@ def vincular_participacion(operacion_id):
             conexion.rollback();return error('La operación está dada de baja; conserva sus participaciones históricas.',409)
         if any(not personal_permitido(conexion,i) for i in ids):
             conexion.rollback();return error('Personal fuera de tu ámbito activo.',404)
-        conexion.executemany('INSERT INTO participaciones_operacion(operacion_id,voluntario_id) VALUES (?,?)',[(operacion_id,i) for i in ids])
+        for i in ids:
+            anterior=conexion.execute('SELECT revision FROM participaciones_operacion WHERE operacion_id=? AND voluntario_id=?',(operacion_id,i)).fetchone()
+            if anterior:
+                if not conexion.execute('SELECT 1 FROM retiros_operacion_vigentes WHERE operacion_id=? AND voluntario_id=?',(operacion_id,i)).fetchone():
+                    conexion.rollback();return error('Una participación ya está vigente; no se guardó ninguna.',409)
+                if conexion.execute("SELECT 1 FROM notas_operacion_anual n JOIN periodos p ON p.id=n.periodo_id WHERE n.operacion_id=? AND n.voluntario_id=? AND p.estado='CERRADO'",(operacion_id,i)).fetchone():
+                    conexion.rollback();return error('La participación tiene notas en una Gestión cerrada; requiere reapertura administrativa.',409)
+                conexion.execute('INSERT INTO movimientos_participacion_operacion VALUES (?,?,?,?,?,?,?,?)',(operacion_id,i,anterior['revision']+1,'REINGRESO','Reincorporación solicitada mediante asignación de participantes.',current_user.id,current_user.nombre,db._ahora_utc()))
+                conexion.execute('UPDATE participaciones_operacion SET revision=revision+1 WHERE operacion_id=? AND voluntario_id=?',(operacion_id,i))
+                auditar(conexion,f'PARTICIPACION_REINCORPORADA:OPERACION={operacion_id}:PERSONA={i}')
+            else:
+                conexion.execute('INSERT INTO participaciones_operacion(operacion_id,voluntario_id) VALUES (?,?)',(operacion_id,i))
         auditar(conexion,'PARTICIPACION_REGISTRADA');conexion.commit()
     except sqlite3.IntegrityError:
         conexion.rollback();return error('Una participación ya está registrada; no se guardó ninguna.',409)

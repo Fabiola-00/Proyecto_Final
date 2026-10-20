@@ -201,7 +201,7 @@ def inicializar_base_datos():
         ((rol,) for rol in ROLES),
     )
     conexion.execute(
-        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '32')
+        """INSERT INTO app_meta (clave, valor) VALUES ('schema_version', '33')
            ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor"""
     )
     conexion.commit()
